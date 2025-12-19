@@ -1,0 +1,39 @@
+Develop a comprehensive Christmas Carols app called "CarolQuest" that lets users curate personalized playlists of carols, order them intuitively, and gamify group singing sessions with random challenges, part assignments, and real-time interactions. The app targets families, choirs, and holiday parties, emphasizing fun, social sharing, and seasonal engagement.
+
+Core Features
+User-Curated Carol Library: Users upload or select carols from a vast library (pre-loaded classics like "Silent Night," "Jingle Bells," plus user-added via audio/lyrics import). Features include favorites marking, custom tags (e.g., "upbeat," "traditional"), and collaborative playlists shareable via links or QR codes.
+
+Smart Ordering & Playback: Drag-and-drop reordering with AI-suggested sequences based on mood/energy curves (e.g., slow build-up to festive peaks). Playback supports lyrics sync, tempo adjustment, looping verses, and multi-device casting for group harmony.
+
+Gamification Engine: When a carol starts, trigger random events like "Verse Roulette" (spin wheel assigns solo/duet parts to participants via phone cams or names). Group modes detect nearby users (Bluetooth/QR join), randomize roles (soprano/tenor/bass), award points/badges for participation, and unlock power-ups (e.g., auto-harmony effects). Leaderboards track sessions with multipliers for perfect sync or creative improv.
+
+Social & Sharing: Live session recording with AR overlays (snowflakes, elves dancing to beats), export as shareable reels. Multiplayer lobbies for virtual caroling parties, with chat, reactions, and prediction bets (e.g., "Who nails the high note?").
+
+Accessibility & Extras: Offline mode, voice commands for hands-free singing, dark mode with festive themes, integration with smart lights/speakers for synced ambiance.
+
+Technical Stack
+Build as a progressive web app (PWA) for cross-platform (iOS/Android/web) with offline support.
+
+Component	Technology	Rationale
+Frontend	Next.js 15 (React) + Tailwind CSS + Framer Motion	Server-side rendering for SEO/fast loads; smooth animations for gamified spins/UI; responsive design.
+State Management	Zustand + Immer	Lightweight, performant for real-time playlist/gamification state sync.
+Audio/Playback	Howler.js + Web Audio API	Low-latency carol playback, lyrics timing via MediaElement; supports effects like reverb for parts.
+Gamification	Konva.js (canvas for wheels/badges) + Socket.io	Real-time multiplayer challenges; peer-to-peer via WebRTC for low-latency role assignment.
+Backend	Supabase (Postgres + Realtime + Auth)	User auth, collaborative DB for playlists, real-time subscriptions for live sessions.
+File Upload/Storage	Supabase Storage + FFmpeg.wasm	User carol uploads with auto-transcription (lyrics via Whisper.js) and compression.
+AI Features	Vercel AI SDK + Grok/Hugging Face	Playlist suggestions, lyric sync detection, voice analysis for harmony scoring.
+Deployment	Vercel + Cloudflare Workers	Edge caching for global low-latency; PWA manifest for installable app feel.
+MVP Development Roadmap
+Set up Next.js boilerplate with Supabase auth and Tailwind.
+
+Implement carol library CRUD and drag-sort playlists.
+
+Add audio player with lyrics overlay.
+
+Build gamification core: randomizer wheel and Socket.io rooms.
+
+Polish with AR filters (via AR.js) and sharing.
+
+Test multiplayer on local network; deploy to Vercel.
+
+This stack leverages your expertise in Next.js, React, and Web3 (add WalletConnect for NFT badges later). Total MVP build: 2-4 weeks for a solo dev.
