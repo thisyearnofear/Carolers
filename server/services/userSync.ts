@@ -38,7 +38,8 @@ class UserSyncService {
       log(`🔄 User synchronized: ${syncedUser.id} (${syncedUser.username})`, 'user-sync');
 
     } catch (error) {
-      log(`❌ User sync failed for ${clerkUser.id}: ${error.message}`, 'user-sync');
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      log(`❌ User sync failed for ${clerkUser.id}: ${errorMessage}`, 'user-sync');
       throw error;
     }
   }
@@ -69,7 +70,8 @@ class UserSyncService {
       }
       log(`🔄 Batch sync completed: ${users.length} users`, 'user-sync');
     } catch (error) {
-      log(`❌ Batch sync failed: ${error.message}`, 'user-sync');
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      log(`❌ Batch sync failed: ${errorMessage}`, 'user-sync');
       throw error;
     }
   }
@@ -79,7 +81,8 @@ class UserSyncService {
     try {
       return await this.storage.getUser(clerkId);
     } catch (error) {
-      log(`❌ Failed to get user ${clerkId}: ${error.message}`, 'user-sync');
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      log(`❌ Failed to get user ${clerkId}: ${errorMessage}`, 'user-sync');
       throw error;
     }
   }

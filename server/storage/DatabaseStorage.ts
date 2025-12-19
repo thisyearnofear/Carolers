@@ -63,7 +63,7 @@ export class DatabaseStorage implements IStorage {
   async joinEvent(eventId: string, userId: string): Promise<void> {
     // PERFORMANT: Atomic update with array manipulation
     const event = await this.getEvent(eventId);
-    if (event && !event.members.includes(userId)) {
+    if (event && event.members && !event.members.includes(userId)) {
       await db.update(events)
         .set({ members: [...event.members, userId] })
         .where(eq(events.id, eventId));

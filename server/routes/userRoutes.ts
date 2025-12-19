@@ -37,11 +37,12 @@ router.post('/sync', async (req, res) => {
     });
 
   } catch (error) {
-    log(`❌ User sync failed: ${error.message}`, 'api-user-sync');
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    log(`❌ User sync failed: ${errorMessage}`, 'api-user-sync');
     res.status(500).json({
       success: false,
       error: 'Failed to synchronize user',
-      details: error.message,
+      details: errorMessage,
     });
   }
 });
@@ -75,11 +76,12 @@ router.get('/:userId', async (req, res) => {
     });
 
   } catch (error) {
-    log(`❌ Get user failed: ${error.message}`, 'api-user-get');
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    log(`❌ Get user failed: ${errorMessage}`, 'api-user-get');
     res.status(500).json({
       success: false,
       error: 'Failed to get user',
-      details: error.message,
+      details: errorMessage,
     });
   }
 });
@@ -96,11 +98,12 @@ router.get('/:userId/needs-sync', async (req, res) => {
     });
 
   } catch (error) {
-    log(`❌ Needs sync check failed: ${error.message}`, 'api-user-check');
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    log(`❌ Needs sync check failed: ${errorMessage}`, 'api-user-check');
     res.status(500).json({
       success: false,
       error: 'Failed to check sync status',
-      details: error.message,
+      details: errorMessage,
     });
   }
 });
