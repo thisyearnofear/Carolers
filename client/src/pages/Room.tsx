@@ -6,11 +6,12 @@ import { LyricsModal } from '@/components/LyricsModal';
 import { Countdown } from '@/components/Countdown';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronLeft, Send, Gift, MessageSquare, Music } from 'lucide-react';
+import { ChevronLeft, Send, Gift, MessageSquare, Music, Info } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppUser, getCurrentUserId } from '@/lib/auth';
 import { type Carol } from '@shared/schema';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 
 export default function Room() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -27,6 +28,10 @@ export default function Room() {
   const [messageText, setMessageText] = useState('');
   const [contributionText, setContributionText] = useState('');
   const [activeTab, setActiveTab] = useState<'songs' | 'details' | 'chat' | 'contributions'>('songs');
+  const [showTooltips, setShowTooltips] = useState(() => {
+    // Show tooltips only for first-time users
+    return localStorage.getItem('carolers_tooltips_seen') !== 'true';
+  });
   const [selectedCarol, setSelectedCarol] = useState<Carol | null>(null);
   const [lyricsModalOpen, setLyricsModalOpen] = useState(false);
 
@@ -71,7 +76,8 @@ export default function Room() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <TooltipProvider>
+      <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -116,22 +122,42 @@ export default function Room() {
           </div>
         </motion.div>
 
-        {/* Tabs */}
+        {/* Tabs with Tooltips */}
         <div className="flex gap-2 mb-8 overflow-x-auto pb-2 sticky top-20 bg-background z-30">
           {[
-            { id: 'songs', label: 'Vote on Songs', icon: Music },
-            { id: 'details', label: 'Event Details' },
-            { id: 'contributions', label: 'Bring Something', icon: Gift },
-            { id: 'chat', label: 'Group Chat', icon: MessageSquare }
+            { id: 'songs', label: 'Vote on Songs', icon: Music, 
+              tooltip: 'Vote on your favorite carols for the group to sing together' },
+            { id: 'details', label: 'Event Details',
+              tooltip: 'View event information, date, time, location and prepare for the celebration' },
+            { id: 'contributions', label: 'Bring Something', icon: Gift,
+              tooltip: 'Coordinate what everyone brings - food, decorations, song sheets, etc.' },
+            { id: 'chat', label: 'Group Chat', icon: MessageSquare,
+              tooltip: 'Connect with fellow singers, discuss songs, and build excitement' }
           ].map((tab) => (
-            <Button
-              key={tab.id}
-              variant={activeTab === tab.id ? 'default' : 'secondary'}
-              onClick={() => setActiveTab(tab.id as any)}
-              className="whitespace-nowrap"
-            >
-              {tab.label}
-            </Button>
+            <Tooltip key={tab.id} open={showTooltips} onOpenChange={(open) => {
+              if (!open && showTooltips) {
+                setShowTooltips(false);
+                localStorage.setItem('carolers_tooltips_seen', 'true');
+              }
+            }}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={activeTab === tab.id ? 'default' : 'secondary'}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className="whitespace-nowrap"
+                >
+                  {tab.label}
+                </Button>
+              </TooltipTrigger>
+              {showTooltips && tab.tooltip && (
+                <TooltipContent side="bottom" align="center">
+                  <div className="flex items-center gap-2">
+                    {tab.icon && <span className="text-xs">{React.createElement(tab.icon, { className: 'w-3 h-3' })}</span>}
+                    <span>{tab.tooltip}</span>
+                  </div>
+                </TooltipContent>
+              )}
+            </Tooltip>
           ))}
         </div>
 
@@ -308,8 +334,28 @@ export default function Room() {
                 <div>
                   <h3 className="font-display text-xl font-bold mb-4">Contributions</h3>
                   <div className="space-y-3">
-                    {event.contributions.map(contrib => (
-                      <Card key={contrib.id} className="p-4">
+                    {event.contributions.length === 0 ? (
+                      <div className="text-center py-8 px-4 border-2 border-dashed border-muted/30 rounded-lg bg-muted/10">
+                        <div className="w-12 h-12 mx-auto mb-3 bg-accent/10 rounded-full flex items-center justify-center">
+                          <span className="text-2xl">🎁</span>
+                        </div>
+                        <h4 className="font-semibold text-primary mb-1">No contributions yet</h4>
+                        <p className="text-muted-foreground text-sm mb-4">
+                          Be the first to suggest what to bring!
+                        </p>
+                        <div className="bg-accent/5 border border-accent/20 rounded-lg p-3 text-xs text-left max-w-xs mx-auto">
+                          <p className="text-muted-foreground mb-1">Suggest:</p>
+                          <ul className="text-primary space-y-1">
+                            <li>• Hot cocoa & cookies</li>
+                            <li>• Song sheets & lyrics</li>
+                            <li>• Festive decorations</li>
+                            <li>• Camera for memories</li>
+                          </ul>
+                        </div>
+                      </div>
+                    ) : (
+                      event.contributions.map(contrib => (
+                        <Card key={contrib.id} className="p-4">
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-bold">{contrib.item}</p>
@@ -324,7 +370,7 @@ export default function Room() {
                           </span>
                         </div>
                       </Card>
-                    ))}
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -335,7 +381,19 @@ export default function Room() {
                 <Card className="p-6 h-96 overflow-y-auto bg-secondary/5 flex flex-col justify-end">
                   <div className="space-y-3">
                     {event.messages.length === 0 ? (
-                      <p className="text-muted-foreground text-center text-sm">No messages yet. Start the conversation!</p>
+                      <div className="text-center py-8 px-4">
+                        <div className="w-12 h-12 mx-auto mb-3 bg-primary/10 rounded-full flex items-center justify-center">
+                          <span className="text-2xl">💬</span>
+                        </div>
+                        <h4 className="font-semibold text-primary mb-1">No messages yet</h4>
+                        <p className="text-muted-foreground text-sm mb-4">
+                          Be the first to start the conversation!
+                        </p>
+                        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-xs text-left max-w-xs mx-auto">
+                          <p className="text-muted-foreground mb-1">Example:</p>
+                          <p className="text-primary">"I'm so excited for our caroling event! What's everyone's favorite holiday song? 🎄🎵"</p>
+                        </div>
+                      </div>
                     ) : (
                       event.messages.map(msg => (
                         <div key={msg.id} className="p-3 bg-white/50 dark:bg-black/20 rounded-lg">
@@ -403,5 +461,6 @@ export default function Room() {
         }}
       />
     </div>
+      </TooltipProvider>
   );
 }
