@@ -4,11 +4,13 @@ import { Suspense, useState } from 'react';
 import { EventListServer } from './components/event/event-list-server';
 import { EventCardSkeleton } from './components/event/event-card-skeleton';
 import { CreateEventModal } from './components/modals/create-event-modal';
+import { JoinEventModal } from './components/modals/join-event-modal';
 import { Button } from './components/ui/button';
 import { Plus, Users } from 'lucide-react';
 
 export default function HomePage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-50 to-blue-100 py-8">
@@ -27,6 +29,7 @@ export default function HomePage() {
               Create Event
             </Button>
             <Button 
+              onClick={() => setShowJoinModal(true)}
               variant="outline"
               size="lg"
             >
@@ -52,6 +55,10 @@ export default function HomePage() {
       <CreateEventModal 
         open={showCreateModal}
         onOpenChange={setShowCreateModal}
+      />
+      <JoinEventModal 
+        open={showJoinModal}
+        onOpenChange={setShowJoinModal}
       />
     </div>
   );
