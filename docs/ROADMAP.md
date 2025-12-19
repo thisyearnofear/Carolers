@@ -118,6 +118,7 @@ An intuitive, festive, holistic caroling experience that guides users through di
 - **MODULAR**: LyricsModal, RecapPage, PrepGuide are isolated, composable
 - **PERFORMANT**: Lyrics loaded once at app start; no per-carol API calls
 - **ORGANIZED**: Domain-driven (before/, during/, after/ conceptual grouping in code)
+- **SERVERLESS**: On-demand polling (no WebSockets); Vercel-compatible stateless architecture
 
 ---
 
@@ -206,8 +207,31 @@ An intuitive, festive, holistic caroling experience that guides users through di
 
 ---
 
+## Infrastructure: Vercel Deployment (Completed)
+
+### Polling Strategy
+- **On-demand**: User actions (vote, message, contribution) trigger debounced refresh (2s debounce)
+- **Retry logic**: 3 attempts with 1s/2s/3s exponential backoff
+- **No background polling**: Disabled by default to minimize DB queries on serverless
+- **Configuration**: `client/src/config/polling.ts` (toggle background polling if needed)
+
+### Serverless Optimization
+- **Connection pooling**: Drizzle configured with mysql2 pool (handles concurrent requests)
+- **No sessions**: Express-session removed (Clerk handles auth, not stored in memory)
+- **Stateless server**: Exports app for Vercel handler; no port binding in production
+- **Environment variables**: All secrets configured in Vercel project settings
+- **Request timeout**: Keep API endpoints under 10s (Vercel free tier limit)
+
+### What This Enables
+✅ Vercel free tier deployment (no cold start issues for polling)
+✅ Horizontal scaling (stateless invocations)
+✅ No WebSocket limitations
+✅ Zero session storage complexity
+
 ## Next Steps (User-Owned)
-1. **Seed lyrics data**: Populate `carols` table with real songs from mindprod.com (public domain)
-2. **Test end-to-end**: Walk through BEFORE → DURING → AFTER user journey
-3. **Optimize mobile**: Test Room lyrics readability on actual phone (outdoor venue use)
-4. **Gather feedback**: Validate vocal range guide, theme context, and celebration features
+1. **Deploy to Vercel**: Ensure DATABASE_URL and CLERK_* env vars are set
+2. **Load test**: Monitor polling behavior under multiple concurrent users
+3. **Seed lyrics data**: Populate `carols` table with real songs from mindprod.com (public domain)
+4. **Test end-to-end**: Walk through BEFORE → DURING → AFTER user journey
+5. **Optimize mobile**: Test Room lyrics readability on actual phone (outdoor venue use)
+6. **Gather feedback**: Validate vocal range guide, theme context, and celebration features
