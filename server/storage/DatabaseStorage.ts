@@ -82,10 +82,12 @@ export class DatabaseStorage implements IStorage {
 
   async createCarol(carol: InsertCarol): Promise<Carol> {
     const id = randomUUID();
+    const { id: _, ...insertData } = carol as any;
     await db.insert(carols).values({
-      ...carol,
+      ...insertData,
       id,
       votes: 0,
+      energy: carol.energy as 'low' | 'medium' | 'high',
     });
     return (await this.getCarol(id))!;
   }
@@ -109,9 +111,11 @@ export class DatabaseStorage implements IStorage {
 
   async createContribution(contribution: InsertContribution): Promise<Contribution> {
     const id = randomUUID();
+    const { id: _, ...insertData } = contribution as any;
     await db.insert(contributions).values({
-      ...contribution,
+      ...insertData,
       id,
+      status: (contribution.status || 'proposed') as 'proposed' | 'confirmed' | 'brought' | null,
     });
     const result = await db.select().from(contributions).where(eq(contributions.id, id)).limit(1);
     return result[0];
