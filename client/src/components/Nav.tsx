@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'wouter';
+import { Link, useLocation } from 'react-router-dom';
 import { Trophy, Menu } from 'lucide-react';
 import { Button } from './ui/button';
 
@@ -8,10 +8,8 @@ export function Nav() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link href="/">
-          <a className="flex items-center gap-2 group">
-            <span className="font-display text-3xl font-bold text-primary tracking-wider">Carolers</span>
-          </a>
+        <Link to="/" className="flex items-center gap-2 group">
+          <span className="font-display text-3xl font-bold text-primary tracking-wider">Carolers</span>
         </Link>
 
         <div className="flex items-center gap-4">

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useParams, useLocation } from 'wouter';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '@/store/useStore';
 import { VoteCard } from '@/components/VoteCard';
 import { Countdown } from '@/components/Countdown';
@@ -10,8 +10,8 @@ import { Card } from '@/components/ui/card';
 import { useState } from 'react';
 
 export default function Room() {
-  const { eventId } = useParams();
-  const [, setLocation] = useLocation();
+  const { eventId } = useParams<{ eventId: string }>();
+  const navigate = useNavigate();
   const event = useStore(state => state.events.find(e => e.id === eventId));
   const carols = useStore(state => state.carols);
   const voteForCarol = useStore(state => state.voteForCarol);
@@ -27,7 +27,7 @@ export default function Room() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground">Event not found</p>
-          <Button onClick={() => setLocation('/')} className="mt-4">Back to Home</Button>
+          <Button onClick={() => navigate('/')} className="mt-4">Back to Home</Button>
         </div>
       </div>
     );

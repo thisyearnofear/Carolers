@@ -1,45 +1,10 @@
 import { create } from 'zustand';
 import { produce } from 'immer';
-
-export type Carol = {
-  id: string;
-  title: string;
-  artist: string;
-  tags: string[];
-  duration: string;
-  lyrics: string[];
-  energy: 'low' | 'medium' | 'high';
-  coverUrl?: string;
-  votes?: number;
-};
-
-export type Event = {
-  id: string;
-  name: string;
-  date: Date;
-  theme: string; // e.g., "Christmas", "Easter", "Hanukkah"
-  venue?: string;
-  description: string;
-  members: string[];
-  carols: string[]; // carol IDs
-  contributions: Contribution[];
-  messages: Message[];
-  coverImage?: string;
-};
-
-export type Contribution = {
-  id: string;
-  memberId: string;
-  item: string;
-  status: 'proposed' | 'confirmed' | 'brought';
-};
-
-export type Message = {
-  id: string;
-  memberId: string;
-  text: string;
-  timestamp: Date;
-};
+// ENHANCEMENT FIRST: Use unified schema instead of duplicating types
+import { type Event, type Carol, type Contribution, type Message } from '@shared/schema';
+// ENHANCEMENT FIRST: Use real API instead of mock data
+import { eventsAPI, carolsAPI, contributionsAPI, messagesAPI } from '@/lib/api';
+import { socketService } from '@/lib/socket';
 
 export type PlayerState = {
   isPlaying: boolean;
@@ -57,17 +22,24 @@ export type GamificationState = {
 type Store = {
   carols: Carol[];
   events: Event[];
+  contributions: Contribution[];
+  messages: Message[];
   currentEventId: string | null;
   player: PlayerState;
   gamification: GamificationState;
+  isLoading: boolean;
+  error: string | null;
   
-  // Event actions
-  createEvent: (event: Omit<Event, 'id' | 'members' | 'carols' | 'contributions' | 'messages'>) => void;
-  joinEvent: (eventId: string, memberId: string) => void;
+  // ENHANCEMENT FIRST: Real API actions instead of mock mutations
+  loadEvents: () => Promise<void>;
+  loadCarols: () => Promise<void>;
+  loadEventData: (eventId: string) => Promise<void>;
+  createEvent: (event: Omit<Event, 'id' | 'members' | 'carols' | 'createdAt'>) => Promise<void>;
+  joinEvent: (eventId: string, memberId: string) => Promise<void>;
   setCurrentEvent: (eventId: string | null) => void;
-  voteForCarol: (eventId: string, carolId: string) => void;
-  addContribution: (eventId: string, contribution: Omit<Contribution, 'id'>) => void;
-  addMessage: (eventId: string, message: Omit<Message, 'id' | 'timestamp'>) => void;
+  voteForCarol: (eventId: string, carolId: string) => Promise<void>;
+  addContribution: (eventId: string, contribution: Omit<Contribution, 'id' | 'createdAt'>) => Promise<void>;
+  addMessage: (eventId: string, message: Omit<Message, 'id' | 'timestamp'>) => Promise<void>;
   
   // Playlist actions
   playCarol: (carolId: string) => void;

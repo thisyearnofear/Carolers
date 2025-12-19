@@ -4,7 +4,7 @@ import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Countdown } from './Countdown';
 import { type Event } from '@/store/useStore';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 
 interface EventCardProps {
   event: Event;
@@ -19,12 +19,12 @@ const THEME_COLORS: Record<string, { bg: string; accent: string; border: string 
 };
 
 export function EventCard({ event, onClick }: EventCardProps) {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const colors = THEME_COLORS[event.theme] || THEME_COLORS['Christmas'];
 
   const handleClick = () => {
     onClick?.();
-    setLocation(`/room/${event.id}`);
+    navigate(`/events/${event.id}`);
   };
 
   return (
