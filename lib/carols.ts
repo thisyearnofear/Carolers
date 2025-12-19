@@ -1,6 +1,6 @@
 import { db } from './db';
 import { carols, type Carol } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 export async function getCarols(): Promise<Carol[]> {
   try {
@@ -24,7 +24,7 @@ export async function getCarol(id: string): Promise<Carol | null> {
 export async function voteForCarol(id: string) {
   try {
     await db.update(carols).set({
-      votes: db.raw('votes + 1')
+      votes: sql`${carols.votes} + 1`
     }).where(eq(carols.id, id));
   } catch (error) {
     console.error(`Failed to vote for carol with id ${id}:`, error);

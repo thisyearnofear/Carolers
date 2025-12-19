@@ -1,11 +1,11 @@
 import { drizzle } from 'drizzle-orm/mysql2';
-import { createConnection } from 'mysql2/promise';
+import { createConnection, Connection } from 'mysql2/promise';
 import * as schema from '@shared/schema';
 
-let dbConnection: ReturnType<typeof createConnection> | undefined;
+let dbConnection: Connection | undefined;
 let cachedDb: ReturnType<typeof drizzle> | undefined;
 
-export async function getDbConnection() {
+export async function getDb() {
   if (cachedDb) {
     return cachedDb;
   }
@@ -18,11 +18,21 @@ export async function getDbConnection() {
     database: process.env.DB_NAME || 'carolers',
   });
 
-  const db = drizzle(connection, { schema });
-  cachedDb = db;
+  const dbInstance = drizzle(connection, { schema, mode: 'default' });
+  cachedDb = dbInstance;
   dbConnection = connection;
 
-  return db;
+  return dbInstance;
 }
 
-export const db = await getDbConnection();
+// For convenience, create a singleton that gets initialized on first use
+let dbPromise: ReturnType<typeof getDb> | null = null;
+export const db = new Proxy({} as Awaited<ReturnType<typeof getDb>>, {
+  get(target, prop) {
+    if (!dbPromise) dbPromise = getDb();
+    return (...args: any[]) => dbPromise!.then((d: any) => {
+      const val = d[prop];
+      return typeof val === 'function' ? val.apply(d, args) : val;
+    });
+  }
+});

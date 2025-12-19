@@ -1,9 +1,10 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { type Event } from '@shared/schema';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Play, Pause, RotateCcw } from 'lucide-react';
-import { getCarols } from '@/lib/carols';
 
 interface CarolPlayerProps {
   event: Event;
@@ -17,9 +18,15 @@ export function CarolPlayer({ event }: CarolPlayerProps) {
 
   useEffect(() => {
     async function fetchCarols() {
-      const allCarols = await getCarols();
-      const eventCarols = event.carols?.map(id => allCarols.find(c => c.id === id)).filter(Boolean) || [];
-      setCarols(eventCarols);
+      try {
+        const response = await fetch('/api/carols');
+        if (!response.ok) throw new Error('Failed to fetch');
+        const allCarols = await response.json();
+        const eventCarols = event.carols?.map(id => allCarols.find((c: any) => c.id === id)).filter(Boolean) || [];
+        setCarols(eventCarols);
+      } catch (error) {
+        console.error('Failed to fetch carols:', error);
+      }
     }
 
     fetchCarols();

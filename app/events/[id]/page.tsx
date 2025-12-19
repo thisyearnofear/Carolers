@@ -2,8 +2,9 @@ import { notFound } from 'next/navigation';
 import { EventRoom } from '../../components/event/event-room';
 import { getEvent } from '@/lib/events';
 
-export default async function EventPage({ params }: { params: { id: string } }) {
-  const event = await getEvent(params.id);
+export default async function EventPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const event = await getEvent(id);
   
   if (!event) {
     notFound();

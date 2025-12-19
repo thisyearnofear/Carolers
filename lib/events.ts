@@ -21,14 +21,21 @@ export async function getEvent(id: string): Promise<Event | null> {
   }
 }
 
-export async function createEvent(eventData: Omit<Event, 'id' | 'members' | 'carols' | 'createdAt'>) {
+export async function createEvent(eventData: Omit<Event, 'id' | 'members' | 'carols' | 'createdAt' | 'coverImage'>) {
   try {
-    const [newEvent] = await db.insert(events).values({
+    await db.insert(events).values({
       ...eventData,
       members: [],
       carols: [],
-    }).returning();
-    return newEvent;
+      coverImage: null,
+    });
+    // MySQL doesn't support returning, so return the input data
+    return {
+      ...eventData,
+      members: [],
+      carols: [],
+      coverImage: null,
+    };
   } catch (error) {
     console.error('Failed to create event:', error);
     throw error;

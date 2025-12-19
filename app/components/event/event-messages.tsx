@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useUser } from '@clerk/nextjs';
-import { getEventMessages, addMessage } from '@/lib/messages';
 
 interface EventMessagesProps {
   eventId: string;
@@ -22,7 +21,9 @@ export function EventMessages({ eventId }: EventMessagesProps) {
   useEffect(() => {
     async function loadMessages() {
       try {
-        const messagesData = await getEventMessages(eventId);
+        const response = await fetch(`/api/events/${eventId}/messages`);
+        if (!response.ok) throw new Error('Failed to fetch');
+        const messagesData = await response.json();
         setMessages(messagesData);
       } catch (error) {
         console.error('Failed to load messages:', error);
@@ -47,11 +48,17 @@ export function EventMessages({ eventId }: EventMessagesProps) {
     if (!newMessage.trim() || !user) return;
 
     try {
-      const message = await addMessage({
-        eventId,
-        memberId: user.id,
-        text: newMessage
+      const response = await fetch(`/api/events/${eventId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memberId: user.id,
+          text: newMessage
+        })
       });
+      
+      if (!response.ok) throw new Error('Failed to send message');
+      const message = await response.json();
 
       setMessages(prev => [...prev, message]);
       setNewMessage('');

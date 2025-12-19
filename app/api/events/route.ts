@@ -33,7 +33,8 @@ export async function POST(request: Request) {
     // Convert date string to Date object since the schema expects datetime string
     const eventData = {
       ...validatedData,
-      date: new Date(validatedData.date)
+      date: new Date(validatedData.date),
+      venue: validatedData.venue ?? null,
     };
 
     const newEvent = await createEventLib(eventData);

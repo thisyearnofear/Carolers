@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getEvent } from '@/lib/events';
 import { z } from 'zod';
 
@@ -9,11 +9,12 @@ const joinEventSchema = z.object({
 });
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const event = await getEvent(params.id);
+    const { id } = await params;
+    const event = await getEvent(id);
     
     if (!event) {
       return NextResponse.json(
@@ -33,9 +34,10 @@ export async function GET(
 }
 
 export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const body = await request.json();
     

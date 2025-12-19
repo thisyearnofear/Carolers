@@ -1,12 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { voteForCarol } from '@/lib/carols';
 
 export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await voteForCarol(params.id);
+    const { id } = await params;
+    await voteForCarol(id);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error voting for carol:', error);

@@ -11,10 +11,11 @@ export async function getEventContributions(eventId: string): Promise<Contributi
   }
 }
 
-export async function addContribution(contributionData: Omit<Contribution, 'id' | 'createdAt'>): Promise<Contribution> {
+export async function addContribution(contributionData: Omit<Contribution, 'id' | 'createdAt'>): Promise<Partial<Contribution>> {
   try {
-    const [newContribution] = await db.insert(contributions).values(contributionData).returning();
-    return newContribution;
+    await db.insert(contributions).values(contributionData);
+    // MySQL doesn't support returning, so return the input data
+    return contributionData;
   } catch (error) {
     console.error('Failed to add contribution:', error);
     throw error;

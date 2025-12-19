@@ -11,10 +11,11 @@ export async function getEventMessages(eventId: string): Promise<Message[]> {
   }
 }
 
-export async function addMessage(messageData: Omit<Message, 'id' | 'timestamp'>): Promise<Message> {
+export async function addMessage(messageData: Omit<Message, 'id' | 'timestamp'>): Promise<Partial<Message>> {
   try {
-    const [newMessage] = await db.insert(messages).values(messageData).returning();
-    return newMessage;
+    await db.insert(messages).values(messageData);
+    // MySQL doesn't support returning, so return the input data
+    return messageData;
   } catch (error) {
     console.error('Failed to add message:', error);
     throw error;

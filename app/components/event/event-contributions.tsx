@@ -1,9 +1,11 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { type Contribution } from '@shared/schema';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { getEventContributions, addContribution } from '@/lib/contributions';
+import { useUser } from '@clerk/nextjs';
 
 interface EventContributionsProps {
   eventId: string;
@@ -13,11 +15,14 @@ export function EventContributions({ eventId }: EventContributionsProps) {
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [newContribution, setNewContribution] = useState('');
   const [loading, setLoading] = useState(true);
+  const { user } = useUser();
 
   useEffect(() => {
     async function fetchContributions() {
       try {
-        const data = await getEventContributions(eventId);
+        const response = await fetch(`/api/events/${eventId}/contributions`);
+        if (!response.ok) throw new Error('Failed to fetch');
+        const data = await response.json();
         setContributions(data);
       } catch (error) {
         console.error('Failed to fetch contributions:', error);
@@ -32,14 +37,21 @@ export function EventContributions({ eventId }: EventContributionsProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!newContribution.trim()) return;
+    if (!newContribution.trim() || !user) return;
 
     try {
-      const contribution = await addContribution({
-        eventId,
-        item: newContribution,
-        status: 'proposed'
+      const response = await fetch(`/api/events/${eventId}/contributions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memberId: user.id,
+          item: newContribution,
+          status: 'proposed'
+        })
       });
+      
+      if (!response.ok) throw new Error('Failed to add contribution');
+      const contribution = await response.json();
       
       setContributions(prev => [...prev, contribution]);
       setNewContribution('');
