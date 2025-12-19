@@ -23,7 +23,7 @@ npm run dev           # Start server in another terminal
 
 - **Client**: React 19 + TypeScript + Tailwind CSS + Framer Motion
 - **Server**: Express.js + Clerk auth
-- **Database**: PlanetScale MySQL + Drizzle ORM
+- **Database**: TiDB Serverless MySQL + Drizzle ORM
 - **Real-time**: Socket.io for live events
 
 ## Project Structure

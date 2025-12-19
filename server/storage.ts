@@ -4,6 +4,7 @@ import {
   type InsertUser, type InsertEvent, type InsertCarol, type InsertContribution, type InsertMessage
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { DatabaseStorage } from "./storage/DatabaseStorage";
 
 // CLEAN: Single interface for all storage operations
 export interface IStorage {
@@ -66,6 +67,16 @@ export class MemStorage implements IStorage {
     const user: User = { ...insertUser, id: this.generateId() };
     this.users.set(user.id, user);
     return user;
+  }
+
+  async upsertUser(user: InsertUser): Promise<User> {
+    const existing = await this.getUser(user.id!);
+    if (existing) {
+      const updated = { ...existing, ...user };
+      this.users.set(user.id!, updated);
+      return updated;
+    }
+    return this.createUser(user);
   }
 
   // Event operations
@@ -167,7 +178,9 @@ export class MemStorage implements IStorage {
         duration: '3:15',
         energy: 'low',
         lyrics: ["Silent night, holy night!", "All is calm, all is bright."],
-        votes: 8
+        votes: 8,
+        coverUrl: null,
+        createdAt: new Date()
       },
       {
         id: '2', 
@@ -177,27 +190,17 @@ export class MemStorage implements IStorage {
         duration: '2:35',
         energy: 'high',
         lyrics: ["Dashing through the snow", "In a one-horse open sleigh"],
-        votes: 12
+        votes: 12,
+        coverUrl: null,
+        createdAt: new Date()
       }
     ];
 
     mockCarols.forEach(carol => this.carols.set(carol.id, carol));
-
-    // Mock event
-    const mockEvent: Event = {
-      id: 'event1',
-      name: 'Christmas Carol Gathering 2024',
-      date: new Date(2024, 11, 25),
-      theme: 'Christmas',
-      venue: 'Central Park Amphitheater',
-      description: 'Join us for a festive caroling event!',
-      members: ['user1'],
-      carols: ['1', '2'],
-      createdAt: new Date(),
-    };
-
-    this.events.set(mockEvent.id, mockEvent);
   }
 }
 
-export const storage = new MemStorage();
+// ENHANCEMENT FIRST: Select storage based on environment
+export const storage = process.env.DATABASE_URL 
+  ? new DatabaseStorage() 
+  : new MemStorage();

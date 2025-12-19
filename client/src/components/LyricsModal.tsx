@@ -1,8 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Share2, Printer } from 'lucide-react';
+import { X, Share2, Printer, Music, Check } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { type Carol } from '@shared/schema';
+import { useState, useEffect } from 'react';
+import { useCelebration, celebrationTriggers } from './Celebration';
 
 interface LyricsModalProps {
   carol: Carol | null;
@@ -11,10 +13,26 @@ interface LyricsModalProps {
 }
 
 export function LyricsModal({ carol, isOpen, onClose }: LyricsModalProps) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [showAnimation, setShowAnimation] = useState(false);
+  const { triggerCelebration } = useCelebration();
+
+  // Simulate loading for demo purposes
+  useEffect(() => {
+    if (carol && isOpen) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+        setShowAnimation(true);
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [carol, isOpen]);
+
   if (!carol) return null;
 
   const handlePrint = () => {
     window.print();
+    triggerCelebration(celebrationTriggers.actionSuccess('Lyrics ready for printing!'));
   };
 
   const handleShare = () => {
@@ -64,8 +82,30 @@ export function LyricsModal({ carol, isOpen, onClose }: LyricsModalProps) {
 
             {/* Content */}
             <div className="overflow-y-auto px-6 py-8 space-y-6">
-              {/* Energy & Tags */}
-              <div className="flex items-center gap-2 flex-wrap">
+              {isLoading ? (
+                <div className="text-center py-12">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, repeat: Infinity, repeatType: 'reverse' }}
+                  >
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center shadow-lg">
+                      <Music className="w-8 h-8 text-white" />
+                    </div>
+                  </motion.div>
+                  <p className="text-muted-foreground mb-2">Loading lyrics...</p>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5, repeat: Infinity, repeatType: 'reverse' }}
+                  >
+                    <span className="text-2xl">🎵</span>
+                  </motion.div>
+                </div>
+              ) : (
+                <>
+                  {/* Energy & Tags */}
+                  <div className="flex items-center gap-2 flex-wrap">
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
                     carol.energy === 'high'
@@ -126,6 +166,8 @@ export function LyricsModal({ carol, isOpen, onClose }: LyricsModalProps) {
                   </div>
                 )}
               </div>
+            </>
+            )}
             </div>
 
             {/* Footer Actions */}

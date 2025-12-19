@@ -1,4 +1,3 @@
-
 import { db } from '../server/db';
 import { carols } from '../shared/schema';
 import { sql } from 'drizzle-orm';
@@ -15,12 +14,7 @@ async function fetchHtml(url: string): Promise<string> {
 }
 
 function extractLinks(html: string): string[] {
-  // Look for links inside the "Quilt" or "gridmenu" macro equivalent in HTML
-  // Based on head -n 100 output: {<a href="twofrontteeth.html"><span class="notespelling">A</span>ll...</a>}
-  // And the generated HTML has <a href="twofrontteeth.html">...</a>
-  // We'll just look for href=".html" that aren't index.html or carols.html
-  
-  const regex = /href=\"([^\\\"]+\.html)\"/g;
+  const regex = /href="([^\"]+\.html)"/g;
   const links = new Set<string>();
   let match;
   
@@ -35,41 +29,44 @@ function extractLinks(html: string): string[] {
 }
 
 function parseCarolPage(html: string): { title: string; lyrics: string[]; artist: string } | null {
-  // Extract Title
-  const titleMatch = html.match(/<h1>(.*?)<\/h1>/);
-  if (!titleMatch) return null;
+  // Extract Title from <h1> or <title>
+  let title = '';
+  const titleMatch = html.match(/<h1>(.*?)<\/h1>/s);
+  if (titleMatch) {
+    title = titleMatch[1].replace(/<img[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+  } else {
+    const metaTitleMatch = html.match(/<title>(.*?)<\/title>/i);
+    if (metaTitleMatch) title = metaTitleMatch[1].trim();
+  }
   
-  let title = titleMatch[1];
-  // Remove <img> tags and &nbsp;
-  title = title.replace(/<img[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+  if (!title) return null;
   
-  // Extract Artist/Author from meta
-  const authorMatch = html.match(/<meta name=\"Author\" content=\"(.*?)\">/);
+  // Extract Artist/Author
+  const authorMatch = html.match(/<meta\s+name="Author"\s+content="([^\"]+)"/i);
   let artist = authorMatch ? authorMatch[1] : 'Traditional';
   if (artist.toLowerCase().includes('public domain')) {
     artist = 'Traditional';
   }
 
   // Extract Lyrics
-  // Look for the first <p> that contains <br> or comes after h1
-  // We'll search for <p>.*?</p>
-  
-  // Simple regex to find paragraphs
+  // The lyrics are usually in a <p> tag that contains <br> tags.
+  // We'll look for <p> tags and see if they contain <br>
   const pRegex = /<p>(.*?)<\/p>/gs;
   let lyrics: string[] = [];
   
   let pMatch;
   while ((pMatch = pRegex.exec(html)) !== null) {
     const content = pMatch[1];
-    // Check if this looks like lyrics (has <br> or multiple lines)
-    if (content.includes('<br>') || content.split('\n').length > 2) {
-      // Split by <br> or <br/>
-      lyrics = content
+    if (content.includes('<br>') || content.includes('<br/>') || content.includes('<br />')) {
+      const lines = content
         .split(/<br\s*\/?>/i)
-        .map(line => line.replace(/<[^>]+>/g, '').trim()) // Remove other tags
+        .map(line => line.replace(/<[^>]+>/g, '').replace(/&rsquo;/g, "'").replace(/&nbsp;/g, ' ').trim())
         .filter(line => line.length > 0);
       
-      if (lyrics.length > 0) break; // Found the lyrics
+      if (lines.length > 2) {
+        lyrics = lines;
+        break;
+      }
     }
   }
   
@@ -79,7 +76,7 @@ function parseCarolPage(html: string): { title: string; lyrics: string[]; artist
 }
 
 async function seedLyrics() {
-  console.log('🌱 Starting lyrics seed...');
+  console.log('🌱 Starting lyrics seed (TiDB)...');
   
   try {
     // Clear existing carols
@@ -97,7 +94,6 @@ async function seedLyrics() {
     for (const link of links) {
       const url = `${BASE_URL}/${link}`;
       try {
-        // console.log(`Processing ${link}...`);
         const html = await fetchHtml(url);
         const data = parseCarolPage(html);
         
@@ -106,18 +102,18 @@ async function seedLyrics() {
             title: data.title,
             artist: data.artist,
             lyrics: data.lyrics,
-            duration: '3:00', // Default duration
-            energy: 'medium', // Default energy
+            duration: '3:00',
+            energy: 'medium',
             tags: ['traditional', 'christmas'],
           });
           processed++;
-          process.stdout.write('.'); // Progress indicator
+          process.stdout.write('.');
         } else {
-          console.warn(`\nCould not parse data for ${link}`);
+          // console.warn(`\nCould not parse data for ${link}`);
         }
         
-        // Be nice to the server
-        await new Promise(resolve => setTimeout(resolve, 100)); 
+        // Wait a bit between requests
+        await new Promise(resolve => setTimeout(resolve, 50)); 
         
       } catch (err) {
         console.error(`\nError processing ${link}:`, err);

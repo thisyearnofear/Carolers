@@ -128,9 +128,71 @@ export default function Home() {
           </motion.div>
 
           {events.length === 0 ? (
-            <div className="text-center py-16 px-8 border-2 border-dashed border-muted rounded-2xl bg-white/20">
-              <Sparkles className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <p className="text-muted-foreground text-lg">No events yet. Create your first gathering!</p>
+            <div className="text-center py-16 px-8 border-2 border-dashed border-muted rounded-2xl bg-white/20 relative overflow-hidden">
+              {/* Festive background illustration */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-4 left-4 text-6xl">🎄</div>
+                <div className="absolute top-8 right-8 text-4xl">🎵</div>
+                <div className="absolute bottom-4 left-8 text-5xl">❄️</div>
+                <div className="absolute bottom-8 right-4 text-3xl">🕯️</div>
+              </div>
+              
+              {/* Main content */}
+              <div className="relative z-10">
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center shadow-lg">
+                  <Users className="w-10 h-10 text-white" />
+                </div>
+                
+                <h3 className="text-2xl font-display font-bold text-primary mb-2">
+                  Your first caroling event awaits! 🎄🎵
+                </h3>
+                
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                  Gather friends and family to celebrate the season with song. Create an event, invite singers, and vote on your favorite carols together.
+                </p>
+                
+                {/* Action buttons */}
+                <div className="flex gap-4 justify-center flex-wrap">
+                  <Button 
+                    onClick={() => setShowCreateModal(true)}
+                    className="bg-green-600 hover:bg-green-700 gap-2 shadow-lg"
+                    size="lg"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Create Your First Event
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => setShowJoinModal(true)}
+                    variant="outline"
+                    className="gap-2 border-primary text-primary hover:bg-primary/10"
+                    size="lg"
+                  >
+                    <Users className="w-5 h-5" />
+                    Join Existing Events
+                  </Button>
+                </div>
+                
+                {/* Example preview */}
+                <div className="mt-8 pt-6 border-t border-muted/20">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Here's what your event could look like:
+                  </p>
+                  <div className="max-w-sm mx-auto">
+                    <Card className="p-4 bg-white/50 border border-primary/20 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                          <span className="text-red-600 font-bold text-sm">🎄</span>
+                        </div>
+                        <div className="flex-1 text-left">
+                          <p className="font-semibold text-primary">Christmas Caroling 2024</p>
+                          <p className="text-xs text-muted-foreground">Dec 24 • Central Park • 5 members</p>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             <motion.div 

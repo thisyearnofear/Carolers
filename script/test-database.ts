@@ -1,6 +1,6 @@
 // MODULAR: Comprehensive database testing script
 import { initializeDatabase, checkDatabaseConnection, closeDatabaseConnection } from '../server/db';
-import { PlanetScaleStorage } from '../server/storage/PlanetScaleStorage';
+import { DatabaseStorage } from '../server/storage/DatabaseStorage';
 import { log } from '../server/index';
 
 // CLEAN: Test functions
@@ -27,7 +27,7 @@ async function testDatabaseConnection() {
 async function testSchemaStructure() {
   console.log('\n🔍 Testing Schema Structure...\n');
 
-  const storage = new PlanetScaleStorage();
+  const storage = new DatabaseStorage();
   const tests = [
     { name: 'Users Table', test: async () => {
       try {
@@ -91,7 +91,7 @@ async function testSchemaStructure() {
 async function testCRUDOperations() {
   console.log('\n🔍 Testing CRUD Operations...\n');
 
-  const storage = new PlanetScaleStorage();
+  const storage = new DatabaseStorage();
   const testUserId = 'test-user-' + Date.now();
   const testEventId = 'test-event-' + Date.now();
 
@@ -164,7 +164,7 @@ async function testCRUDOperations() {
 async function testUserSynchronization() {
   console.log('\n🔍 Testing User Synchronization...\n');
 
-  const storage = new PlanetScaleStorage();
+  const storage = new DatabaseStorage();
   
   // Simulate Clerk user data
   const clerkUser = {

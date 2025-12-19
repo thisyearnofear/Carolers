@@ -370,6 +370,7 @@ export default function Room() {
                           </span>
                         </div>
                       </Card>
+                      ))
                     )}
                   </div>
                 </div>

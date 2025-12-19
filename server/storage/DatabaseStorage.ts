@@ -7,8 +7,9 @@ import type {
   User, Event, Carol, Contribution, Message,
   InsertUser, InsertEvent, InsertCarol, InsertContribution, InsertMessage
 } from '@shared/schema';
+import { randomUUID } from "crypto";
 
-export class PlanetScaleStorage implements IStorage {
+export class DatabaseStorage implements IStorage {
   
   // CLEAN: User operations
   async getUser(id: string): Promise<User | undefined> {
@@ -22,19 +23,20 @@ export class PlanetScaleStorage implements IStorage {
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const [insertedUser] = await db.insert(users).values(user).returning();
-    return insertedUser;
+    await db.insert(users).values(user);
+    const created = await this.getUser(user.id);
+    if (!created) throw new Error("Failed to create user");
+    return created;
   }
 
   async upsertUser(user: InsertUser): Promise<User> {
     // ENHANCEMENT FIRST: Handle Clerk user creation/updates
     const existing = await this.getUser(user.id!);
     if (existing) {
-      const [updated] = await db.update(users)
+      await db.update(users)
         .set({ username: user.username, email: user.email, imageUrl: user.imageUrl })
-        .where(eq(users.id, user.id!))
-        .returning();
-      return updated;
+        .where(eq(users.id, user.id!));
+      return (await this.getUser(user.id!))!;
     }
     return this.createUser(user);
   }
@@ -50,11 +52,12 @@ export class PlanetScaleStorage implements IStorage {
   }
 
   async createEvent(event: InsertEvent): Promise<Event> {
-    const [insertedEvent] = await db.insert(events).values({
+    const id = randomUUID();
+    await db.insert(events).values({
       ...event,
-      id: crypto.randomUUID(),
-    }).returning();
-    return insertedEvent;
+      id,
+    });
+    return (await this.getEvent(id))!;
   }
 
   async joinEvent(eventId: string, userId: string): Promise<void> {
@@ -78,11 +81,13 @@ export class PlanetScaleStorage implements IStorage {
   }
 
   async createCarol(carol: InsertCarol): Promise<Carol> {
-    const [insertedCarol] = await db.insert(carols).values({
+    const id = randomUUID();
+    await db.insert(carols).values({
       ...carol,
-      id: crypto.randomUUID(),
-    }).returning();
-    return insertedCarol;
+      id,
+      votes: 0,
+    });
+    return (await this.getCarol(id))!;
   }
 
   async voteForCarol(carolId: string): Promise<void> {
@@ -103,11 +108,13 @@ export class PlanetScaleStorage implements IStorage {
   }
 
   async createContribution(contribution: InsertContribution): Promise<Contribution> {
-    const [insertedContribution] = await db.insert(contributions).values({
+    const id = randomUUID();
+    await db.insert(contributions).values({
       ...contribution,
-      id: crypto.randomUUID(),
-    }).returning();
-    return insertedContribution;
+      id,
+    });
+    const result = await db.select().from(contributions).where(eq(contributions.id, id)).limit(1);
+    return result[0];
   }
 
   async updateContributionStatus(id: string, status: 'proposed' | 'confirmed' | 'brought'): Promise<void> {
@@ -124,10 +131,12 @@ export class PlanetScaleStorage implements IStorage {
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
-    const [insertedMessage] = await db.insert(messages).values({
+    const id = randomUUID();
+    await db.insert(messages).values({
       ...message,
-      id: crypto.randomUUID(),
-    }).returning();
-    return insertedMessage;
+      id,
+    });
+    const result = await db.select().from(messages).where(eq(messages.id, id)).limit(1);
+    return result[0];
   }
 }

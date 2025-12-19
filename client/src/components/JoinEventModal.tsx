@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { LoadingSpinner, EventCardSkeleton } from '@/components/ui/LoadingSpinner';
-import { X, Users, Calendar, MapPin } from 'lucide-react';
+import { X, Users, Calendar, MapPin, PartyPopper, Plus } from 'lucide-react';
 import { eventsAPI } from '@/lib/api';
 import { useStore } from '@/store/useStore';
 import { type Event } from '@shared/schema';
@@ -92,11 +92,31 @@ export function JoinEventModal({ isOpen, onClose, onJoinSuccess }: JoinEventModa
             ))}
           </div>
         ) : events.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="text-gray-500 mb-4">No events available to join</div>
-            <Button onClick={onClose} variant="outline">
+          <div className="text-center py-12 px-6">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
+              <PartyPopper className="w-8 h-8 text-white" />
+            </div>
+            
+            <h4 className="text-xl font-display font-bold text-primary mb-2">
+              Be the first to start a celebration! 🎉
+            </h4>
+            
+            <p className="text-gray-600 mb-6 max-w-xs mx-auto">
+              No events available yet. Create your own gathering and invite others to join the festive fun!
+            </p>
+            
+            <Button 
+              onClick={onClose} 
+              className="bg-green-600 hover:bg-green-700 gap-2 shadow-lg mb-4"
+              size="lg"
+            >
+              <Plus className="w-5 h-5" />
               Create Your Own Event
             </Button>
+            
+            <p className="text-sm text-gray-500 italic">
+              "The best way to spread holiday cheer is singing loud for all to hear!"
+            </p>
           </div>
         ) : (
           <div className="space-y-4">

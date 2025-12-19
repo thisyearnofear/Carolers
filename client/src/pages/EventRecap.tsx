@@ -1,10 +1,12 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '@/store/useStore';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ChevronLeft, Share2, Music, Users, Clock, Trophy } from 'lucide-react';
+import { ChevronLeft, Share2, Music, Users, Clock, Trophy, Check } from 'lucide-react';
 import { useAppUser } from '@/lib/auth';
+import { useCelebration, celebrationTriggers } from '@/components/Celebration';
+import { useState } from 'react';
 
 export default function EventRecap() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -27,16 +29,34 @@ export default function EventRecap() {
   const eventCarols = carols.filter(c => event.carols?.includes(c.id));
   const topSongs = eventCarols.sort((a, b) => (b.votes || 0) - (a.votes || 0)).slice(0, 3);
   const totalVotes = eventCarols.reduce((sum: number, c) => sum + (c.votes || 0), 0);
+  const [showShareFeedback, setShowShareFeedback] = useState(false);
+  const { triggerCelebration } = useCelebration();
 
   const handleShare = () => {
     const text = `🎵 We just celebrated ${event.name}! ${event.members.length} singers, ${topSongs.length} songs. Join us next time!`;
+    
+    const shareWithFeedback = () => {
+      setShowShareFeedback(true);
+      triggerCelebration(celebrationTriggers.actionSuccess('Event shared successfully! 🎉'));
+      setTimeout(() => setShowShareFeedback(false), 3000);
+    };
+    
     if (navigator.share) {
       navigator.share({
         title: `${event.name} - Recap`,
         text: text,
+      }).then(() => {
+        shareWithFeedback();
+      }).catch((error) => {
+        console.error('Share failed:', error);
+        // Fallback to clipboard
+        navigator.clipboard.writeText(text);
+        shareWithFeedback();
       });
     } else {
+      // Fallback: copy to clipboard
       navigator.clipboard.writeText(text);
+      shareWithFeedback();
     }
   };
 
@@ -96,20 +116,43 @@ export default function EventRecap() {
           className="grid md:grid-cols-4 gap-4 mb-12"
         >
           {[
-            { icon: Users, label: 'Singers', value: event.members?.length || 0 },
-            { icon: Music, label: 'Songs Sung', value: eventCarols.length },
-            { icon: Trophy, label: 'Total Votes', value: totalVotes },
-            { icon: Clock, label: 'Duration', value: 'TBD' },
+            { icon: Users, label: 'Singers', value: event.members?.length || 0, 
+              badge: event.members?.length > 5 ? '👨‍👩‍👧‍👦' : '👫', 
+              color: event.members?.length > 5 ? 'bg-green-500/20 text-green-600' : 'bg-blue-500/20 text-blue-600' },
+            { icon: Music, label: 'Songs Sung', value: eventCarols.length, 
+              badge: eventCarols.length > 3 ? '🎵' : '🎶',
+              color: eventCarols.length > 3 ? 'bg-yellow-500/20 text-yellow-600' : 'bg-purple-500/20 text-purple-600' },
+            { icon: Trophy, label: 'Total Votes', value: totalVotes, 
+              badge: totalVotes > 10 ? '🏆' : '⭐',
+              color: totalVotes > 10 ? 'bg-orange-500/20 text-orange-600' : 'bg-yellow-500/20 text-yellow-600' },
+            { icon: Clock, label: 'Duration', value: 'TBD', 
+              badge: '⏳',
+              color: 'bg-gray-500/20 text-gray-600' },
           ].map((stat, idx) => {
             const Icon = stat.icon;
             return (
               <motion.div
                 key={stat.label}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.15 + idx * 0.05 }}
+                initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ 
+                  delay: 0.15 + idx * 0.05, 
+                  type: 'spring', 
+                  damping: 10, 
+                  stiffness: 200 
+                }}
               >
-                <Card className="p-6 text-center border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
+                <Card className="p-6 text-center border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5 relative">
+                  {/* Achievement Badge */}
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: 0.2 + idx * 0.05, type: 'spring' }}
+                    className={`absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xl ${stat.color}`}
+                  >
+                    {stat.badge}
+                  </motion.div>
+                  
                   <Icon className="w-8 h-8 text-primary mx-auto mb-3" />
                   <div className="font-display text-3xl font-bold text-foreground mb-1">
                     {stat.value}
@@ -121,6 +164,69 @@ export default function EventRecap() {
               </motion.div>
             );
           })}
+        </motion.div>
+
+        {/* Achievements Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mb-12"
+        >
+          <h3 className="font-display text-2xl font-bold text-primary mb-6 flex items-center gap-2">
+            <Trophy className="w-6 h-6" />
+            Event Achievements
+          </h3>
+          
+          <div className="grid md:grid-cols-3 gap-4">
+            {[
+              { 
+                name: 'First Carol', 
+                description: 'Created your first event',
+                earned: true,
+                icon: '🎄',
+                color: 'bg-green-100 text-green-600'
+              },
+              { 
+                name: 'Democratic', 
+                description: 'Voted on songs together',
+                earned: totalVotes > 0,
+                icon: '🗳️',
+                color: 'bg-blue-100 text-blue-600'
+              },
+              { 
+                name: 'Maestro', 
+                description: 'Hosted a successful event',
+                earned: event.members?.length > 1,
+                icon: '🎤',
+                color: 'bg-purple-100 text-purple-600'
+              },
+            ].map((achievement, idx) => (
+              <motion.div
+                key={achievement.name}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.6 + idx * 0.1 }}
+              >
+                <Card className={`p-6 ${achievement.earned ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+                  <div className="flex items-start gap-3">
+                    <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-2xl ${achievement.color}`}>
+                      {achievement.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-display font-bold text-foreground mb-1">{achievement.name}</h4>
+                      <p className="text-sm text-muted-foreground mb-2">{achievement.description}</p>
+                      {achievement.earned ? (
+                        <span className="text-xs font-medium text-green-600 uppercase tracking-wide">EARNED ✨</span>
+                      ) : (
+                        <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">LOCKED 🔒</span>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -257,6 +363,24 @@ export default function EventRecap() {
                   <Share2 className="w-4 h-4" />
                   Share Recap
                 </Button>
+                
+                {/* Share Feedback */}
+                <AnimatePresence>
+                  {showShareFeedback && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-4 p-3 bg-white/20 rounded-lg flex items-center gap-2 text-sm">
+                        <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
+                        <span>Link copied! Share it with friends 🎉</span>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </Card>
             </motion.div>
 

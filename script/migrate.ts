@@ -1,9 +1,8 @@
 // MODULAR: Database migration script
-import { drizzle } from 'drizzle-orm/planetscale-serverless';
-import { connect } from '@planetscale/database';
-import { migrate } from 'drizzle-orm/planetscale-serverless/migrator';
+import { drizzle } from 'drizzle-orm/mysql2';
+import mysql from 'mysql2/promise';
+import { migrate } from 'drizzle-orm/mysql2/migrator';
 import * as schema from '@shared/schema';
-import { log } from '../server/index';
 
 // CLEAN: Migration function
 async function runMigrations() {
@@ -17,15 +16,8 @@ async function runMigrations() {
   
   try {
     // Create connection
-    const connection = connect({
-      url: databaseUrl,
-      fetch: (url: string, init: any) => {
-        delete (init as any)['cache'];
-        return fetch(url, init);
-      },
-    });
-
-    const db = drizzle(connection, { schema });
+    const connection = await mysql.createConnection(databaseUrl);
+    const db = drizzle(connection, { schema, mode: 'default' });
     
     // Run migrations
     await migrate(db, { migrationsFolder: './migrations' });
@@ -33,7 +25,7 @@ async function runMigrations() {
     console.log('✅ Database migrations completed successfully');
     
     // Close connection
-    await connection.close();
+    await connection.end();
     
   } catch (error) {
     console.error('❌ Migration failed:', error);

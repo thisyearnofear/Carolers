@@ -1,5 +1,5 @@
-// MODULAR: User synchronization service between Clerk and PlanetScale
-import { PlanetScaleStorage } from '../storage/PlanetScaleStorage';
+// MODULAR: User synchronization service between Clerk and Database
+import { DatabaseStorage } from '../storage/DatabaseStorage';
 import { InsertUser } from '@shared/schema';
 import { log } from '../index';
 
@@ -15,10 +15,10 @@ interface ClerkUserData {
 
 // ENHANCEMENT FIRST: User synchronization service
 class UserSyncService {
-  private storage: PlanetScaleStorage;
+  private storage: DatabaseStorage;
 
   constructor() {
-    this.storage = new PlanetScaleStorage();
+    this.storage = new DatabaseStorage();
   }
 
   // MODULAR: Sync user from Clerk to database

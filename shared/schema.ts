@@ -1,9 +1,9 @@
 import { sql } from "drizzle-orm";
-import { mysqlTable, text, varchar, timestamp, json, datetime } from "drizzle-orm/mysql-core";
+import { mysqlTable, text, varchar, timestamp, json, datetime, int } from "drizzle-orm/mysql-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// ENHANCEMENT FIRST: Adapt existing schema for PlanetScale MySQL
+// ENHANCEMENT FIRST: Adapt existing schema for PlanetScale/TiDB MySQL
 // Users table - now uses Clerk user IDs as primary keys
 export const users = mysqlTable("users", {
   id: varchar("id", { length: 191 }).primaryKey(), // Clerk user ID
@@ -21,8 +21,8 @@ export const events = mysqlTable("events", {
   theme: text("theme").notNull(),
   venue: text("venue"),
   description: text("description").notNull(),
-  members: json("members").$type<string[]>().default([]),
-  carols: json("carols").$type<string[]>().default([]),
+  members: json("members").$type<string[]>(),
+  carols: json("carols").$type<string[]>(),
   coverImage: text("cover_image"),
   createdBy: varchar("created_by", { length: 191 }).notNull().references(() => users.id),
   createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`),
@@ -33,12 +33,12 @@ export const carols = mysqlTable("carols", {
   id: varchar("id", { length: 191 }).primaryKey().default(sql`(UUID())`),
   title: text("title").notNull(),
   artist: text("artist").notNull(),
-  tags: json("tags").$type<string[]>().default([]),
+  tags: json("tags").$type<string[]>(),
   duration: text("duration").notNull(),
-  lyrics: json("lyrics").$type<string[]>().default([]),
-  energy: text("energy").$type<'low' | 'medium' | 'high'>().notNull(),
+  lyrics: json("lyrics").$type<string[]>(),
+  energy: varchar("energy", { length: 50 }).$type<'low' | 'medium' | 'high'>().notNull(),
   coverUrl: text("cover_url"),
-  votes: json("votes").$type<number>().default(0),
+  votes: int("votes").default(0),
   createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`),
 });
 
@@ -48,7 +48,7 @@ export const contributions = mysqlTable("contributions", {
   eventId: varchar("event_id", { length: 191 }).notNull().references(() => events.id),
   memberId: varchar("member_id", { length: 191 }).notNull().references(() => users.id),
   item: text("item").notNull(),
-  status: text("status").$type<'proposed' | 'confirmed' | 'brought'>().default('proposed'),
+  status: varchar("status", { length: 50 }).$type<'proposed' | 'confirmed' | 'brought'>().default('proposed'),
   createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`),
 });
 

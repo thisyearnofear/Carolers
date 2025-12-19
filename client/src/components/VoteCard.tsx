@@ -1,9 +1,10 @@
-import { motion } from 'framer-motion';
-import { ThumbsUp, Music, Eye } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ThumbsUp, Music, Eye, Heart } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { type Carol } from '@shared/schema';
 import { useCelebration, celebrationTriggers } from './Celebration';
+import { useState } from 'react';
 
 interface VoteCardProps {
   carol: Carol;
@@ -15,6 +16,7 @@ interface VoteCardProps {
 export function VoteCard({ carol, voted = false, onVote, onViewLyrics }: VoteCardProps) {
   // ENHANCEMENT FIRST: Add celebration hook
   const { triggerCelebration } = useCelebration();
+  const [showVoteAnimation, setShowVoteAnimation] = useState(false);
   
   // Lyrics preview: first 2 non-empty lines
   const lyricsPreview = carol.lyrics
@@ -84,10 +86,27 @@ export function VoteCard({ carol, voted = false, onVote, onViewLyrics }: VoteCar
               e.stopPropagation();
               onVote();
               triggerCelebration(celebrationTriggers.voteSuccess());
+              setShowVoteAnimation(true);
+              setTimeout(() => setShowVoteAnimation(false), 2000);
             }}
           >
             <ThumbsUp className={`w-4 h-4 ${voted ? 'fill-current' : ''}`} />
           </Button>
+          
+          {/* Vote Animation - Floating Hearts */}
+          <AnimatePresence>
+            {showVoteAnimation && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1, y: -50, x: Math.random() * 40 - 20 }}
+                exit={{ opacity: 0, scale: 0 }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+                className="absolute -top-4 -right-4 text-red-500"
+              >
+                <Heart className="w-6 h-6 fill-red-500" />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Energy bar */}
