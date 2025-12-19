@@ -78,14 +78,18 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (process.env.NODE_ENV === "production") {
-    serveStatic(app);
-  } else {
+  // CLEAN: Setup static file serving or Vite dev server
+  // On Vercel, outputDirectory + routes handle static files automatically
+  // Only use serveStatic for local production runs (not serverless)
+  const isVercel = !!process.env.VERCEL;
+  const isDev = process.env.NODE_ENV !== "production";
+
+  if (isDev) {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
+  } else if (!isVercel) {
+    // PERFORMANT: Only serve static in local production, not on Vercel
+    serveStatic(app);
   }
 
   // ENHANCEMENT FIRST: Initialize database before starting server

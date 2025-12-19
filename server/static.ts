@@ -1,13 +1,13 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 
 export function serveStatic(app: Express) {
-  // CLEAN: ESM-compatible __dirname alternative
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const distPath = path.resolve(__dirname, "../dist/public");
-  
+  // COMPATIBILITY: Use path relative to the built server location
+  // When bundled, the server will be in dist/index.cjs, so the public files
+  // are in the parent directory's sibling 'public' folder
+  const distPath = path.resolve(__dirname, "../public");
+
   if (!fs.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`,

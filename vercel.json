@@ -13,7 +13,15 @@
       "dest": "/api/handler"
     },
     {
-      "src": "/(.*)",
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/favicon\\.(ico|png)",
+      "dest": "/favicon.$1"
+    },
+    {
+      "src": "/[^.]+$",
       "dest": "/index.html"
     }
   ],
