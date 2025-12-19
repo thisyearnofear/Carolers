@@ -4,7 +4,6 @@ import { produce } from 'immer';
 import { type Event, type Carol, type Contribution, type Message } from '@shared/schema';
 // ENHANCEMENT FIRST: Use real API instead of mock data
 import { eventsAPI, carolsAPI, contributionsAPI, messagesAPI } from '@/lib/api';
-import { socketService } from '@/lib/socket';
 
 export type PlayerState = {
   isPlaying: boolean;
@@ -171,37 +170,39 @@ export const useStore = create<Store>((set) => ({
     state.currentEventId = eventId;
   })),
 
-  voteForCarol: (eventId, carolId) => set(produce((state: Store) => {
-    const event = state.events.find(e => e.id === eventId);
-    if (event && !event.carols.includes(carolId)) {
-      event.carols.push(carolId);
-    }
-    const carol = state.carols.find(c => c.id === carolId);
-    if (carol) {
-      carol.votes = (carol.votes || 0) + 1;
-    }
-  })),
+  voteForCarol: async (eventId, carolId) => {
+    await carolsAPI.vote(carolId);
+    set(produce((state: Store) => {
+      const event = state.events.find(e => e.id === eventId);
+      if (event && !event.carols.includes(carolId)) {
+        event.carols.push(carolId);
+      }
+      const carol = state.carols.find(c => c.id === carolId);
+      if (carol) {
+        carol.votes = (carol.votes || 0) + 1;
+      }
+    }));
+  },
 
-  addContribution: (eventId, contribution) => set(produce((state: Store) => {
-    const event = state.events.find(e => e.id === eventId);
-    if (event) {
-      event.contributions.push({
-        ...contribution,
-        id: `contrib-${Date.now()}`
-      });
-    }
-  })),
+  addContribution: async (eventId, contribution) => {
+    const result = await contributionsAPI.create(contribution);
+    set(produce((state: Store) => {
+      const event = state.events.find(e => e.id === eventId);
+      if (event) {
+        event.contributions.push(result);
+      }
+    }));
+  },
 
-  addMessage: (eventId, message) => set(produce((state: Store) => {
-    const event = state.events.find(e => e.id === eventId);
-    if (event) {
-      event.messages.push({
-        ...message,
-        id: `msg-${Date.now()}`,
-        timestamp: new Date()
-      });
-    }
-  })),
+  addMessage: async (eventId, message) => {
+    const result = await messagesAPI.create(message);
+    set(produce((state: Store) => {
+      const event = state.events.find(e => e.id === eventId);
+      if (event) {
+        event.messages.push(result);
+      }
+    }));
+  },
 
   playCarol: (carolId) => set(produce((state: Store) => {
     state.player.currentCarolId = carolId;

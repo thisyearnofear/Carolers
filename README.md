@@ -22,9 +22,9 @@ npm run dev           # Start server in another terminal
 ## Architecture
 
 - **Client**: React 19 + TypeScript + Tailwind CSS + Framer Motion
-- **Server**: Express.js + Clerk auth
+- **Server**: Express.js + Clerk auth + Vercel deployment
 - **Database**: TiDB Serverless MySQL + Drizzle ORM
-- **Real-time**: Socket.io for live events
+- **Real-time**: On-demand polling (no WebSocket complexity)
 
 ## Project Structure
 

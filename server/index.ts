@@ -1,7 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
-import { Server as SocketIOServer } from "socket.io";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
@@ -69,65 +68,6 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // MODULAR: Setup Socket.IO for real-time features
-  const io = new SocketIOServer(httpServer, {
-    cors: {
-      origin: process.env.NODE_ENV === "development" ? "*" : false,
-      methods: ["GET", "POST"]
-    }
-  });
-
-  // CLEAN: Event-specific socket rooms
-  io.on('connection', (socket) => {
-    log(`User connected: ${socket.id}`, 'websocket');
-
-    // Join event room
-    socket.on('join-event', (eventId: string) => {
-      socket.join(`event-${eventId}`);
-      log(`User ${socket.id} joined event ${eventId}`, 'websocket');
-    });
-
-    // Real-time chat
-    socket.on('send-message', async (data: { eventId: string, memberId: string, text: string }) => {
-      try {
-        const { storage } = await import('./storage');
-        const message = await storage.createMessage({
-          eventId: data.eventId,
-          memberId: data.memberId,
-          text: data.text
-        });
-        
-        // Broadcast to all users in the event room
-        io.to(`event-${data.eventId}`).emit('new-message', message);
-        log(`Message sent in event ${data.eventId}`, 'websocket');
-      } catch (error) {
-        socket.emit('error', { message: 'Failed to send message' });
-      }
-    });
-
-    // Real-time voting
-    socket.on('vote-carol', async (data: { carolId: string, eventId: string }) => {
-      try {
-        const { storage } = await import('./storage');
-        await storage.voteForCarol(data.carolId);
-        const carol = await storage.getCarol(data.carolId);
-        
-        // Broadcast updated vote count to event room
-        io.to(`event-${data.eventId}`).emit('carol-voted', { 
-          carolId: data.carolId, 
-          votes: carol?.votes || 0 
-        });
-        log(`Vote cast for carol ${data.carolId}`, 'websocket');
-      } catch (error) {
-        socket.emit('error', { message: 'Failed to vote' });
-      }
-    });
-
-    socket.on('disconnect', () => {
-      log(`User disconnected: ${socket.id}`, 'websocket');
-    });
-  });
-
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

@@ -12,6 +12,7 @@ import { useState, useEffect } from 'react';
 import { useAppUser, getCurrentUserId } from '@/lib/auth';
 import { type Carol } from '@shared/schema';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
+import { useEventPolling } from '@/hooks/useEventPolling';
 
 export default function Room() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -24,6 +25,7 @@ export default function Room() {
 
   const { user: appUser } = useAppUser();
   const currentUserId = getCurrentUserId(appUser);
+  const { triggerRefresh } = useEventPolling(eventId!);
 
   const [messageText, setMessageText] = useState('');
   const [contributionText, setContributionText] = useState('');
@@ -48,30 +50,33 @@ export default function Room() {
 
   const eventCarols = carols.filter(c => event.carols.includes(c.id));
 
-  const handleVote = (carolId: string) => {
-    voteForCarol(event.id, carolId);
+  const handleVote = async (carolId: string) => {
+    await voteForCarol(event.id, carolId);
+    triggerRefresh();
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (messageText.trim()) {
-      addMessage(event.id, {
+      await addMessage(event.id, {
         eventId: event.id,
         memberId: currentUserId,
         text: messageText
       });
       setMessageText('');
+      triggerRefresh();
     }
   };
 
-  const handleAddContribution = () => {
+  const handleAddContribution = async () => {
     if (contributionText.trim()) {
-      addContribution(event.id, {
+      await addContribution(event.id, {
         eventId: event.id,
         memberId: currentUserId,
         item: contributionText,
         status: 'proposed'
       });
       setContributionText('');
+      triggerRefresh();
     }
   };
 
