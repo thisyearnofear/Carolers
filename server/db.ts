@@ -1,6 +1,7 @@
 // CLEAN: Database connection and initialization
-import { drizzle, sql } from 'drizzle-orm/planetscale-serverless';
-import { connect } from '@planetscale/database';
+import { drizzle } from 'drizzle-orm/planetscale-serverless';
+import { sql } from 'drizzle-orm';
+import { Client } from '@planetscale/database';
 import * as schema from '@shared/schema';
 
 // MODULAR: Environment-based connection
@@ -11,7 +12,7 @@ function createConnection() {
     throw new Error('DATABASE_URL is required');
   }
 
-  return connect({
+  return new Client({
     url,
     fetch: (url: string, init: any) => {
       // PERFORMANT: Custom fetch for better connection pooling
@@ -22,8 +23,8 @@ function createConnection() {
 }
 
 // ENHANCEMENT FIRST: Single database instance
-const connection = createConnection();
-export const db = drizzle(connection, { schema });
+const client = createConnection();
+export const db = drizzle(client, { schema });
 
 // DRY: Type-safe database instance
 export type Database = typeof db;

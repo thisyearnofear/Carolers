@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import App from './App';
 import Home from './pages/Home';
 import Room from './pages/Room';
+import EventRecap from './pages/EventRecap';
 import NotFound from './pages/not-found';
 
 export const router = createBrowserRouter([
@@ -18,6 +19,10 @@ export const router = createBrowserRouter([
       {
         path: 'events/:eventId',
         element: <Room />,
+      },
+      {
+        path: 'events/:eventId/recap',
+        element: <EventRecap />,
       },
       {
         path: 'room/:eventId', // Legacy support
