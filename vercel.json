@@ -1,15 +1,15 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "server/index.ts",
-      "use": "@vercel/node"
+  "buildCommand": "npm run build",
+  "functions": {
+    "api/handler.ts": {
+      "maxDuration": 60
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "server/index.ts"
+      "source": "/(.*)",
+      "destination": "/api/handler"
     }
   ],
   "env": {
