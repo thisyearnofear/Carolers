@@ -6,10 +6,23 @@
       "maxDuration": 60
     }
   },
-  "rewrites": [
+  "static": {
+    "dist/public": {
+      "maxAge": 3600
+    }
+  },
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/api/handler"
+      "src": "/api/(.*)",
+      "dest": "/api/handler"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/dist/public/assets/$1"
+    },
+    {
+      "src": ".*",
+      "dest": "/dist/public/index.html"
     }
   ],
   "env": {
