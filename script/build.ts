@@ -39,6 +39,7 @@ async function buildAll() {
   await viteBuild();
 
   console.log("building server...");
+  // Vite builds to dist/public by default (see vite.config.ts)
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
   const allDeps = [
     ...Object.keys(pkg.dependencies || {}),
