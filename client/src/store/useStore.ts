@@ -7,9 +7,38 @@ export type Carol = {
   artist: string;
   tags: string[];
   duration: string;
-  lyrics: string[]; // Simple array of lines/verses for now
+  lyrics: string[];
   energy: 'low' | 'medium' | 'high';
   coverUrl?: string;
+  votes?: number;
+};
+
+export type Event = {
+  id: string;
+  name: string;
+  date: Date;
+  theme: string; // e.g., "Christmas", "Easter", "Hanukkah"
+  venue?: string;
+  description: string;
+  members: string[];
+  carols: string[]; // carol IDs
+  contributions: Contribution[];
+  messages: Message[];
+  coverImage?: string;
+};
+
+export type Contribution = {
+  id: string;
+  memberId: string;
+  item: string;
+  status: 'proposed' | 'confirmed' | 'brought';
+};
+
+export type Message = {
+  id: string;
+  memberId: string;
+  text: string;
+  timestamp: Date;
 };
 
 export type PlayerState = {
@@ -27,14 +56,20 @@ export type GamificationState = {
 
 type Store = {
   carols: Carol[];
-  playlist: string[]; // Array of carol IDs
+  events: Event[];
+  currentEventId: string | null;
   player: PlayerState;
   gamification: GamificationState;
   
-  // Actions
-  addToPlaylist: (carolId: string) => void;
-  removeFromPlaylist: (carolId: string) => void;
-  reorderPlaylist: (fromIndex: number, toIndex: number) => void;
+  // Event actions
+  createEvent: (event: Omit<Event, 'id' | 'members' | 'carols' | 'contributions' | 'messages'>) => void;
+  joinEvent: (eventId: string, memberId: string) => void;
+  setCurrentEvent: (eventId: string | null) => void;
+  voteForCarol: (eventId: string, carolId: string) => void;
+  addContribution: (eventId: string, contribution: Omit<Contribution, 'id'>) => void;
+  addMessage: (eventId: string, message: Omit<Message, 'id' | 'timestamp'>) => void;
+  
+  // Playlist actions
   playCarol: (carolId: string) => void;
   togglePlay: () => void;
   setMode: (mode: 'library' | 'session') => void;
@@ -50,14 +85,8 @@ const MOCK_CAROLS: Carol[] = [
     tags: ['traditional', 'slow', 'peaceful'],
     duration: '3:15',
     energy: 'low',
-    lyrics: [
-      "Silent night, holy night!",
-      "All is calm, all is bright.",
-      "Round yon Virgin, Mother and Child.",
-      "Holy infant so tender and mild,",
-      "Sleep in heavenly peace,",
-      "Sleep in heavenly peace."
-    ]
+    lyrics: ["Silent night, holy night!", "All is calm, all is bright.", "Round yon Virgin, Mother and Child.", "Holy infant so tender and mild,", "Sleep in heavenly peace,", "Sleep in heavenly peace."],
+    votes: 8
   },
   {
     id: '2',
@@ -66,16 +95,8 @@ const MOCK_CAROLS: Carol[] = [
     tags: ['upbeat', 'kids', 'fun'],
     duration: '2:35',
     energy: 'high',
-    lyrics: [
-      "Dashing through the snow",
-      "In a one-horse open sleigh",
-      "O'er the fields we go",
-      "Laughing all the way",
-      "Bells on bobtail ring",
-      "Making spirits bright",
-      "What fun it is to ride and sing",
-      "A sleighing song tonight!"
-    ]
+    lyrics: ["Dashing through the snow", "In a one-horse open sleigh", "O'er the fields we go", "Laughing all the way", "Bells on bobtail ring", "Making spirits bright", "What fun it is to ride and sing", "A sleighing song tonight!"],
+    votes: 12
   },
   {
     id: '3',
@@ -84,16 +105,8 @@ const MOCK_CAROLS: Carol[] = [
     tags: ['classic', 'upbeat', 'choral'],
     duration: '2:10',
     energy: 'high',
-    lyrics: [
-      "Deck the halls with boughs of holly",
-      "Fa-la-la-la-la, la-la-la-la",
-      "'Tis the season to be jolly",
-      "Fa-la-la-la-la, la-la-la-la",
-      "Don we now our gay apparel",
-      "Fa-la-la, la-la-la, la-la-la",
-      "Troll the ancient Yule-tide carol",
-      "Fa-la-la-la-la, la-la-la-la"
-    ]
+    lyrics: ["Deck the halls with boughs of holly", "Fa-la-la-la-la, la-la-la-la", "'Tis the season to be jolly", "Fa-la-la-la-la, la-la-la-la", "Don we now our gay apparel", "Fa-la-la, la-la-la, la-la-la", "Troll the ancient Yule-tide carol", "Fa-la-la-la-la, la-la-la-la"],
+    votes: 10
   },
   {
     id: '4',
@@ -102,18 +115,55 @@ const MOCK_CAROLS: Carol[] = [
     tags: ['powerful', 'vocal', 'sacred'],
     duration: '4:20',
     energy: 'medium',
-    lyrics: [
-      "O holy night, the stars are brightly shining",
-      "It is the night of the dear Savior's birth",
-      "Long lay the world in sin and error pining",
-      "Till He appeared and the soul felt its worth"
-    ]
+    lyrics: ["O holy night, the stars are brightly shining", "It is the night of the dear Savior's birth", "Long lay the world in sin and error pining", "Till He appeared and the soul felt its worth"],
+    votes: 6
+  },
+  {
+    id: '5',
+    title: 'Feliz Navidad',
+    artist: 'José Feliciano',
+    tags: ['latin', 'upbeat', 'fun'],
+    duration: '2:55',
+    energy: 'high',
+    lyrics: ["Feliz Navidad, feliz Navidad", "Feliz Navidad, próspero año y felicidad", "I want to wish you a Merry Christmas", "With lots of presents to make you happy"],
+    votes: 7
+  }
+];
+
+const MOCK_EVENTS: Event[] = [
+  {
+    id: 'event1',
+    name: 'Christmas Carol Gathering 2024',
+    date: new Date(2024, 11, 25),
+    theme: 'Christmas',
+    venue: 'Central Park Amphitheater',
+    description: 'Join us for a festive caroling event with hot cocoa and family!',
+    members: ['user1', 'user2', 'user3'],
+    carols: ['1', '2', '3', '4'],
+    contributions: [
+      { id: 'c1', memberId: 'user1', item: 'Hot Cocoa', status: 'confirmed' },
+      { id: 'c2', memberId: 'user2', item: 'Cookies', status: 'proposed' }
+    ],
+    messages: []
+  },
+  {
+    id: 'event2',
+    name: 'Hanukkah Candle Lighting 2025',
+    date: new Date(2025, 1, 15),
+    theme: 'Hanukkah',
+    venue: 'Community Center',
+    description: 'Celebrate with traditional and modern Hanukkah songs',
+    members: ['user1'],
+    carols: ['5'],
+    contributions: [],
+    messages: []
   }
 ];
 
 export const useStore = create<Store>((set) => ({
   carols: MOCK_CAROLS,
-  playlist: ['1', '2'], // Default playlist
+  events: MOCK_EVENTS,
+  currentEventId: 'event1',
   player: {
     isPlaying: false,
     currentCarolId: null,
@@ -126,19 +176,59 @@ export const useStore = create<Store>((set) => ({
     points: 150
   },
 
-  addToPlaylist: (carolId) => set(produce((state: Store) => {
-    if (!state.playlist.includes(carolId)) {
-      state.playlist.push(carolId);
+  createEvent: (eventData) => set(produce((state: Store) => {
+    const newEvent: Event = {
+      ...eventData,
+      id: `event-${Date.now()}`,
+      members: [],
+      carols: [],
+      contributions: [],
+      messages: []
+    };
+    state.events.push(newEvent);
+  })),
+
+  joinEvent: (eventId, memberId) => set(produce((state: Store) => {
+    const event = state.events.find(e => e.id === eventId);
+    if (event && !event.members.includes(memberId)) {
+      event.members.push(memberId);
     }
   })),
 
-  removeFromPlaylist: (carolId) => set(produce((state: Store) => {
-    state.playlist = state.playlist.filter(id => id !== carolId);
+  setCurrentEvent: (eventId) => set(produce((state: Store) => {
+    state.currentEventId = eventId;
   })),
 
-  reorderPlaylist: (fromIndex, toIndex) => set(produce((state: Store) => {
-    const [removed] = state.playlist.splice(fromIndex, 1);
-    state.playlist.splice(toIndex, 0, removed);
+  voteForCarol: (eventId, carolId) => set(produce((state: Store) => {
+    const event = state.events.find(e => e.id === eventId);
+    if (event && !event.carols.includes(carolId)) {
+      event.carols.push(carolId);
+    }
+    const carol = state.carols.find(c => c.id === carolId);
+    if (carol) {
+      carol.votes = (carol.votes || 0) + 1;
+    }
+  })),
+
+  addContribution: (eventId, contribution) => set(produce((state: Store) => {
+    const event = state.events.find(e => e.id === eventId);
+    if (event) {
+      event.contributions.push({
+        ...contribution,
+        id: `contrib-${Date.now()}`
+      });
+    }
+  })),
+
+  addMessage: (eventId, message) => set(produce((state: Store) => {
+    const event = state.events.find(e => e.id === eventId);
+    if (event) {
+      event.messages.push({
+        ...message,
+        id: `msg-${Date.now()}`,
+        timestamp: new Date()
+      });
+    }
   })),
 
   playCarol: (carolId) => set(produce((state: Store) => {
