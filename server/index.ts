@@ -148,6 +148,15 @@ app.use((req, res, next) => {
     await setupVite(httpServer, app);
   }
 
+  // ENHANCEMENT FIRST: Initialize database before starting server
+  try {
+    const { initializeDatabase } = await import("./db");
+    await initializeDatabase();
+  } catch (error) {
+    log("Failed to initialize database, server will not start", "database");
+    process.exit(1);
+  }
+
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
@@ -163,4 +172,42 @@ app.use((req, res, next) => {
       log(`serving on port ${port}`);
     },
   );
+
+  // CLEAN: Graceful shutdown handling
+  const shutdown = async () => {
+    log("Shutting down server gracefully...", "shutdown");
+    
+    try {
+      // Close database connection
+      const { closeDatabaseConnection } = await import("./db");
+      await closeDatabaseConnection();
+      
+      // Close HTTP server
+      httpServer.close(() => {
+        log("Server shutdown complete", "shutdown");
+        process.exit(0);
+      });
+      
+      // Force shutdown after timeout
+      setTimeout(() => {
+        log("Forcing shutdown after timeout", "shutdown");
+        process.exit(1);
+      }, 30000);
+      
+    } catch (error) {
+      log(`Error during shutdown: ${error}`, "shutdown");
+      process.exit(1);
+    }
+  };
+
+  // MODULAR: Handle process signals
+  process.on("SIGTERM", shutdown);
+  process.on("SIGINT", shutdown);
+  process.on("uncaughtException", (error) => {
+    log(`Uncaught exception: ${error}`, "error");
+    shutdown();
+  });
+  process.on("unhandledRejection", (reason) => {
+    log(`Unhandled rejection: ${reason}`, "error");
+  });
 })();

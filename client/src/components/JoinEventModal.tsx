@@ -7,6 +7,7 @@ import { X, Users, Calendar, MapPin } from 'lucide-react';
 import { eventsAPI } from '@/lib/api';
 import { useStore } from '@/store/useStore';
 import { type Event } from '@shared/schema';
+import { useAppUser, getCurrentUserId } from '@/lib/auth';
 
 interface JoinEventModalProps {
   isOpen: boolean;
@@ -20,13 +21,14 @@ export function JoinEventModal({ isOpen, onClose, onJoinSuccess }: JoinEventModa
   const [isJoining, setIsJoining] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const currentUser = 'user1'; // TODO: Get from auth context
+  const { user: appUser, isLoading: isAuthLoading } = useAppUser();
+  const currentUser = getCurrentUserId(appUser);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !isAuthLoading) {
       loadAvailableEvents();
     }
-  }, [isOpen]);
+  }, [isOpen, isAuthLoading]);
 
   const loadAvailableEvents = async () => {
     setIsLoading(true);

@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ChevronLeft, Send, Gift, MessageSquare, Music } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useState } from 'react';
+import { useAppUser, getCurrentUserId } from '@/lib/auth';
 
 export default function Room() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -17,6 +18,9 @@ export default function Room() {
   const voteForCarol = useStore(state => state.voteForCarol);
   const addMessage = useStore(state => state.addMessage);
   const addContribution = useStore(state => state.addContribution);
+
+  const { user: appUser } = useAppUser();
+  const currentUserId = getCurrentUserId(appUser);
 
   const [messageText, setMessageText] = useState('');
   const [contributionText, setContributionText] = useState('');
@@ -42,7 +46,8 @@ export default function Room() {
   const handleSendMessage = () => {
     if (messageText.trim()) {
       addMessage(event.id, {
-        memberId: 'user1',
+        eventId: event.id,
+        memberId: currentUserId,
         text: messageText
       });
       setMessageText('');
@@ -52,7 +57,8 @@ export default function Room() {
   const handleAddContribution = () => {
     if (contributionText.trim()) {
       addContribution(event.id, {
-        memberId: 'user1',
+        eventId: event.id,
+        memberId: currentUserId,
         item: contributionText,
         status: 'proposed'
       });

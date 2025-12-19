@@ -7,10 +7,11 @@ import { randomUUID } from "crypto";
 
 // CLEAN: Single interface for all storage operations
 export interface IStorage {
-  // User operations
+  // User operations - ENHANCEMENT FIRST: Add upsert for Clerk integration
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  upsertUser(user: InsertUser): Promise<User>; // For Clerk user sync
   
   // Event operations - MODULAR: Domain-specific grouping
   getEvent(id: string): Promise<Event | undefined>;

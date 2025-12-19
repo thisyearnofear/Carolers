@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import userRoutes from "./routes/userRoutes";
 import { 
   insertEventSchema, 
   insertCarolSchema, 
@@ -134,6 +135,9 @@ export async function registerRoutes(
   // Message routes
   app.get("/api/events/:eventId/messages", MessageRoutes.getByEvent);
   app.post("/api/messages", MessageRoutes.create);
+
+  // User routes - ENHANCEMENT FIRST: Clerk synchronization
+  app.use("/api/users", userRoutes);
 
   return httpServer;
 }

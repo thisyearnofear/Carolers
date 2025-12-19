@@ -7,6 +7,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { X, Calendar, MapPin, Sparkles } from 'lucide-react';
 import { eventsAPI } from '@/lib/api';
 import { useStore } from '@/store/useStore';
+import { useAppUser, getCurrentUserId } from '@/lib/auth';
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -24,6 +25,8 @@ export function CreateEventModal({ isOpen, onClose }: CreateEventModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { user: appUser } = useAppUser();
+  const currentUserId = getCurrentUserId(appUser);
   const loadEvents = useStore(state => state.loadEvents);
 
   if (!isOpen) return null;
@@ -34,10 +37,14 @@ export function CreateEventModal({ isOpen, onClose }: CreateEventModalProps) {
     setError(null);
 
     try {
-      await eventsAPI.create({
+      const newEvent = await eventsAPI.create({
         ...formData,
         date: new Date(formData.date),
+        createdBy: currentUserId,
       });
+      
+      // ENHANCEMENT FIRST: Automatically join the event as the creator
+      await eventsAPI.join(newEvent.id, currentUserId);
       
       // PERFORMANT: Reload events to show the new one
       await loadEvents();

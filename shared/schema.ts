@@ -1,32 +1,36 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, json } from "drizzle-orm/pg-core";
+import { mysqlTable, text, varchar, timestamp, json, datetime } from "drizzle-orm/mysql-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Users table
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+// ENHANCEMENT FIRST: Adapt existing schema for PlanetScale MySQL
+// Users table - now uses Clerk user IDs as primary keys
+export const users = mysqlTable("users", {
+  id: varchar("id", { length: 191 }).primaryKey(), // Clerk user ID
+  username: text("username").notNull(),
+  email: text("email"),
+  imageUrl: text("image_url"),
+  createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`),
 });
 
 // Events table - consolidate from client store
-export const events = pgTable("events", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const events = mysqlTable("events", {
+  id: varchar("id", { length: 191 }).primaryKey().default(sql`(UUID())`),
   name: text("name").notNull(),
-  date: timestamp("date").notNull(),
+  date: datetime("date").notNull(),
   theme: text("theme").notNull(),
   venue: text("venue"),
   description: text("description").notNull(),
   members: json("members").$type<string[]>().default([]),
   carols: json("carols").$type<string[]>().default([]),
   coverImage: text("cover_image"),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdBy: varchar("created_by", { length: 191 }).notNull().references(() => users.id),
+  createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`),
 });
 
 // Carols table - consolidate from client store
-export const carols = pgTable("carols", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const carols = mysqlTable("carols", {
+  id: varchar("id", { length: 191 }).primaryKey().default(sql`(UUID())`),
   title: text("title").notNull(),
   artist: text("artist").notNull(),
   tags: json("tags").$type<string[]>().default([]),
@@ -35,31 +39,31 @@ export const carols = pgTable("carols", {
   energy: text("energy").$type<'low' | 'medium' | 'high'>().notNull(),
   coverUrl: text("cover_url"),
   votes: json("votes").$type<number>().default(0),
+  createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`),
 });
 
 // Contributions table
-export const contributions = pgTable("contributions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  eventId: varchar("event_id").notNull().references(() => events.id),
-  memberId: varchar("member_id").notNull().references(() => users.id),
+export const contributions = mysqlTable("contributions", {
+  id: varchar("id", { length: 191 }).primaryKey().default(sql`(UUID())`),
+  eventId: varchar("event_id", { length: 191 }).notNull().references(() => events.id),
+  memberId: varchar("member_id", { length: 191 }).notNull().references(() => users.id),
   item: text("item").notNull(),
   status: text("status").$type<'proposed' | 'confirmed' | 'brought'>().default('proposed'),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`),
 });
 
 // Messages table
-export const messages = pgTable("messages", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  eventId: varchar("event_id").notNull().references(() => events.id),
-  memberId: varchar("member_id").notNull().references(() => users.id),
+export const messages = mysqlTable("messages", {
+  id: varchar("id", { length: 191 }).primaryKey().default(sql`(UUID())`),
+  eventId: varchar("event_id", { length: 191 }).notNull().references(() => events.id),
+  memberId: varchar("member_id", { length: 191 }).notNull().references(() => users.id),
   text: text("text").notNull(),
-  timestamp: timestamp("timestamp").defaultNow(),
+  timestamp: datetime("timestamp").default(sql`CURRENT_TIMESTAMP`),
 });
 
 // Zod schemas - single source of truth
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertUserSchema = createInsertSchema(users).omit({
+  createdAt: true,
 });
 
 export const insertEventSchema = createInsertSchema(events).omit({
@@ -67,6 +71,8 @@ export const insertEventSchema = createInsertSchema(events).omit({
   members: true,
   carols: true,
   createdAt: true,
+}).extend({
+  createdBy: z.string(),
 });
 
 export const insertCarolSchema = createInsertSchema(carols).omit({
