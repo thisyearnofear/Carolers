@@ -3,7 +3,17 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
-import { X, Music, Users, Calendar, Check, ArrowRight, Sparkles } from 'lucide-react';
+import {
+    Plus,
+    Users,
+    Sparkles,
+    Music,
+    Heart,
+    Calendar,
+    Snowflake,
+    X,
+    ArrowRight
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
@@ -18,30 +28,30 @@ export function OnboardingModal({ onClose }: { onClose: () => void }) {
 
     const steps = [
         {
-            title: "Welcome to Carolers! 🎄",
-            description: "Gather your friends and family to celebrate the season with song. The first world-wide caroling platform.",
-            icon: <Music className="w-16 h-16 text-primary" />,
+            title: "Prepare for the Magic",
+            description: "Browse carols, explore themes, and find your vocal range before you even start singing.",
+            icon: <Music className="w-12 h-12 text-primary" />,
             image: "🎄",
             color: "from-red-50 to-red-100"
         },
         {
-            title: "Create or Join Events",
-            description: "Start your own caroling gathering or join existing celebrations in your community.",
-            icon: <Calendar className="w-16 h-16 text-secondary" />,
-            image: "📅",
+            title: "Sync with Others",
+            description: "Join a session nearby or start your own. Everyone stays on the same verse, in real-time.",
+            icon: <Users className="w-12 h-12 text-secondary" />,
+            image: "👥",
             color: "from-green-50 to-green-100"
         },
         {
-            title: "Vote on Favorite Songs",
-            description: "Democratically choose the carols your group will sing together from our global songbook.",
-            icon: <Users className="w-16 h-16 text-accent" />,
+            title: "Vote & Sing Along",
+            description: "Democratically choose carols and access synchronized lyrics optimized for mobile and outdoors.",
+            icon: <Sparkles className="w-12 h-12 text-accent" />,
             image: "🎶",
             color: "from-yellow-50 to-yellow-100"
         },
         {
-            title: "Celebrate Together!",
-            description: "Enjoy the magic of group singing with all the coordination handled in one place.",
-            icon: <Sparkles className="w-16 h-16 text-primary" />,
+            title: "Remember the Joy",
+            description: "After the session, look back at your top songs and shared memories to plan the next one.",
+            icon: <Calendar className="w-12 h-12 text-primary" />,
             image: "🎉",
             color: "from-primary/10 to-accent/10"
         },
@@ -130,11 +140,11 @@ export function OnboardingModal({ onClose }: { onClose: () => void }) {
                             </AnimatePresence>
 
                             <div className="flex items-center justify-between mt-auto">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1.5">
                                     {Array.from({ length: totalSteps }).map((_, i) => (
                                         <div
                                             key={i}
-                                            className={`h-1.5 transition-all duration-300 rounded-full ${i + 1 <= step ? 'w-8 bg-primary' : 'w-2 bg-slate-200'
+                                            className={`h-1 transition-all duration-300 rounded-full ${i + 1 <= step ? 'w-6 bg-primary' : 'w-1.5 bg-slate-200'
                                                 }`}
                                         />
                                     ))}

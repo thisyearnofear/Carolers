@@ -6,16 +6,16 @@
   :root {
     /* Festive Palette */
     /* Deep Red */
-    --primary: 354 70% 54%; 
+    --primary: 354 70% 54%;
     --primary-foreground: 0 0% 100%;
 
     /* Forest Green */
     --secondary: 145 63% 22%;
-    --secondary-foreground: 145 20% 90%;
+    --secondary-foreground: 145 40% 10%;
 
     /* Gold/Accent */
     --accent: 45 93% 47%;
-    --accent-foreground: 45 20% 10%;
+    --accent-foreground: 45 40% 5%;
 
     /* Snow/Background */
     --background: 210 20% 98%;
@@ -27,17 +27,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 210 40% 90%;
+    --muted-foreground: 215.4 20% 25%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 214.3 31.8% 85%;
+    --input: 214.3 31.8% 85%;
     --ring: 354 70% 54%;
 
-    --radius: 1rem;
+    --radius: 1.5rem;
   }
 
   .dark {
@@ -76,10 +76,17 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     /* Berkshire Swash will be loaded in layout */
     font-family: var(--font-display, 'Berkshire Swash', cursive);
   }
@@ -99,13 +106,14 @@
 }
 
 .text-stroke {
-  -webkit-text-stroke: 1px rgba(0,0,0,0.1);
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.1);
 }
 
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }

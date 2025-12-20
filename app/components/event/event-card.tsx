@@ -17,67 +17,59 @@ export function EventCard({ event }: EventCardProps) {
 
   return (
     <motion.div
-      whileHover={{ y: -8, scale: 1.02 }}
+      whileHover={{ y: -4, scale: 1.01 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className="w-full max-w-sm"
     >
-      <Card className="overflow-hidden border-primary/10 hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-xl bg-white/80 backdrop-blur-sm group">
-        <div className="h-2 bg-gradient-to-r from-primary via-accent to-secondary" />
+      <Card className="overflow-hidden border-primary/10 hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-lg bg-white/90 backdrop-blur-sm group rounded-3xl">
+        <div className="h-1.5 bg-gradient-to-r from-primary via-accent to-secondary" />
 
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-start gap-2">
-            <CardTitle className="text-2xl font-display text-primary group-hover:text-primary transition-colors">
-              {event.name}
-            </CardTitle>
-            <Badge className="bg-secondary/10 text-secondary border-none hover:bg-secondary/20">
+        <CardHeader className="p-5 pb-2">
+          <div className="flex flex-col gap-1 text-center items-center">
+            <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-tighter border-primary/20 text-primary px-2 py-0">
               {event.theme}
             </Badge>
+            <CardTitle className="text-xl font-display text-primary group-hover:text-primary transition-colors mt-1">
+              {event.name}
+            </CardTitle>
           </div>
         </CardHeader>
 
-        <CardContent className="pb-4">
-          <div className="space-y-3">
-            <div className="flex items-center text-sm font-medium text-secondary-foreground/70">
-              <CalendarDays className="h-4 w-4 mr-2 text-primary" />
+        <CardContent className="p-5 pt-2 pb-4">
+          <div className="space-y-3 text-center">
+            <div className="flex items-center justify-center text-xs font-bold text-slate-800">
+              <CalendarDays className="h-3.5 w-3.5 mr-1.5 text-primary" />
               {eventDate.toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric'
+                month: 'short',
+                day: 'numeric'
               })}
+              <span className="mx-2 opacity-20">|</span>
+              <MapPin className="h-3.5 w-3.5 mr-1.5 text-primary" />
+              <span className="truncate max-w-[120px]">{event.venue || 'TBA'}</span>
             </div>
 
-            {event.venue && (
-              <div className="flex items-center text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4 mr-2 text-primary" />
-                {event.venue}
-              </div>
-            )}
-
-            <p className="text-sm text-muted-foreground line-clamp-2 italic leading-relaxed">
+            <p className="text-sm text-slate-700 italic leading-snug px-2 line-clamp-2">
               "{event.description}"
             </p>
-
-            {(event as any).creatorName && (
-              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-primary/5">
-                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
-                  {(event as any).creatorName.charAt(0)}
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  By <span className="font-semibold text-secondary">{(event as any).creatorName}</span>
-                </span>
-              </div>
-            )}
           </div>
         </CardContent>
 
-        <CardFooter className="flex justify-between items-center bg-primary/5 py-4 mt-auto">
-          <div className="flex items-center text-xs font-bold text-secondary uppercase tracking-wider">
-            <Users className="h-3 w-3 mr-1" />
-            {event.members?.length || 0} Singers
+        <CardFooter className="flex flex-col gap-3 p-5 pt-0 mt-auto">
+          <div className="flex items-center justify-center w-full gap-4 text-[10px] font-bold text-secondary uppercase tracking-widest border-t border-primary/5 pt-4">
+            <div className="flex items-center">
+              <Users className="h-3 w-3 mr-1" />
+              {event.members?.length || 0} Singers
+            </div>
+            <div className="flex items-center">
+              <Music className="h-3 w-3 mr-1" />
+              {event.carols?.length || 0} Carols
+            </div>
           </div>
-          <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-white group/btn">
-            <Link href={`/events/${event.id}`} className="flex items-center">
-              Join the Song
-              <ChevronRight className="w-4 h-4 ml-1 group-hover/btn:translate-x-1 transition-transform" />
+
+          <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl h-10 text-sm font-bold shadow-md shadow-primary/10">
+            <Link href={`/events/${event.id}`}>
+              Enter Session
+              <ChevronRight className="w-4 h-4 ml-1" />
             </Link>
           </Button>
         </CardFooter>

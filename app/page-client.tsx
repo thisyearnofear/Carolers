@@ -59,77 +59,70 @@ export function PageClient({ children }: PageClientProps) {
         ))}
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
-        <header className="mb-16 text-center max-w-4xl mx-auto">
+      <div className="container mx-auto px-6 relative z-10">
+        <header className="mb-12 text-center max-w-lg mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-6">
-              <Sparkles className="w-4 h-4" />
-              <span>The world's first caroling community</span>
-            </div>
-          </motion.div>
-
-          <motion.h1
-            className="text-6xl md:text-8xl font-display text-primary mb-6 drop-shadow-sm"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.5 }}
+            className="mb-8"
           >
-            Carolers
-          </motion.h1>
+            <div className="w-20 h-20 bg-primary/10 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-primary/5">
+              <Music className="w-10 h-10 text-primary" />
+            </div>
+            <h1 className="text-5xl md:text-6xl font-display text-primary drop-shadow-sm leading-tight">
+              Carolers
+            </h1>
+          </motion.div>
 
           <motion.p
-            className="text-xl md:text-2xl text-secondary-foreground/80 mb-10 font-sans max-w-2xl mx-auto leading-relaxed"
+            className="text-lg text-slate-800 font-medium mb-8 leading-relaxed px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
           >
-            Join the festive chorus. Create events, vote on songs, and capture memories of singing together—wherever you celebrate.
+            Experience the magic of caroling. Prepare your songs, sing in harmony, and capture the memories together.
           </motion.p>
 
           <motion.div
-            className="flex flex-wrap gap-4 justify-center"
-            initial={{ opacity: 0, y: 20 }}
+            className="flex gap-3 justify-center"
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
           >
             <Button
               onClick={() => setShowCreateModal(true)}
-              className="bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 px-8 py-6 text-lg rounded-2xl"
+              className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 px-6 py-5 text-base rounded-xl flex-1 max-w-[160px]"
               size="lg"
             >
-              <Plus className="w-6 h-6 mr-2" />
-              Create Event
+              <Plus className="w-5 h-5 mr-2" />
+              Create
             </Button>
             <Button
               onClick={() => setShowJoinModal(true)}
               variant="outline"
-              className="border-secondary text-secondary hover:bg-secondary/10 px-8 py-6 text-lg rounded-2xl bg-white/50 backdrop-blur-sm"
+              className="border-primary/20 text-primary hover:bg-primary/5 px-6 py-5 text-base rounded-xl flex-1 max-w-[160px] bg-white/50 backdrop-blur-sm"
               size="lg"
             >
-              <Users className="w-6 h-6 mr-2" />
-              Join Existing
+              <Users className="w-5 h-5 mr-2" />
+              Join
             </Button>
           </motion.div>
         </header>
 
         <motion.div
-          className="mb-12"
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.8 }}
+          className="mb-12 max-w-4xl mx-auto"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.7, delay: 0.7 }}
         >
-          <div className="flex items-center justify-between mb-8 border-b border-primary/10 pb-4">
-            <div>
-              <h2 className="text-3xl font-display text-secondary">Upcoming Events</h2>
-              <p className="text-muted-foreground">Nearby groups ready to spread joy</p>
-            </div>
+          <div className="flex items-center justify-center mb-8 pb-4">
+            <div className="h-px bg-primary/10 flex-1" />
+            <h2 className="mx-4 text-xl font-display text-secondary font-bold uppercase tracking-wider">Active Sessions</h2>
+            <div className="h-px bg-primary/10 flex-1" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 place-items-center">
             {children}
           </div>
         </motion.div>

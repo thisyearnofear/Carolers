@@ -11,53 +11,57 @@ export function EventDetails({ event }: EventDetailsProps) {
   const eventDate = new Date(event.date);
 
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h2 className="text-2xl font-bold">{event.name}</h2>
-            <Badge variant="secondary" className="mt-2">
-              {event.theme}
-            </Badge>
-            {(event as any).creatorName && (
-              <p className="text-sm text-sky-600 font-medium mt-2 italic">
-                Hosted by {(event as any).creatorName}
-              </p>
-            )}
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-6">
+        <div className="bg-white/50 backdrop-blur-sm p-6 rounded-[2rem] border border-primary/5 shadow-sm">
+          <h3 className="font-display text-2xl text-primary mb-4">About this Session</h3>
+          <p className="text-slate-800 font-medium italic leading-relaxed">
+            "{event.description}"
+          </p>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-center">
-            <CalendarDays className="h-5 w-5 mr-2 text-muted-foreground" />
-            <span>
-              {eventDate.toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </span>
-          </div>
-
-          {event.venue && (
-            <div className="flex items-center">
-              <MapPin className="h-5 w-5 mr-2 text-muted-foreground" />
-              <span>{event.venue}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white/50 backdrop-blur-sm p-5 rounded-2xl border border-primary/5 flex items-center gap-4">
+            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+              <CalendarDays className="h-5 w-5" />
             </div>
-          )}
-
-          <div className="flex items-center">
-            <Users className="h-5 w-5 mr-2 text-muted-foreground" />
-            <span>{event.members?.length || 0} participants</span>
+            <div>
+              <div className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Date</div>
+              <div className="text-sm font-bold text-slate-800">
+                {eventDate.toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
+              </div>
+            </div>
           </div>
 
-          <div className="pt-4">
-            <h3 className="font-semibold mb-2">Description</h3>
-            <p className="text-muted-foreground">{event.description}</p>
+          <div className="bg-white/50 backdrop-blur-sm p-5 rounded-2xl border border-primary/5 flex items-center gap-4">
+            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+              <MapPin className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Venue</div>
+              <div className="text-sm font-bold text-slate-800 truncate max-w-[150px]">
+                {event.venue || 'To be announced'}
+              </div>
+            </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+
+        {(event as any).creatorName && (
+          <div className="flex items-center gap-3 px-6 py-4 bg-primary/5 rounded-2xl border border-primary/5">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold">
+              {(event as any).creatorName.charAt(0)}
+            </div>
+            <div>
+              <div className="text-[10px] font-bold text-secondary-foreground/60 uppercase tracking-widest">Session Lead</div>
+              <div className="text-sm font-bold text-primary">{(event as any).creatorName}</div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
