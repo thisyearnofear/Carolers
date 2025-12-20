@@ -17,13 +17,11 @@ async function initializeDb() {
     return cachedDb;
   }
 
-  const connection = await createConnection({
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '3306'),
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'carolers',
-  });
+  // Use DATABASE_URL (Vercel/prod) or fall back to individual env vars (dev)
+  const connectionString = process.env.DATABASE_URL ||
+    `mysql://${process.env.DB_USER || 'root'}:${process.env.DB_PASSWORD || ''}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '3306'}/${process.env.DB_NAME || 'carolers'}`;
+
+  const connection = await createConnection(connectionString);
 
   const dbInstance = drizzle(connection, { schema, mode: 'default' });
   cachedDb = dbInstance;
