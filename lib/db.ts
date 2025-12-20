@@ -12,49 +12,53 @@ async function initializeDb() {
   }
 
   try {
-    console.log('Creating database connection pool...');
+    console.log('Initializing database connection...');
     
-    // Parse DATABASE_URL if available (format: mysql://user:pass@host:port/database?ssl=...)
-    let poolConfig: any;
-    
+    // For TiDB, always use SSL. Extract basic config from DATABASE_URL
+    let host = 'localhost';
+    let port = 3306;
+    let user = 'root';
+    let password = '';
+    let database = 'carolers';
+
     if (process.env.DATABASE_URL) {
-      const url = new URL(process.env.DATABASE_URL);
-      poolConfig = {
-        host: url.hostname,
-        port: parseInt(url.port || '3306'),
-        user: url.username,
-        password: url.password,
-        database: url.pathname.slice(1),
-        ssl: url.searchParams.get('ssl') === 'true' ? {
-          minVersion: 'TLSv1.2',
-          rejectUnauthorized: true,
-        } : undefined,
-      };
-    } else {
-      // Fallback to individual env vars
-      poolConfig = {
-        host: process.env.DB_HOST || 'localhost',
-        port: parseInt(process.env.DB_PORT || '3306'),
-        user: process.env.DB_USER || 'root',
-        password: process.env.DB_PASSWORD || '',
-        database: process.env.DB_NAME || 'carolers',
-      };
+      try {
+        // DATABASE_URL format: mysql://user:pass@host:port/database?...
+        const urlStr = process.env.DATABASE_URL.split('?')[0]; // Remove query params
+        const url = new URL(urlStr);
+        host = url.hostname;
+        port = parseInt(url.port || '3306');
+        user = url.username;
+        password = decodeURIComponent(url.password);
+        database = url.pathname.slice(1);
+      } catch (e) {
+        console.warn('Failed to parse DATABASE_URL, using env vars', e);
+      }
     }
 
-    // Optimize for serverless: connectionLimit 1, enable keepalive
+    // Create pool with TiDB serverless best practices
     const pool = mysql.createPool({
-      ...poolConfig,
+      host,
+      port,
+      user,
+      password,
+      database,
+      // TiDB requires SSL
+      ssl: {
+        minVersion: 'TLSv1.2',
+        rejectUnauthorized: true,
+      },
+      // Serverless optimization
       connectionLimit: 1,
       maxIdle: 1,
       enableKeepAlive: true,
+      waitForConnections: true,
     });
 
-    console.log('Database connection pool initialized');
-
-    // Pass pool directly to drizzle with { client: pool }
     const dbInstance = drizzle({ client: pool, schema, mode: 'default' });
     cachedDb = dbInstance;
 
+    console.log('Database connection initialized');
     return dbInstance;
   } catch (error) {
     console.error('Failed to initialize database:', error);
