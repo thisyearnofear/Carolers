@@ -15,14 +15,14 @@ export async function GET(
   try {
     const { id } = await params;
     const event = await getEvent(id);
-    
+
     if (!event) {
       return NextResponse.json(
         { error: 'Event not found' },
         { status: 404 }
       );
     }
-    
+
     return NextResponse.json(event);
   } catch (error) {
     console.error('Error fetching event:', error);
@@ -40,16 +40,15 @@ export async function POST(
   const { id } = await params;
   try {
     const body = await request.json();
-    
+
     // Check if this is a join request
     if (body.eventId && body.userId) {
       const validatedData = joinEventSchema.parse(body);
-      
-      // In a real app, you would implement the join functionality
-      // For now, we'll just return a success response
+      const { joinEvent } = await import('@/lib/events');
+      await joinEvent(validatedData.eventId, validatedData.userId);
       return NextResponse.json({ success: true });
     }
-    
+
     return NextResponse.json(
       { error: 'Invalid request' },
       { status: 400 }
@@ -61,7 +60,7 @@ export async function POST(
         { status: 400 }
       );
     }
-    
+
     console.error('Error processing event request:', error);
     return NextResponse.json(
       { error: 'Failed to process request' },

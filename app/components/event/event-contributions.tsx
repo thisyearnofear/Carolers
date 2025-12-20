@@ -36,7 +36,7 @@ export function EventContributions({ eventId }: EventContributionsProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newContribution.trim() || !user) return;
 
     try {
@@ -49,10 +49,10 @@ export function EventContributions({ eventId }: EventContributionsProps) {
           status: 'proposed'
         })
       });
-      
+
       if (!response.ok) throw new Error('Failed to add contribution');
       const contribution = await response.json();
-      
+
       setContributions(prev => [...prev, contribution]);
       setNewContribution('');
     } catch (error) {
@@ -93,20 +93,25 @@ export function EventContributions({ eventId }: EventContributionsProps) {
         </form>
 
         <div className="space-y-3">
-          {contributions.map((contribution) => (
-            <div 
-              key={contribution.id} 
+          {contributions.map((contribution: any) => (
+            <div
+              key={contribution.id}
               className="p-3 border rounded-lg bg-muted/50"
             >
               <div className="flex justify-between items-center">
-                <span>{contribution.item}</span>
-                <span className="text-sm text-muted-foreground capitalize">
+                <div className="flex flex-col">
+                  <span className="font-medium text-sm text-sky-700">
+                    {contribution.userName || `User ${contribution.memberId.substring(0, 8)}`}
+                  </span>
+                  <span>{contribution.item}</span>
+                </div>
+                <span className="text-xs text-muted-foreground capitalize bg-sky-100 px-2 py-1 rounded-full">
                   {contribution.status}
                 </span>
               </div>
             </div>
           ))}
-          
+
           {contributions.length === 0 && (
             <p className="text-muted-foreground text-center py-4">
               No contributions yet. Be the first to offer something!

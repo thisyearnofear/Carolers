@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { contributions } from '@shared/schema';
+import { contributions, users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 export async function GET(
@@ -11,10 +11,18 @@ export async function GET(
     const { id } = await params;
     const db = await getDb();
     const eventContributions = await db
-      .select()
+      .select({
+        id: contributions.id,
+        eventId: contributions.eventId,
+        memberId: contributions.memberId,
+        item: contributions.item,
+        status: contributions.status,
+        userName: users.username,
+      })
       .from(contributions)
+      .leftJoin(users, eq(contributions.memberId, users.id))
       .where(eq(contributions.eventId, id));
-    
+
     return NextResponse.json(eventContributions);
   } catch (error) {
     console.error('Failed to fetch contributions:', error);
@@ -32,7 +40,7 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await request.json();
-    
+
     // memberId should be provided by the client (from Clerk authentication)
     if (!body.memberId) {
       return NextResponse.json(
@@ -40,7 +48,7 @@ export async function POST(
         { status: 400 }
       );
     }
-    
+
     const db = await getDb();
     const result = await db
       .insert(contributions)
@@ -50,7 +58,7 @@ export async function POST(
         item: body.item,
         status: body.status || 'proposed'
       });
-    
+
     // MySQL doesn't support returning, so return the input data
     return NextResponse.json({
       eventId: id,

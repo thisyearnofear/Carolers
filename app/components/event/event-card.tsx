@@ -11,7 +11,7 @@ interface EventCardProps {
 
 export function EventCard({ event }: EventCardProps) {
   const eventDate = new Date(event.date);
-  
+
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-lg">
       <CardHeader className="pb-2">
@@ -20,29 +20,35 @@ export function EventCard({ event }: EventCardProps) {
           <Badge variant="secondary">{event.theme}</Badge>
         </div>
       </CardHeader>
-      
+
       <CardContent className="pb-2">
         <div className="flex items-center text-sm text-muted-foreground mb-1">
           <CalendarDays className="h-4 w-4 mr-1" />
-          {eventDate.toLocaleDateString('en-US', { 
-            month: 'short', 
-            day: 'numeric', 
-            year: 'numeric' 
+          {eventDate.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
           })}
         </div>
-        
+
         {event.venue && (
           <div className="flex items-center text-sm text-muted-foreground mb-2">
             <MapPin className="h-4 w-4 mr-1" />
             {event.venue}
           </div>
         )}
-        
-        <p className="text-sm text-muted-foreground line-clamp-2">
+
+        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
           {event.description}
         </p>
+
+        {(event as any).creatorName && (
+          <div className="text-xs text-sky-600 font-medium">
+            Hosted by {(event as any).creatorName}
+          </div>
+        )}
       </CardContent>
-      
+
       <CardFooter className="flex justify-between">
         <div className="flex items-center text-sm text-muted-foreground">
           <Users className="h-4 w-4 mr-1" />

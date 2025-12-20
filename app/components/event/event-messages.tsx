@@ -56,7 +56,7 @@ export function EventMessages({ eventId }: EventMessagesProps) {
           text: newMessage
         })
       });
-      
+
       if (!response.ok) throw new Error('Failed to send message');
       const message = await response.json();
 
@@ -90,9 +90,8 @@ export function EventMessages({ eventId }: EventMessagesProps) {
       </CardHeader>
       <CardContent>
         <div className="h-64 overflow-y-auto mb-4 space-y-3 pr-2">
-          {messages.map((message) => {
-            // In a real app you'd fetch the user name by memberId
-            const displayName = message.memberId === user?.id ? 'You' : `User ${message.memberId.substring(0, 8)}`;
+          {messages.map((message: any) => {
+            const displayName = message.userName || (message.memberId === user?.id ? 'You' : `User ${message.memberId.substring(0, 8)}`);
             return (
               <div key={message.id} className="flex flex-col">
                 <div className="text-sm font-medium text-muted-foreground">

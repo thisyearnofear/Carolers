@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { messages } from '@shared/schema';
+import { messages, users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 export async function GET(
@@ -11,8 +11,16 @@ export async function GET(
     const { id } = await params;
     const db = await getDb();
     const eventMessages = await db
-      .select()
+      .select({
+        id: messages.id,
+        eventId: messages.eventId,
+        memberId: messages.memberId,
+        text: messages.text,
+        timestamp: messages.timestamp,
+        userName: users.username,
+      })
       .from(messages)
+      .leftJoin(users, eq(messages.memberId, users.id))
       .where(eq(messages.eventId, id))
       .orderBy(messages.timestamp);
     return NextResponse.json(eventMessages);
@@ -32,7 +40,7 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await request.json();
-    
+
     const db = await getDb();
     const result = await db
       .insert(messages)
@@ -41,7 +49,7 @@ export async function POST(
         memberId: body.memberId,
         text: body.text
       });
-    
+
     // MySQL doesn't support returning, so return the input data
     return NextResponse.json({
       eventId: id,

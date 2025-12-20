@@ -19,6 +19,11 @@ export function EventDetails({ event }: EventDetailsProps) {
             <Badge variant="secondary" className="mt-2">
               {event.theme}
             </Badge>
+            {(event as any).creatorName && (
+              <p className="text-sm text-sky-600 font-medium mt-2 italic">
+                Hosted by {(event as any).creatorName}
+              </p>
+            )}
           </div>
         </div>
 
@@ -26,7 +31,7 @@ export function EventDetails({ event }: EventDetailsProps) {
           <div className="flex items-center">
             <CalendarDays className="h-5 w-5 mr-2 text-muted-foreground" />
             <span>
-              {eventDate.toLocaleDateString('en-US', { 
+              {eventDate.toLocaleDateString('en-US', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
