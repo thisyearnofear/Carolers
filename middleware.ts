@@ -7,3 +7,4 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };
+// Cache bust: Sat Dec 20 13:57:11 EAT 2025
