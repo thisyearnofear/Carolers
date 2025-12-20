@@ -6,7 +6,7 @@ import { type Event } from '@shared/schema';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { CalendarDays, MapPin, Users, Music, ChevronRight, Trophy } from 'lucide-react';
+import { CalendarDays, MapPin, Users, Music, ChevronRight, Trophy, Lock } from 'lucide-react';
 
 interface EventCardProps {
   event: Event;
@@ -28,9 +28,17 @@ export function EventCard({ event }: EventCardProps) {
 
         <CardHeader className="p-5 pb-2">
           <div className="flex flex-col gap-1 text-center items-center">
-            <Badge variant="outline" className={`text-[10px] uppercase font-bold tracking-tighter px-2 py-0 ${isPast ? 'border-yellow-500/20 text-yellow-600 bg-yellow-50' : 'border-primary/20 text-primary'}`}>
-              {isPast ? '🎉 Wrapped' : event.theme}
-            </Badge>
+            <div className="flex gap-2">
+              <Badge variant="outline" className={`text-[10px] uppercase font-bold tracking-tighter px-2 py-0 ${isPast ? 'border-yellow-500/20 text-yellow-600 bg-yellow-50' : 'border-primary/20 text-primary'}`}>
+                {isPast ? '🎉 Wrapped' : event.theme}
+              </Badge>
+              {event.isPrivate === 1 && (
+                <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-tighter px-2 py-0 border-red-200 text-red-600 bg-red-50">
+                  <Lock className="w-2.5 h-2.5 mr-1" />
+                  Private
+                </Badge>
+              )}
+            </div>
             <CardTitle className="text-xl font-display text-primary group-hover:text-primary transition-colors mt-1">
               {event.name}
             </CardTitle>

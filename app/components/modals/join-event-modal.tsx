@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
+import { Input } from '../ui/input';
 import { Users, Calendar, MapPin, PartyPopper, Loader2 } from 'lucide-react';
 import { type Event } from '@shared/schema';
 
@@ -29,17 +30,19 @@ export function JoinEventModal({ open, onOpenChange }: JoinEventModalProps) {
     }
   }, [open, user]);
 
+  const [joinCode, setJoinCode] = useState('');
+
   const loadAvailableEvents = async () => {
     setIsLoading(true);
     setError(null);
     try {
       const response = await fetch('/api/events');
       if (!response.ok) throw new Error('Failed to fetch events');
-      
+
       const allEvents: Event[] = await response.json();
-      // Only show events user hasn't joined yet
-      const availableEvents = allEvents.filter(event => 
-        !event.members?.includes(user!.id)
+      // Only show PUBLIC events user hasn't joined yet
+      const availableEvents = allEvents.filter(event =>
+        !event.members?.includes(user!.id) && event.isPrivate !== 1
       );
       setEvents(availableEvents);
     } catch (err) {
@@ -49,9 +52,15 @@ export function JoinEventModal({ open, onOpenChange }: JoinEventModalProps) {
     }
   };
 
+  const handleJoinByCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!joinCode.trim()) return;
+    handleJoinEvent(joinCode.trim());
+  };
+
   const handleJoinEvent = async (eventId: string) => {
     if (!user) return;
-    
+
     setIsJoining(eventId);
     setError(null);
 
@@ -65,7 +74,7 @@ export function JoinEventModal({ open, onOpenChange }: JoinEventModalProps) {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to join event');
+      if (!response.ok) throw new Error('Invalid code or session not found');
 
       onOpenChange(false);
       router.push(`/events/${eventId}`);
@@ -80,7 +89,6 @@ export function JoinEventModal({ open, onOpenChange }: JoinEventModalProps) {
   const formatDate = (date: Date | null) => {
     if (!date) return 'Date TBA';
     return new Date(date).toLocaleDateString('en-US', {
-      weekday: 'short',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -90,110 +98,124 @@ export function JoinEventModal({ open, onOpenChange }: JoinEventModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-green-800">
-            Join an Event
+      <DialogContent className="sm:max-w-[600px] border-none shadow-2xl rounded-[2.5rem] p-0 overflow-hidden">
+        <DialogHeader className="p-8 bg-primary/5 border-b border-primary/5">
+          <DialogTitle className="text-3xl font-display text-primary flex items-center gap-3">
+            <Users className="w-8 h-8" />
+            Find your Chorus
           </DialogTitle>
         </DialogHeader>
 
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">
-            {error}
+        <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
+          {/* Join by Code Section */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold text-secondary uppercase tracking-widest px-1">Join by Private Code</h4>
+            <form onSubmit={handleJoinByCode} className="flex gap-2">
+              <Input
+                placeholder="Enter Session ID..."
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value)}
+                className="rounded-2xl h-12 bg-slate-50 border-none px-4 flex-1"
+              />
+              <Button type="submit" className="rounded-2xl h-12 px-6 bg-primary font-bold shadow-lg shadow-primary/10 transition-transform active:scale-95" disabled={!joinCode || isJoining === joinCode}>
+                Join
+              </Button>
+            </form>
           </div>
-        )}
 
-        {isLoading ? (
-          <div className="space-y-4 py-8">
-            <div className="flex items-center justify-center">
-              <Loader2 className="w-6 h-6 animate-spin mr-3 text-green-600" />
-              <span className="text-muted-foreground">Loading available events...</span>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-primary/5" />
             </div>
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="h-32 bg-gray-200 rounded-lg"></div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-4 text-slate-400 font-bold tracking-widest">or browse public</span>
+            </div>
+          </div>
+
+          {error && (
+            <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-800 text-sm font-medium">
+              {error}
+            </div>
+          )}
+
+          {isLoading ? (
+            <div className="space-y-4 py-8">
+              <div className="flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin mr-3 text-primary" />
+                <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Searching...</span>
               </div>
-            ))}
-          </div>
-        ) : events.length === 0 ? (
-          <div className="text-center py-12 px-6">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center">
-              <PartyPopper className="w-8 h-8 text-white" />
             </div>
-            
-            <h4 className="text-xl font-bold text-green-800 mb-2">
-              Be the first to start a celebration! 🎉
-            </h4>
-            <p className="text-muted-foreground mb-6">
-              No available events yet. Create your own caroling event and invite others!
-            </p>
-            
-            <Button
-              onClick={() => onOpenChange(false)}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              Create Your Own Event
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4 mt-4">
-            {events.map((event) => (
-              <Card key={event.id} className="p-4 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-green-800 mb-1">
-                      {event.name}
-                    </h3>
-                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mb-2">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        {formatDate(event.date)}
+          ) : events.length === 0 ? (
+            <div className="text-center py-12 px-6 bg-primary/5 rounded-[2rem] border border-dashed border-primary/10">
+              <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-full shadow-sm flex items-center justify-center">
+                <PartyPopper className="w-8 h-8 text-primary" />
+              </div>
+
+              <h4 className="text-xl font-display text-primary mb-2">
+                No public sessions found
+              </h4>
+              <p className="text-sm text-slate-500 mb-6">
+                Be the first to start a celebration! Create your own caroling session and invite others.
+              </p>
+
+              <Button
+                onClick={() => onOpenChange(false)}
+                className="bg-primary hover:bg-primary/90 rounded-2xl px-8 h-12 font-bold shadow-lg shadow-primary/10"
+              >
+                Start a New Session
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {events.map((event) => (
+                <Card key={event.id} className="p-4 bg-white border border-primary/5 rounded-[2rem] hover:shadow-xl transition-all duration-300 group">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-tighter px-2 py-0 border-primary/20 text-primary">
+                          {event.theme}
+                        </Badge>
                       </div>
-                      {event.venue && (
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          {event.venue}
+                      <h3 className="text-xl font-display text-primary group-hover:text-accent transition-colors">
+                        {event.name}
+                      </h3>
+                      <div className="flex flex-wrap gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-primary" />
+                          {formatDate(event.date)}
                         </div>
-                      )}
-                      <div className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        {event.members?.length || 0} members
+                        {event.venue && (
+                          <div className="flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-primary" />
+                            {event.venue}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
-                  
-                  <Badge variant="secondary" className="ml-2">
-                    {event.theme}
-                  </Badge>
-                </div>
 
-                {event.description && (
-                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                    {event.description}
-                  </p>
-                )}
-
-                <Button
-                  onClick={() => handleJoinEvent(event.id)}
-                  disabled={isJoining === event.id}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                >
-                  {isJoining === event.id ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Joining...
-                    </>
-                  ) : (
-                    <>
-                      <Users className="w-4 h-4 mr-2" />
-                      Join Event
-                    </>
-                  )}
-                </Button>
-              </Card>
-            ))}
-          </div>
-        )}
+                  <Button
+                    onClick={() => handleJoinEvent(event.id)}
+                    disabled={isJoining === event.id}
+                    className="w-full bg-primary/5 hover:bg-primary text-primary hover:text-white rounded-2xl h-12 font-bold transition-all shadow-none hover:shadow-lg hover:shadow-primary/10"
+                  >
+                    {isJoining === event.id ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Joining...
+                      </>
+                    ) : (
+                      <>
+                        <Users className="w-4 h-4 mr-2" />
+                        Join Session
+                      </>
+                    )}
+                  </Button>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="mt-6 pt-4 border-t">
           <Button

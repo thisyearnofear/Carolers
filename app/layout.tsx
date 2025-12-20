@@ -17,9 +17,14 @@ const sansFont = Lato({
   variable: '--font-sans'
 });
 
+import { Navbar } from './components/navbar';
+
 export const metadata: Metadata = {
   title: 'Carolers | Join the Festive Chorus 🎄',
   description: 'Connect with caroling groups, vote on your favorite festive songs, and celebrate the season together.',
+  icons: {
+    icon: '/favicon.svg',
+  }
 };
 
 export default function RootLayout({
@@ -30,9 +35,12 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" className={`${displayFont.variable} ${sansFont.variable}`}>
-        <body className="font-sans">
+        <body className="font-sans antialiased">
           <QueryProvider>
-            {children}
+            <Navbar />
+            <main className="pt-16 min-h-screen">
+              {children}
+            </main>
             <Toaster />
           </QueryProvider>
         </body>

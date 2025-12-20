@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
+import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -20,19 +21,21 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
   const { user } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     date: '',
     theme: 'Christmas',
     venue: '',
     description: '',
+    isPrivate: false,
+    password: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    
+
     setIsSubmitting(true);
     setError(null);
 
@@ -42,6 +45,7 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          isPrivate: formData.isPrivate ? 1 : 0,
           date: new Date(formData.date).toISOString(),
           createdBy: user.id,
         }),
@@ -52,7 +56,7 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
       }
 
       const newEvent = await response.json();
-      
+
       // Reset form
       setFormData({
         name: '',
@@ -60,8 +64,10 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
         theme: 'Christmas',
         venue: '',
         description: '',
+        isPrivate: false,
+        password: '',
       });
-      
+
       onOpenChange(false);
       router.refresh(); // Refresh to show new event
     } catch (err) {
@@ -73,87 +79,121 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-green-800 flex items-center gap-2">
-            <Sparkles className="w-6 h-6" />
-            Create Event
+      <DialogContent className="sm:max-w-[500px] border-none shadow-2xl rounded-[2.5rem] overflow-hidden p-0">
+        <DialogHeader className="p-8 bg-primary/5 border-b border-primary/5">
+          <DialogTitle className="text-3xl font-display text-primary flex items-center gap-3">
+            <Sparkles className="w-8 h-8" />
+            Plan a Session
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+        <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">
+            <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-800 text-sm font-medium">
               {error}
             </div>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="name">Event Name</Label>
+            <Label htmlFor="name" className="text-xs font-bold text-secondary uppercase tracking-widest px-1">Session Name</Label>
             <Input
               id="name"
               required
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Christmas Carol Gathering 2024"
+              placeholder="e.g. Neighborhood Christmas Sing-Along"
+              className="rounded-2xl h-12 bg-slate-50 border-none px-4"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="date" className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              Date & Time
-            </Label>
-            <Input
-              id="date"
-              type="datetime-local"
-              required
-              value={formData.date}
-              onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="date" className="text-xs font-bold text-secondary uppercase tracking-widest px-1">Date & Time</Label>
+              <Input
+                id="date"
+                type="datetime-local"
+                required
+                value={formData.date}
+                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                className="rounded-2xl h-12 bg-slate-50 border-none px-4"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="theme" className="text-xs font-bold text-secondary uppercase tracking-widest px-1">Tradition</Label>
+              <Select
+                value={formData.theme}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, theme: value }))}
+              >
+                <SelectTrigger className="rounded-2xl h-12 bg-slate-50 border-none px-4">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-none shadow-xl">
+                  <SelectItem value="Christmas">🎄 Christmas</SelectItem>
+                  <SelectItem value="Hanukkah">🕎 Hanukkah</SelectItem>
+                  <SelectItem value="Easter">🐰 Easter</SelectItem>
+                  <SelectItem value="New Year">🎊 New Year</SelectItem>
+                  <SelectItem value="General">✨ Seasonal</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="theme">Theme</Label>
-            <Select
-              value={formData.theme}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, theme: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Christmas">🎄 Christmas</SelectItem>
-                <SelectItem value="Hanukkah">🕎 Hanukkah</SelectItem>
-                <SelectItem value="Easter">🐰 Easter</SelectItem>
-                <SelectItem value="New Year">🎊 New Year</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="venue" className="flex items-center gap-1">
-              <MapPin className="w-4 h-4" />
-              Venue (Optional)
-            </Label>
+            <Label htmlFor="venue" className="text-xs font-bold text-secondary uppercase tracking-widest px-1">Venue</Label>
             <Input
               id="venue"
               value={formData.venue}
               onChange={(e) => setFormData(prev => ({ ...prev, venue: e.target.value }))}
-              placeholder="Central Park, NYC"
+              placeholder="e.g. Central Park West Entrance"
+              className="rounded-2xl h-12 bg-slate-50 border-none px-4"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description" className="text-xs font-bold text-secondary uppercase tracking-widest px-1">About the Session</Label>
             <textarea
               id="description"
               required
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Join us for a festive evening of caroling..."
-              className="w-full p-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent min-h-[100px]"
+              placeholder="Tell your singers what to expect..."
+              className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary/20 min-h-[100px] text-sm"
             />
+          </div>
+
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-3 px-1">
+              <input
+                type="checkbox"
+                id="isPrivate"
+                className="w-5 h-5 rounded-lg border-primary/20 text-primary focus:ring-primary/20 accent-primary"
+                checked={formData.isPrivate}
+                onChange={(e) => setFormData(prev => ({ ...prev, isPrivate: e.target.checked }))}
+              />
+              <div className="flex flex-col">
+                <Label htmlFor="isPrivate" className="font-bold text-slate-800 cursor-pointer">Private Session</Label>
+                <span className="text-[10px] text-slate-500 font-medium italic">Only visible with a direct link or invite code.</span>
+              </div>
+            </div>
+
+            {formData.isPrivate && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="space-y-2 px-1"
+              >
+                <Label htmlFor="password" className="text-[10px] font-bold text-secondary uppercase tracking-widest px-1">Session Password (Optional)</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder="e.g. carolers2024"
+                  className="rounded-2xl h-12 bg-slate-50 border-none px-4"
+                />
+              </motion.div>
+            )}
           </div>
 
           <div className="flex gap-2 pt-4">

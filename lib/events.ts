@@ -17,6 +17,8 @@ export async function getEvents(): Promise<(Event & { creatorName: string | null
         members: events.members,
         carols: events.carols,
         coverImage: events.coverImage,
+        isPrivate: events.isPrivate,
+        password: events.password,
         createdBy: events.createdBy,
         createdAt: events.createdAt,
         creatorName: users.username,
@@ -44,6 +46,8 @@ export async function getEvent(id: string): Promise<(Event & { creatorName: stri
         members: events.members,
         carols: events.carols,
         coverImage: events.coverImage,
+        isPrivate: events.isPrivate,
+        password: events.password,
         createdBy: events.createdBy,
         createdAt: events.createdAt,
         creatorName: users.username,
@@ -62,8 +66,12 @@ export async function getEvent(id: string): Promise<(Event & { creatorName: stri
 export async function createEvent(eventData: Omit<Event, 'id' | 'members' | 'carols' | 'createdAt' | 'coverImage'>) {
   try {
     const db = await getDb();
+    const id = crypto.randomUUID();
     await db.insert(events).values({
       ...eventData,
+      id,
+      isPrivate: eventData.isPrivate ?? 0,
+      password: eventData.password ?? null,
       members: [],
       carols: [],
       coverImage: null,
@@ -71,6 +79,8 @@ export async function createEvent(eventData: Omit<Event, 'id' | 'members' | 'car
     // MySQL doesn't support returning, so return the input data
     return {
       ...eventData,
+      isPrivate: eventData.isPrivate ?? 0,
+      password: eventData.password ?? null,
       members: [],
       carols: [],
       coverImage: null,

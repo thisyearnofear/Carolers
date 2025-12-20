@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CreateEventModal } from './components/modals/create-event-modal';
 import { JoinEventModal } from './components/modals/join-event-modal';
 import { Button } from './components/ui/button';
+import Link from 'next/link';
 import {
   Plus,
   Users,
@@ -12,7 +13,8 @@ import {
   Music,
   Heart,
   Calendar,
-  Snowflake
+  Snowflake,
+  BookOpen
 } from 'lucide-react';
 import { OnboardingModal, useOnboarding } from './components/onboarding/onboarding-modal';
 import { useEffect } from 'react';
@@ -59,56 +61,74 @@ export function PageClient({ children }: PageClientProps) {
         ))}
       </div>
 
-      <div className="container mx-auto px-6 relative z-10">
-        <header className="mb-12 text-center max-w-lg mx-auto">
+      <div className="container mx-auto px-6 relative z-10 pt-8">
+        <header className="mb-16 text-center max-w-2xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
           >
-            <div className="w-20 h-20 bg-primary/10 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-primary/5">
-              <Music className="w-10 h-10 text-primary" />
-            </div>
-            <h1 className="text-5xl md:text-6xl font-display text-primary drop-shadow-sm leading-tight">
-              Carolers
-            </h1>
+            <h2 className="text-5xl md:text-7xl font-display text-primary drop-shadow-sm leading-tight mb-6">
+              Celebrate the Season <br className="hidden md:block" /> Through Song
+            </h2>
+            <p className="text-xl text-slate-600 font-medium mb-10 leading-relaxed px-4">
+              Whether you're hosting a neighborhood gathering or learning carols for a solo performance, find the joy and lyrics for every festive occasion.
+            </p>
           </motion.div>
 
-          <motion.p
-            className="text-lg text-slate-800 font-medium mb-8 leading-relaxed px-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            Experience the magic of caroling. Prepare your songs, sing in harmony, and capture the memories together.
-          </motion.p>
-
           <motion.div
-            className="flex gap-3 justify-center"
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
           >
-            <Button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 px-6 py-5 text-base rounded-xl flex-1 max-w-[160px]"
-              size="lg"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Create
-            </Button>
-            <Button
-              onClick={() => setShowJoinModal(true)}
-              variant="outline"
-              className="border-primary/20 text-primary hover:bg-primary/5 px-6 py-5 text-base rounded-xl flex-1 max-w-[160px] bg-white/50 backdrop-blur-sm"
-              size="lg"
-            >
-              <Users className="w-5 h-5 mr-2" />
-              Join
-            </Button>
+            <Link href="/songs" className="w-full sm:w-auto">
+              <Button
+                className="w-full bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 px-8 h-14 text-lg rounded-2xl flex items-center justify-center gap-2"
+              >
+                <BookOpen className="w-6 h-6" />
+                Explore Songbook
+              </Button>
+            </Link>
+
+            <div className="flex gap-4 w-full sm:w-auto">
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                variant="outline"
+                className="flex-1 sm:px-6 h-14 text-base rounded-2xl border-primary/20 text-primary hover:bg-primary/5 bg-white/50 backdrop-blur-sm shadow-sm flex items-center justify-center gap-2"
+              >
+                <Plus className="w-5 h-5" />
+                Host session
+              </Button>
+              <Button
+                onClick={() => setShowJoinModal(true)}
+                variant="outline"
+                className="flex-1 sm:px-6 h-14 text-base rounded-2xl border-primary/20 text-primary hover:bg-primary/5 bg-white/50 backdrop-blur-sm shadow-sm flex items-center justify-center gap-2"
+              >
+                <Users className="w-5 h-5" />
+                Join
+              </Button>
+            </div>
           </motion.div>
         </header>
+
+        <motion.div
+          className="mb-8 flex items-center gap-4 justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+        >
+          <div className="flex -space-x-3 overflow-hidden p-1">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className={`inline-block h-8 w-8 rounded-full ring-2 ring-white bg-slate-100 flex items-center justify-center overflow-hidden border border-primary/10`}>
+                <Users className="w-4 h-4 text-slate-400" />
+              </div>
+            ))}
+          </div>
+          <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">
+            Connecting <span className="text-primary">1,200+</span> carolers this week
+          </p>
+        </motion.div>
 
         <motion.div
           className="mb-12 max-w-4xl mx-auto"

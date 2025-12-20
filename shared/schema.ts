@@ -15,7 +15,7 @@ export const users = mysqlTable("users", {
 
 // Events table - consolidate from client store
 export const events = mysqlTable("events", {
-  id: varchar("id", { length: 191 }).primaryKey().default(sql`(UUID())`),
+  id: varchar("id", { length: 191 }).primaryKey(),
   name: text("name").notNull(),
   date: datetime("date").notNull(),
   theme: text("theme").notNull(),
@@ -24,13 +24,15 @@ export const events = mysqlTable("events", {
   members: json("members").$type<string[]>(),
   carols: json("carols").$type<string[]>(),
   coverImage: text("cover_image"),
+  isPrivate: int("is_private").default(0), // 0 for false, 1 for true
+  password: text("password"),
   createdBy: varchar("created_by", { length: 191 }).notNull().references(() => users.id),
   createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`),
 });
 
 // Carols table - consolidate from client store
 export const carols = mysqlTable("carols", {
-  id: varchar("id", { length: 191 }).primaryKey().default(sql`(UUID())`),
+  id: varchar("id", { length: 191 }).primaryKey(),
   title: text("title").notNull(),
   artist: text("artist").notNull(),
   tags: json("tags").$type<string[]>(),
@@ -44,7 +46,7 @@ export const carols = mysqlTable("carols", {
 
 // Contributions table
 export const contributions = mysqlTable("contributions", {
-  id: varchar("id", { length: 191 }).primaryKey().default(sql`(UUID())`),
+  id: varchar("id", { length: 191 }).primaryKey(),
   eventId: varchar("event_id", { length: 191 }).notNull().references(() => events.id),
   memberId: varchar("member_id", { length: 191 }).notNull().references(() => users.id),
   item: text("item").notNull(),
@@ -54,7 +56,7 @@ export const contributions = mysqlTable("contributions", {
 
 // Messages table
 export const messages = mysqlTable("messages", {
-  id: varchar("id", { length: 191 }).primaryKey().default(sql`(UUID())`),
+  id: varchar("id", { length: 191 }).primaryKey(),
   eventId: varchar("event_id", { length: 191 }).notNull().references(() => events.id),
   memberId: varchar("member_id", { length: 191 }).notNull().references(() => users.id),
   text: text("text").notNull(),
