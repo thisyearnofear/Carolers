@@ -1,10 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Force webpack usage to maintain compatibility with our security configuration
-  // Turbopack doesn't properly handle Node.js module externalization yet
+  // React2Shell mitigation: Disable server actions in production until patched
   experimental: {
-    forceWebpack: true,
     ...(process.env.NODE_ENV === 'development' && {
       serverActions: {
         bodySizeLimit: '1mb' as const,
