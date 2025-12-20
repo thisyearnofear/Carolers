@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { contributions } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
@@ -9,6 +9,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    const db = await getDb();
     const eventContributions = await db
       .select()
       .from(contributions)
@@ -40,6 +41,7 @@ export async function POST(
       );
     }
     
+    const db = await getDb();
     const result = await db
       .insert(contributions)
       .values({

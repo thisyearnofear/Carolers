@@ -10,8 +10,9 @@ if (typeof window !== 'undefined') {
 
 let dbConnection: Connection | undefined;
 let cachedDb: ReturnType<typeof drizzle> | undefined;
+let dbPromise: Promise<ReturnType<typeof drizzle>> | undefined;
 
-export async function getDb() {
+async function initializeDb() {
   if (cachedDb) {
     return cachedDb;
   }
@@ -31,14 +32,9 @@ export async function getDb() {
   return dbInstance;
 }
 
-// For convenience, create a singleton that gets initialized on first use
-let dbPromise: ReturnType<typeof getDb> | null = null;
-export const db = new Proxy({} as Awaited<ReturnType<typeof getDb>>, {
-  get(target, prop) {
-    if (!dbPromise) dbPromise = getDb();
-    return (...args: any[]) => dbPromise!.then((d: any) => {
-      const val = d[prop];
-      return typeof val === 'function' ? val.apply(d, args) : val;
-    });
+export async function getDb() {
+  if (!dbPromise) {
+    dbPromise = initializeDb();
   }
-});
+  return dbPromise;
+}

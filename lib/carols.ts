@@ -1,9 +1,11 @@
-import { db } from './db';
+import 'server-only';
+import { getDb } from './db';
 import { carols, type Carol } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
 
 export async function getCarols(): Promise<Carol[]> {
   try {
+    const db = await getDb();
     return await db.select().from(carols);
   } catch (error) {
     console.error('Failed to fetch carols:', error);
@@ -13,6 +15,7 @@ export async function getCarols(): Promise<Carol[]> {
 
 export async function getCarol(id: string): Promise<Carol | null> {
   try {
+    const db = await getDb();
     const result = await db.select().from(carols).where(eq(carols.id, id)).limit(1);
     return result[0] || null;
   } catch (error) {
@@ -23,6 +26,7 @@ export async function getCarol(id: string): Promise<Carol | null> {
 
 export async function voteForCarol(id: string) {
   try {
+    const db = await getDb();
     await db.update(carols).set({
       votes: sql`${carols.votes} + 1`
     }).where(eq(carols.id, id));

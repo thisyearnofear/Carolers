@@ -1,10 +1,11 @@
 import 'server-only';
-import { db } from './db';
+import { getDb } from './db';
 import { events, type Event } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 export async function getEvents(): Promise<Event[]> {
   try {
+    const db = await getDb();
     return await db.select().from(events);
   } catch (error) {
     console.error('Failed to fetch events:', error);
@@ -14,6 +15,7 @@ export async function getEvents(): Promise<Event[]> {
 
 export async function getEvent(id: string): Promise<Event | null> {
   try {
+    const db = await getDb();
     const result = await db.select().from(events).where(eq(events.id, id)).limit(1);
     return result[0] || null;
   } catch (error) {
@@ -24,6 +26,7 @@ export async function getEvent(id: string): Promise<Event | null> {
 
 export async function createEvent(eventData: Omit<Event, 'id' | 'members' | 'carols' | 'createdAt' | 'coverImage'>) {
   try {
+    const db = await getDb();
     await db.insert(events).values({
       ...eventData,
       members: [],
