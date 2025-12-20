@@ -61,9 +61,11 @@ const nextConfig: NextConfig = {
   },
   // React2Shell mitigation: Disable server actions in production until patched
   experimental: {
-    serverActions: process.env.NODE_ENV === 'development' ? {
-      bodySizeLimit: '1mb' as const,
-    } : undefined,
+    ...(process.env.NODE_ENV === 'development' && {
+      serverActions: {
+        bodySizeLimit: '1mb' as const,
+      }
+    }),
   },
   // Security headers for React2Shell protection
   headers: async () => [
