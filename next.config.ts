@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
   experimental: {
     forceWebpack: true,
   },
+  // Add empty turbopack config to silence warnings
+  turbopack: {},
   images: {
     remotePatterns: [
       {
