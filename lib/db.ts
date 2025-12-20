@@ -1,14 +1,8 @@
 import 'server-only';
 import { drizzle } from 'drizzle-orm/mysql2';
-import { createConnection, Connection } from 'mysql2/promise';
+import { createPool } from 'mysql2/promise';
 import * as schema from '@shared/schema';
 
-// Ensure this code only runs on the server
-if (typeof window !== 'undefined') {
-  throw new Error('Database operations are only allowed on the server side');
-}
-
-let dbConnection: Connection | undefined;
 let cachedDb: ReturnType<typeof drizzle> | undefined;
 let dbPromise: Promise<ReturnType<typeof drizzle>> | undefined;
 
@@ -22,13 +16,16 @@ async function initializeDb() {
     const connectionString = process.env.DATABASE_URL ||
       `mysql://${process.env.DB_USER || 'root'}:${process.env.DB_PASSWORD || ''}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '3306'}/${process.env.DB_NAME || 'carolers'}`;
 
-    console.log('Connecting to database...');
-    const connection = await createConnection(connectionString);
-    console.log('Database connection established');
+    console.log('Creating database connection pool...');
+    
+    // Create pool from connection string
+    const pool = createPool(connectionString);
+    
+    console.log('Database pool initialized');
 
-    const dbInstance = drizzle(connection, { schema, mode: 'default' });
+    // Pass pool directly to drizzle
+    const dbInstance = drizzle({ client: pool, schema, mode: 'default' });
     cachedDb = dbInstance;
-    dbConnection = connection;
 
     return dbInstance;
   } catch (error) {

@@ -6,8 +6,8 @@ export async function EventListServer() {
     const events = await getEvents();
     return <EventList initialEvents={events} />;
   } catch (error) {
-    console.error('EventListServer error:', error);
-    // Return empty list on error instead of crashing
+    console.error('EventListServer error:', error instanceof Error ? error.message : error);
+    // Return empty list on error - allows page to render even if DB is down
     return <EventList initialEvents={[]} />;
   }
 }
