@@ -2,6 +2,11 @@ import { drizzle } from 'drizzle-orm/mysql2';
 import { createConnection, Connection } from 'mysql2/promise';
 import * as schema from '@shared/schema';
 
+// Ensure this code only runs on the server
+if (typeof window !== 'undefined') {
+  throw new Error('Database operations are only allowed on the server side');
+}
+
 let dbConnection: Connection | undefined;
 let cachedDb: ReturnType<typeof drizzle> | undefined;
 
