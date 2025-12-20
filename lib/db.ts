@@ -1,3 +1,4 @@
+import 'server-only';
 import { drizzle } from 'drizzle-orm/mysql2';
 import { createConnection, Connection } from 'mysql2/promise';
 import * as schema from '@shared/schema';
