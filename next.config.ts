@@ -5,6 +5,11 @@ const nextConfig: NextConfig = {
   // Turbopack doesn't properly handle Node.js module externalization yet
   experimental: {
     forceWebpack: true,
+    ...(process.env.NODE_ENV === 'development' && {
+      serverActions: {
+        bodySizeLimit: '1mb' as const,
+      }
+    }),
   },
   // Add empty turbopack config to silence warnings
   turbopack: {},
@@ -58,14 +63,6 @@ const nextConfig: NextConfig = {
     );
     
     return config;
-  },
-  // React2Shell mitigation: Disable server actions in production until patched
-  experimental: {
-    ...(process.env.NODE_ENV === 'development' && {
-      serverActions: {
-        bodySizeLimit: '1mb' as const,
-      }
-    }),
   },
   // Security headers for React2Shell protection
   headers: async () => [
