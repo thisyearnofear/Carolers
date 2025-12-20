@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Explicitly configure Turbopack to work with our webpack config
+  turbopack: {
+    // Allow Turbopack to handle our custom webpack externals
+    externalizeNodeModules: true,
+  },
   images: {
     remotePatterns: [
       {
