@@ -1,15 +1,25 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Berkshire_Swash, Lato } from 'next/font/google';
 import { ClerkProvider } from '@clerk/nextjs';
 import { QueryProvider } from '@/providers/query-provider';
 import { Toaster } from './components/ui/toaster';
 
-const inter = Inter({ subsets: ['latin'] });
+const displayFont = Berkshire_Swash({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-display'
+});
+
+const sansFont = Lato({
+  weight: ['300', '400', '700'],
+  subsets: ['latin'],
+  variable: '--font-sans'
+});
 
 export const metadata: Metadata = {
-  title: 'Carolers',
-  description: 'A festive caroling community app',
+  title: 'Carolers | Join the Festive Chorus 🎄',
+  description: 'Connect with caroling groups, vote on your favorite festive songs, and celebrate the season together.',
 };
 
 export default function RootLayout({
@@ -19,8 +29,8 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body className={inter.className}>
+      <html lang="en" className={`${displayFont.variable} ${sansFont.variable}`}>
+        <body className="font-sans">
           <QueryProvider>
             {children}
             <Toaster />
