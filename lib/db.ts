@@ -17,17 +17,24 @@ async function initializeDb() {
     return cachedDb;
   }
 
-  // Use DATABASE_URL (Vercel/prod) or fall back to individual env vars (dev)
-  const connectionString = process.env.DATABASE_URL ||
-    `mysql://${process.env.DB_USER || 'root'}:${process.env.DB_PASSWORD || ''}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '3306'}/${process.env.DB_NAME || 'carolers'}`;
+  try {
+    // Use DATABASE_URL (Vercel/prod) or fall back to individual env vars (dev)
+    const connectionString = process.env.DATABASE_URL ||
+      `mysql://${process.env.DB_USER || 'root'}:${process.env.DB_PASSWORD || ''}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '3306'}/${process.env.DB_NAME || 'carolers'}`;
 
-  const connection = await createConnection(connectionString);
+    console.log('Connecting to database...');
+    const connection = await createConnection(connectionString);
+    console.log('Database connection established');
 
-  const dbInstance = drizzle(connection, { schema, mode: 'default' });
-  cachedDb = dbInstance;
-  dbConnection = connection;
+    const dbInstance = drizzle(connection, { schema, mode: 'default' });
+    cachedDb = dbInstance;
+    dbConnection = connection;
 
-  return dbInstance;
+    return dbInstance;
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+    throw error;
+  }
 }
 
 export async function getDb() {
