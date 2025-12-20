@@ -1,6 +1,6 @@
 import 'server-only';
 import { drizzle } from 'drizzle-orm/mysql2';
-import { createPool } from 'mysql2/promise';
+import mysql from 'mysql2/promise';
 import * as schema from '@shared/schema';
 
 let cachedDb: ReturnType<typeof drizzle> | undefined;
@@ -12,18 +12,46 @@ async function initializeDb() {
   }
 
   try {
-    // Use DATABASE_URL (Vercel/prod) or fall back to individual env vars (dev)
-    const connectionString = process.env.DATABASE_URL ||
-      `mysql://${process.env.DB_USER || 'root'}:${process.env.DB_PASSWORD || ''}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '3306'}/${process.env.DB_NAME || 'carolers'}`;
-
     console.log('Creating database connection pool...');
     
-    // Create pool from connection string
-    const pool = createPool(connectionString);
+    // Parse DATABASE_URL if available (format: mysql://user:pass@host:port/database?ssl=...)
+    let poolConfig: any;
     
-    console.log('Database pool initialized');
+    if (process.env.DATABASE_URL) {
+      const url = new URL(process.env.DATABASE_URL);
+      poolConfig = {
+        host: url.hostname,
+        port: parseInt(url.port || '3306'),
+        user: url.username,
+        password: url.password,
+        database: url.pathname.slice(1),
+        ssl: url.searchParams.get('ssl') === 'true' ? {
+          minVersion: 'TLSv1.2',
+          rejectUnauthorized: true,
+        } : undefined,
+      };
+    } else {
+      // Fallback to individual env vars
+      poolConfig = {
+        host: process.env.DB_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || '3306'),
+        user: process.env.DB_USER || 'root',
+        password: process.env.DB_PASSWORD || '',
+        database: process.env.DB_NAME || 'carolers',
+      };
+    }
 
-    // Pass pool directly to drizzle
+    // Optimize for serverless: connectionLimit 1, enable keepalive
+    const pool = mysql.createPool({
+      ...poolConfig,
+      connectionLimit: 1,
+      maxIdle: 1,
+      enableKeepAlive: true,
+    });
+
+    console.log('Database connection pool initialized');
+
+    // Pass pool directly to drizzle with { client: pool }
     const dbInstance = drizzle({ client: pool, schema, mode: 'default' });
     cachedDb = dbInstance;
 
