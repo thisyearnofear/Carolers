@@ -6,7 +6,7 @@ import { type Event } from '@shared/schema';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { CalendarDays, MapPin, Users, Music, ChevronRight } from 'lucide-react';
+import { CalendarDays, MapPin, Users, Music, ChevronRight, Trophy } from 'lucide-react';
 
 interface EventCardProps {
   event: Event;
@@ -15,6 +15,8 @@ interface EventCardProps {
 export function EventCard({ event }: EventCardProps) {
   const eventDate = new Date(event.date);
 
+  const isPast = eventDate < new Date();
+
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
@@ -22,12 +24,12 @@ export function EventCard({ event }: EventCardProps) {
       className="w-full max-w-sm"
     >
       <Card className="overflow-hidden border-primary/10 hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-lg bg-white/90 backdrop-blur-sm group rounded-3xl">
-        <div className="h-1.5 bg-gradient-to-r from-primary via-accent to-secondary" />
+        <div className={`h-1.5 bg-gradient-to-r ${isPast ? 'from-yellow-400 via-orange-400 to-yellow-500' : 'from-primary via-accent to-secondary'}`} />
 
         <CardHeader className="p-5 pb-2">
           <div className="flex flex-col gap-1 text-center items-center">
-            <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-tighter border-primary/20 text-primary px-2 py-0">
-              {event.theme}
+            <Badge variant="outline" className={`text-[10px] uppercase font-bold tracking-tighter px-2 py-0 ${isPast ? 'border-yellow-500/20 text-yellow-600 bg-yellow-50' : 'border-primary/20 text-primary'}`}>
+              {isPast ? '🎉 Wrapped' : event.theme}
             </Badge>
             <CardTitle className="text-xl font-display text-primary group-hover:text-primary transition-colors mt-1">
               {event.name}
@@ -66,10 +68,13 @@ export function EventCard({ event }: EventCardProps) {
             </div>
           </div>
 
-          <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl h-10 text-sm font-bold shadow-md shadow-primary/10">
-            <Link href={`/events/${event.id}`}>
-              Enter Session
-              <ChevronRight className="w-4 h-4 ml-1" />
+          <Button asChild className={`w-full rounded-xl h-10 text-sm font-bold shadow-md ${isPast
+            ? 'bg-yellow-500 hover:bg-yellow-600 text-white shadow-yellow-500/10'
+            : 'bg-primary hover:bg-primary/90 text-white shadow-primary/10'
+            }`}>
+            <Link href={isPast ? `/events/${event.id}/recap` : `/events/${event.id}`}>
+              {isPast ? 'View Recap' : 'Enter Session'}
+              {isPast ? <Trophy className="w-4 h-4 ml-1" /> : <ChevronRight className="w-4 h-4 ml-1" />}
             </Link>
           </Button>
         </CardFooter>

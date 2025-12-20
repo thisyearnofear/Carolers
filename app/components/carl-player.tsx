@@ -11,6 +11,8 @@ interface CarolPlayerProps {
   event: Event;
 }
 
+import { VerseRoulette } from './carol/verse-roulette';
+
 export function CarolPlayer({ event }: CarolPlayerProps) {
   const [carols, setCarols] = useState<Carol[]>([]);
   const [selectedCarol, setSelectedCarol] = useState<Carol | null>(null);
@@ -62,17 +64,19 @@ export function CarolPlayer({ event }: CarolPlayerProps) {
   };
 
   return (
-    <>
-      <Card className="border-primary/10 shadow-lg bg-white/50 backdrop-blur-sm rounded-3xl overflow-hidden">
-        <CardHeader className="bg-primary/5 border-b border-primary/5">
+    <div className="space-y-8">
+      <VerseRoulette carols={carols} />
+
+      <Card className="border-primary/5 shadow-lg bg-white/50 backdrop-blur-sm rounded-[2rem] overflow-hidden">
+        <CardHeader className="bg-primary/5 border-b border-primary/5 p-6">
           <CardTitle className="font-display text-2xl text-primary flex items-center gap-2">
             <Music className="w-6 h-6" />
-            Event Songbook
+            Session Songbook
           </CardTitle>
-          <p className="text-sm text-secondary-foreground/60 italic">Vote for the carols we'll sing together!</p>
+          <p className="text-xs font-bold text-secondary-foreground/60 uppercase tracking-widest italic">Vote for the carols we'll sing together!</p>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
             {carols.length > 0 ? (
               carols.map((carol) => (
                 <VoteCard
@@ -84,7 +88,7 @@ export function CarolPlayer({ event }: CarolPlayerProps) {
                 />
               ))
             ) : (
-              <div className="text-center py-12 px-6 border-2 border-dashed border-primary/10 rounded-2xl bg-primary/5">
+              <div className="text-center py-12 px-6 border-2 border-dashed border-primary/10 rounded-2xl bg-primary/5 col-span-full">
                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
                   <Music className="w-8 h-8 text-primary/30" />
                 </div>
@@ -103,6 +107,6 @@ export function CarolPlayer({ event }: CarolPlayerProps) {
         open={showLyricsModal}
         onOpenChange={setShowLyricsModal}
       />
-    </>
+    </div>
   );
 }

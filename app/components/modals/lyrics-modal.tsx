@@ -16,33 +16,42 @@ export function LyricsModal({ carol, open, onOpenChange }: LyricsModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3 text-2xl">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center flex-shrink-0">
-              <Music className="w-5 h-5 text-white" />
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-[2.5rem] border-none shadow-2xl">
+        <DialogHeader className="p-6 bg-primary/5 border-b border-primary/5">
+          <DialogTitle className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+              <Music className="w-6 h-6" />
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="font-bold text-green-800 truncate">{carol.title}</div>
-              <div className="text-sm text-muted-foreground font-normal">{carol.artist}</div>
+            <div className="flex-1 min-w-0 text-left">
+              <div className="font-display text-2xl text-primary truncate leading-tight">{carol.title}</div>
+              <div className="text-xs font-bold text-secondary uppercase tracking-widest">{carol.artist}</div>
             </div>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="mt-6">
+        <div className="flex-1 overflow-y-auto p-8 bg-white/50 backdrop-blur-md">
           {carol.lyrics && carol.lyrics.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-6 text-center">
               {carol.lyrics.map((line, index) => {
-                const isChorus = line.toLowerCase().includes('chorus');
+                const isChorusHeader = line.toLowerCase().includes('[chorus]');
+                const isVerseHeader = line.toLowerCase().includes('[verse');
                 const isEmpty = !line.trim();
-                
+
+                if (isChorusHeader || isVerseHeader) {
+                  return (
+                    <div key={index} className="text-[10px] font-bold text-primary/40 uppercase tracking-[0.3em] pt-4 first:pt-0">
+                      {line.replace('[', '').replace(']', '')}
+                    </div>
+                  );
+                }
+
                 return (
                   <div
                     key={index}
                     className={`
-                      ${isEmpty ? 'h-4' : ''}
-                      ${isChorus ? 'font-semibold text-green-700 italic' : 'text-gray-700'}
-                      ${!isEmpty && !isChorus ? 'leading-relaxed' : ''}
+                      ${isEmpty ? 'h-2' : ''}
+                      ${line.startsWith('(') ? 'text-slate-400 italic text-base' : 'text-slate-800 text-xl md:text-2xl font-medium'}
+                      leading-relaxed px-4
                     `}
                   >
                     {line || '\u00A0'}
@@ -51,21 +60,19 @@ export function LyricsModal({ carol, open, onOpenChange }: LyricsModalProps) {
               })}
             </div>
           ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <Music className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>No lyrics available for this carol.</p>
+            <div className="text-center py-20 text-slate-400">
+              <Music className="w-16 h-16 mx-auto mb-4 opacity-10" />
+              <p className="font-medium italic">Lyrics are being gathered by our little elves...</p>
             </div>
           )}
         </div>
 
-        <div className="mt-6 pt-4 border-t">
+        <div className="p-6 bg-white border-t border-primary/5">
           <Button
             onClick={() => onOpenChange(false)}
-            variant="outline"
-            className="w-full"
+            className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl h-12 font-bold shadow-lg shadow-primary/10"
           >
-            <X className="w-4 h-4 mr-2" />
-            Close
+            Done Stretching the Vocal Cords
           </Button>
         </div>
       </DialogContent>
