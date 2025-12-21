@@ -15,7 +15,8 @@
     "db:test": "tsx script/test-database.ts",
     "db:manual-migrate": "tsx scripts/manual-migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
-    "db:health": "tsx scripts/inspect-db.ts"
+    "db:health": "tsx scripts/inspect-db.ts",
+    "db:seed:more": "tsx scripts/seed-more.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.5",
