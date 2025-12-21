@@ -46,7 +46,7 @@ export const carols = mysqlTable("carols", {
 
 // Contributions table
 export const contributions = mysqlTable("contributions", {
-  id: varchar("id", { length: 191 }).primaryKey(),
+  id: varchar("id", { length: 191 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
   eventId: varchar("event_id", { length: 191 }).notNull().references(() => events.id),
   memberId: varchar("member_id", { length: 191 }).notNull().references(() => users.id),
   item: text("item").notNull(),
@@ -56,7 +56,7 @@ export const contributions = mysqlTable("contributions", {
 
 // Messages table
 export const messages = mysqlTable("messages", {
-  id: varchar("id", { length: 191 }).primaryKey(),
+  id: varchar("id", { length: 191 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
   eventId: varchar("event_id", { length: 191 }).notNull().references(() => events.id),
   memberId: varchar("member_id", { length: 191 }).notNull().references(() => users.id),
   text: text("text").notNull(),
