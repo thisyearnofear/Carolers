@@ -1,5 +1,7 @@
-import { getDb } from '../lib/db';
+import { drizzle } from 'drizzle-orm/mysql2';
+import mysql from 'mysql2/promise';
 import { carols } from '../shared/schema';
+import { randomUUID } from 'crypto';
 
 const CAROLS_DATA = [
     {
@@ -103,27 +105,55 @@ const CAROLS_DATA = [
 ];
 
 async function seed() {
-    console.log('🌱 Seeding carols...');
-    const db = await getDb();
+  console.log('🌱 Seeding carols...');
 
-    try {
-        for (const carol of CAROLS_DATA) {
-            await db.insert(carols).values({
-                id: crypto.randomUUID(),
-                title: carol.title,
-                artist: carol.artist,
-                duration: carol.duration,
-                energy: carol.energy as 'low' | 'medium' | 'high',
-                tags: carol.tags,
-                lyrics: carol.lyrics,
-                votes: 0
-            });
-            console.log(`✅ Added: ${carol.title}`);
-        }
-        console.log('✨ Seeding complete!');
-    } catch (error) {
-        console.error('❌ Seeding failed:', error);
+  // Parse DATABASE_URL like lib/db does
+  const urlStr = (process.env.DATABASE_URL || '').split('?')[0];
+  if (!urlStr) {
+    console.error('❌ DATABASE_URL not set');
+    process.exit(1);
+  }
+  const url = new URL(urlStr);
+  const host = url.hostname;
+  const port = parseInt(url.port || '3306');
+  const user = url.username;
+  const password = decodeURIComponent(url.password);
+  const database = url.pathname.slice(1);
+
+  const pool = mysql.createPool({
+    host,
+    port,
+    user,
+    password,
+    database,
+    ssl: { minVersion: 'TLSv1.2', rejectUnauthorized: true },
+    connectionLimit: 1,
+    maxIdle: 1,
+    enableKeepAlive: true,
+    waitForConnections: true,
+  });
+  const db = drizzle({ client: pool, schema: { carols }, mode: 'default' });
+
+  try {
+    for (const carol of CAROLS_DATA) {
+      await db.insert(carols).values({
+        id: randomUUID(),
+        title: carol.title,
+        artist: carol.artist,
+        duration: carol.duration,
+        energy: carol.energy as 'low' | 'medium' | 'high',
+        tags: carol.tags,
+        lyrics: carol.lyrics,
+        votes: 0,
+      });
+      console.log(`✅ Added: ${carol.title}`);
     }
+    console.log('✨ Seeding complete!');
+  } catch (error) {
+    console.error('❌ Seeding failed:', error);
+  } finally {
+    await pool.end();
+  }
 }
 
 seed();
