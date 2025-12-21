@@ -18,7 +18,9 @@
     "db:health": "tsx scripts/inspect-db.ts",
     "db:seed:more": "tsx scripts/seed-more.ts",
     "db:seed:even-more": "tsx scripts/seed-even-more.ts",
-    "db:purge:non-english": "tsx scripts/purge-non-english-carols.ts"
+    "db:purge:non-english": "tsx scripts/purge-non-english-carols.ts",
+    "db:migrate:add-language": "tsx scripts/migrate-add-language.ts",
+    "db:enrich:english-lyrics": "tsx scripts/enrich-english-lyrics.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.5",
