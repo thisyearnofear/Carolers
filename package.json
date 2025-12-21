@@ -12,7 +12,16 @@
     "db:migrate": "tsx script/migrate.ts",
     "db:generate": "drizzle-kit generate:mysql",
     "auth:verify": "tsx script/verify-clerk.ts",
-    "db:test": "tsx script/test-database.ts"
+    "db:test": "tsx script/test-database.ts",
+    "db:manual-migrate": "tsx scripts/manual-migrate.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:health": "tsx scripts/inspect-db.ts",
+    "db:seed:more": "tsx scripts/seed-more.ts",
+    "db:seed:even-more": "tsx scripts/seed-even-more.ts",
+    "db:purge:non-english": "tsx scripts/purge-non-english-carols.ts",
+    "db:migrate:add-language": "tsx scripts/migrate-add-language.ts",
+    "db:enrich:english-lyrics": "tsx scripts/enrich-english-lyrics.ts",
+    "db:normalize:artists": "tsx scripts/normalize-artists.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.5",

@@ -1,5 +1,7 @@
 import { clerkMiddleware } from '@clerk/nextjs/server';
 
+// Next.js 16 proxy replacement for deprecated middleware.ts
+// Mirrors previous behavior: apply Clerk middleware to all routes except static/image/favicon
 export default clerkMiddleware();
 
 export const config = {
@@ -7,5 +9,3 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };
-// Cache bust: Sat Dec 20 13:57:11 EAT 2025
-// Cache bust: Sat Dec 20 14:12:31 EAT 2025

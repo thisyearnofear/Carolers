@@ -5,7 +5,7 @@ import { type Contribution } from '@shared/schema';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { useUser } from '@clerk/nextjs';
+import { useSafeUser } from '@/hooks/use-safe-user';
 
 interface EventContributionsProps {
   eventId: string;
@@ -15,7 +15,7 @@ export function EventContributions({ eventId }: EventContributionsProps) {
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [newContribution, setNewContribution] = useState('');
   const [loading, setLoading] = useState(true);
-  const { user } = useUser();
+  const { user } = useSafeUser();
 
   useEffect(() => {
     async function fetchContributions() {

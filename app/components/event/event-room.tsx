@@ -10,7 +10,7 @@ import { EventDetails } from './event-details';
 import { EventContributions } from './event-contributions';
 import { EventMessages } from './event-messages';
 import { Music, Calendar, Users, MessageSquare, Info, Trophy } from 'lucide-react';
-import { useUser } from '@clerk/nextjs';
+import { useSafeUser } from '@/hooks/use-safe-user';
 import { Button } from '../ui/button';
 import Link from 'next/link';
 
@@ -20,7 +20,7 @@ interface EventRoomProps {
 
 export function EventRoom({ event }: EventRoomProps) {
   const [activeTab, setActiveTab] = useState('sing');
-  const { user } = useUser();
+  const { user } = useSafeUser();
   const isCreator = user?.id === event.createdBy;
   const isPast = new Date(event.date) < new Date();
 

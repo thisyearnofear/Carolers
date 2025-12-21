@@ -3,9 +3,14 @@ import { getDb } from './db';
 import { carols, type Carol } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
 
-export async function getCarols(): Promise<Carol[]> {
+export async function getCarols(lang: string = 'en'): Promise<Carol[]> {
   try {
     const db = await getDb();
+    if (lang) {
+      // Filter by language when provided (default 'en')
+      // @ts-ignore - language is added in our schema
+      return await db.select().from(carols).where(eq((carols as any).language, lang));
+    }
     return await db.select().from(carols);
   } catch (error) {
     console.error('Failed to fetch carols:', error);

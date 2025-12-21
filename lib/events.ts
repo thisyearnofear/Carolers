@@ -63,7 +63,8 @@ export async function getEvent(id: string): Promise<(Event & { creatorName: stri
   }
 }
 
-export async function createEvent(eventData: Omit<Event, 'id' | 'members' | 'carols' | 'createdAt' | 'coverImage'>) {
+type CreateEventInput = Pick<Event, 'name' | 'date' | 'theme' | 'venue' | 'description' | 'createdBy'> & Partial<Pick<Event, 'isPrivate' | 'password'>>;
+export async function createEvent(eventData: CreateEventInput) {
   try {
     const db = await getDb();
     const id = crypto.randomUUID();
