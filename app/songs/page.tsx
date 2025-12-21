@@ -41,7 +41,12 @@ export default function SongbookPage() {
 
     return (
         <div className="container mx-auto px-6 py-12 max-w-5xl">
-            <header className="mb-12 text-center">
+            <header className="mb-12 text-center relative overflow-hidden rounded-3xl">
+                <div className="absolute inset-0">
+                  <div className="absolute inset-0 bg-[url('/carolersbanner.png')] bg-cover bg-center" />
+                  <div className="absolute inset-0 bg-white/70" />
+                </div>
+                <div className="relative py-14 px-6">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -54,6 +59,7 @@ export default function SongbookPage() {
                 <p className="text-lg text-slate-600 max-w-2xl mx-auto">
                     Browse our collection of festive songs from around the world. Prepare your voice and learn the lyrics for your next gathering.
                 </p>
+                </div>
             </header>
 
             <div className="flex flex-col md:flex-row gap-4 mb-12">

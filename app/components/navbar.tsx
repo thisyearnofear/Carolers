@@ -2,6 +2,7 @@
 
 import { SignInButton, SignOutButton, UserButton } from '@clerk/nextjs';
 import { Music, House, BookOpen, Star, Menu, X } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,8 +19,8 @@ export function Navbar() {
             <div className="container mx-auto px-6 h-16 flex items-center justify-between">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 group">
-                    <div className="w-8 h-8 md:w-10 md:h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-sm">
-                        <Music className="w-5 h-5 md:w-6 md:h-6" />
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl overflow-hidden group-hover:scale-110 transition-transform shadow-sm border border-primary/10">
+                        <Image src="/caroler.jpeg" alt="Carolers" width={40} height={40} className="w-full h-full object-cover" />
                     </div>
                     <span className="font-display text-xl md:text-2xl text-primary drop-shadow-sm">Carolers</span>
                 </Link>

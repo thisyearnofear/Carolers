@@ -28,8 +28,20 @@ export const metadata: Metadata = {
       { url: '/favicon.svg', type: 'image/svg+xml' },
       { url: '/favicon.ico' },
     ],
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
+  openGraph: {
+    title: 'Carolers | Join the Festive Chorus 🎄',
+    description: 'Connect with caroling groups, vote on your favorite festive songs, and celebrate the season together.',
+    type: 'website',
+    images: [{ url: '/carolersbanner.png', width: 1200, height: 630, alt: 'Carolers banner' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Carolers | Join the Festive Chorus 🎄',
+    description: 'Connect with caroling groups, vote on your favorite festive songs, and celebrate the season together.',
+    images: ['/carolersbanner.png'],
   }
 };
 
