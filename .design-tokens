@@ -1,0 +1,117 @@
+CAROLERS DESIGN TOKENS - Quick Reference
+
+=== SPACING SCALE ===
+xs: 0.25rem (4px)   - tight spacing
+sm: 0.5rem (8px)    - small gaps
+md: 1rem (16px)     - standard/default
+lg: 1.5rem (24px)   - generous spacing
+xl: 2rem (32px)     - spacious
+2xl: 3rem (48px)    - hero spacing
+
+Usage: p-lg, gap-md, mb-xs, pt-sm, etc.
+
+=== BORDER RADIUS ===
+rounded-lg: 0.5rem (8px)      - input, small elements
+rounded-xl: 0.75rem (12px)    - buttons, badges
+rounded-2xl: 1rem (16px)      - medium cards
+rounded-3xl: 1.5rem (24px)    - large cards
+rounded-[2rem]: 2rem (32px)   - hero cards, events
+
+Rules:
+- All event cards: rounded-[2rem]
+- All vote/song cards: rounded-[1.5rem]
+- All buttons: rounded-xl
+- All inputs: rounded-lg
+- All badges: rounded-full
+
+=== SHADOWS ===
+shadow-sm: default - subtle
+shadow-md-lift: hover state for cards
+shadow-lg-lift: prominent state
+shadow-glow: festive accent glow
+
+Rule: Cards hover at shadow-md-lift, never shadow-lg
+
+=== COLORS ===
+primary (red):      actions, focus, festive
+secondary (green):  supporting, confirmation
+accent (gold):      highlights, success
+slate:              neutral text, borders, disabled
+
+Border colors:
+- Default: border-2 border-slate-200 or border-primary/10
+- Hover: border-primary/30
+- Active: border-primary/50
+
+=== ANIMATIONS ===
+hover: y-4 to y-6, scale-1.01 to scale-1.02 (cards)
+shadow: shadow-sm → shadow-md-lift on hover
+duration: 300ms transitions
+
+Celebratory:
+- animate-pulse-glow: "coming soon" badges
+- animate-celebrate: vote celebration effect
+
+=== COMPONENT PATTERNS ===
+
+CARDS:
+- border-2 border-primary/10 hover:border-primary/30
+- shadow-sm hover:shadow-md-lift
+- rounded-[2rem] or rounded-[1.5rem]
+- transition-all duration-300
+- bg-white/50 backdrop-blur-sm (optional)
+
+BUTTONS:
+- rounded-xl font-bold shadow-md
+- transition-all duration-300
+- active:scale-95 (press state)
+- disabled: bg-slate-200 text-slate-400 (no shadow)
+
+BADGES:
+- text-[10px] font-bold uppercase tracking-tighter
+- rounded-full px-md py-xs
+- Semantic colors: primary/10, secondary/10, etc.
+
+INPUTS:
+- rounded-lg border-2 border-slate-200
+- focus:border-primary ring-4 ring-primary/10
+- placeholder: italic text-slate-400
+
+EMPTY STATES:
+- Use EmptyState component (app/components/empty-state.tsx)
+- Consistent across all pages
+
+=== PADDING PATTERNS ===
+Card padding: p-lg (1.5rem)
+Section padding: px-lg py-2xl (generous vertical)
+Gap between items: gap-md (standard)
+List spacing: space-y-md
+
+=== RESPONSIVE ===
+Mobile: < 640px (single column)
+Tablet: 640-1024px (two columns)
+Desktop: > 1024px (full layouts)
+
+All use Tailwind breakpoints: sm:, md:, lg:, xl:
+
+=== ACCESSIBILITY ===
+- All interactive: min 44x44px
+- All links: visible underline or high contrast
+- Focus states: outline-primary outline-offset-2
+- Motion: respect prefers-reduced-motion
+- Color: not sole indicator (use borders + color)
+
+=== DO's & DON'Ts ===
+✅ DO use design tokens (p-lg, gap-md, shadow-md-lift)
+✅ DO use rounded-[2rem] for hero cards
+✅ DO scale hover: scale-1.02, not scale-1.1
+✅ DO add transition-all duration-300 to all interactive
+✅ DO use EmptyState component (reusable)
+✅ DO use border-2 (not border)
+
+❌ DON'T use arbitrary spacing (p-5, gap-3, gap-4)
+❌ DON'T use rounded-3xl for vote cards
+❌ DON'T forget shadow-md-lift on card hover
+❌ DON'T use inline styles
+❌ DON'T scale beyond 1.02 (feels janky)
+❌ DON'T forget border-2 (border-1 too thin)

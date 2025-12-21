@@ -50,16 +50,16 @@ export function VerseRoulette({ carols }: VerseRouletteProps) {
     };
 
     return (
-        <Card className="border-primary/10 shadow-xl bg-white/50 backdrop-blur-sm rounded-3xl overflow-hidden relative group">
+        <Card variant="elevated" size="lg" className="border-primary/10 hover:border-primary/30 bg-white/50 overflow-hidden relative group">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 pointer-events-none" />
 
-            <CardContent className="p-8 text-center relative z-10">
-                <div className="flex flex-col items-center gap-6">
-                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-2">
+            <CardContent className="p-2xl text-center relative z-10">
+                <div className="flex flex-col items-center gap-lg">
+                    <div className="w-16 h-16 bg-primary/10 rounded-card-sm flex items-center justify-center text-primary">
                         <RefreshCcw className={`w-8 h-8 ${isSpinning ? 'animate-spin' : ''}`} />
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-sm">
                         <h3 className="font-display text-3xl text-primary">Verse Roulette</h3>
                         <p className="text-slate-600 text-sm font-medium">
                             Challenge yourself! Spin to be assigned a random verse and role.
@@ -73,25 +73,25 @@ export function VerseRoulette({ carols }: VerseRouletteProps) {
                                 initial={{ opacity: 0, scale: 0.9, y: 10 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 1.1, y: -10 }}
-                                className="w-full space-y-6"
+                                className="w-full space-y-lg"
                             >
-                                <div className="p-6 bg-white rounded-2xl shadow-sm border border-primary/5 space-y-4">
+                                <div className="p-lg bg-white rounded-card-lg shadow-sm border-2 border-primary/10 space-y-md">
                                     <div>
-                                        <div className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-1">Your Carol</div>
+                                        <div className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-xs">Your Carol</div>
                                         <div className="font-display text-xl text-primary">{selection.carol.title}</div>
                                     </div>
 
                                     <div className="h-px bg-primary/5 w-full" />
 
                                     <div>
-                                        <div className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-2">Your Part</div>
-                                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 text-accent-foreground rounded-xl font-bold">
+                                        <div className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-xs">Your Part</div>
+                                        <div className="inline-flex items-center gap-xs px-md py-xs bg-accent/10 text-accent-foreground rounded-xl font-bold text-sm">
                                             <Users className="w-4 h-4" />
                                             {selection.role}
                                         </div>
                                     </div>
 
-                                    <div className="bg-primary/5 p-4 rounded-xl italic text-slate-700 text-sm leading-relaxed border border-primary/5">
+                                    <div className="bg-primary/5 p-md rounded-xl italic text-slate-700 text-sm leading-relaxed border-2 border-primary/10">
                                         " {selection.verse.replace(/\[.*?\]/g, '').trim()} "
                                     </div>
                                 </div>
@@ -137,7 +137,7 @@ export function VerseRoulette({ carols }: VerseRouletteProps) {
                     <Button
                         disabled={isSpinning || carols.length === 0}
                         onClick={handleSpin}
-                        className="w-full bg-primary hover:bg-primary/90 text-white rounded-2xl h-14 font-bold text-lg shadow-xl shadow-primary/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl h-12 font-bold shadow-md shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95"
                     >
                         {isSpinning ? 'Selecting...' : 'Spin the Roulette'}
                     </Button>

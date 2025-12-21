@@ -81,21 +81,21 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] border-none shadow-2xl rounded-[2.5rem] overflow-hidden p-0">
-        <DialogHeader className="p-8 bg-primary/5 border-b border-primary/5">
-          <DialogTitle className="text-3xl font-display text-primary flex items-center gap-3">
+        <DialogHeader className="p-lg bg-primary/5 border-b border-primary/5">
+          <DialogTitle className="text-3xl font-display text-primary flex items-center gap-md">
             <Sparkles className="w-8 h-8" />
             Plan a Session
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-lg space-y-lg max-h-[70vh] overflow-y-auto">
           {error && (
-            <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-800 text-sm font-medium">
+            <div className="p-md bg-red-50 border-2 border-red-200 rounded-xl text-red-800 text-sm font-medium">
               {error}
             </div>
           )}
 
-          <div className="space-y-2">
+          <div className="space-y-sm">
             <Label htmlFor="name" className="text-xs font-bold text-secondary uppercase tracking-widest px-1">Session Name</Label>
             <Input
               id="name"
@@ -103,33 +103,33 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="e.g. Neighborhood Christmas Sing-Along"
-              className="rounded-2xl h-12 bg-slate-50 border-none px-4"
+              className="rounded-lg h-12 bg-slate-50 border-2 border-slate-200 focus:border-primary ring-0 focus:ring-4 focus:ring-primary/10"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date" className="text-xs font-bold text-secondary uppercase tracking-widest px-1">Date & Time</Label>
+          <div className="grid grid-cols-2 gap-md">
+            <div className="space-y-sm">
+              <Label htmlFor="date" className="text-xs font-bold text-secondary uppercase tracking-widest">Date & Time</Label>
               <Input
                 id="date"
                 type="datetime-local"
                 required
                 value={formData.date}
                 onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                className="rounded-2xl h-12 bg-slate-50 border-none px-4"
+                className="rounded-lg h-12 bg-slate-50 border-2 border-slate-200 focus:border-primary ring-0 focus:ring-4 focus:ring-primary/10"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="theme" className="text-xs font-bold text-secondary uppercase tracking-widest px-1">Tradition</Label>
+            <div className="space-y-sm">
+              <Label htmlFor="theme" className="text-xs font-bold text-secondary uppercase tracking-widest">Tradition</Label>
               <Select
                 value={formData.theme}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, theme: value }))}
               >
-                <SelectTrigger className="rounded-2xl h-12 bg-slate-50 border-none px-4">
+                <SelectTrigger className="rounded-lg h-12 bg-slate-50 border-2 border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="rounded-2xl border-none shadow-xl">
+                <SelectContent className="rounded-xl border-2 border-slate-200 shadow-md-lift">
                   <SelectItem value="Christmas">🎄 Christmas</SelectItem>
                   <SelectItem value="Hanukkah">🕎 Hanukkah</SelectItem>
                   <SelectItem value="Easter">🐰 Easter</SelectItem>
@@ -140,35 +140,35 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="venue" className="text-xs font-bold text-secondary uppercase tracking-widest px-1">Venue</Label>
+          <div className="space-y-sm">
+            <Label htmlFor="venue" className="text-xs font-bold text-secondary uppercase tracking-widest">Venue</Label>
             <Input
               id="venue"
               value={formData.venue}
               onChange={(e) => setFormData(prev => ({ ...prev, venue: e.target.value }))}
               placeholder="e.g. Central Park West Entrance"
-              className="rounded-2xl h-12 bg-slate-50 border-none px-4"
+              className="rounded-lg h-12 bg-slate-50 border-2 border-slate-200 focus:border-primary ring-0 focus:ring-4 focus:ring-primary/10"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-xs font-bold text-secondary uppercase tracking-widest px-1">About the Session</Label>
+          <div className="space-y-sm">
+            <Label htmlFor="description" className="text-xs font-bold text-secondary uppercase tracking-widest">About the Session</Label>
             <textarea
               id="description"
               required
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Tell your singers what to expect..."
-              className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary/20 min-h-[100px] text-sm"
+              className="w-full p-md bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-primary focus:ring-4 focus:ring-primary/10 min-h-[100px] text-sm font-sans"
             />
           </div>
 
-          <div className="space-y-4 pt-2">
-            <div className="flex items-center gap-3 px-1">
+          <div className="space-y-md pt-sm">
+            <div className="flex items-center gap-md">
               <input
                 type="checkbox"
                 id="isPrivate"
-                className="w-5 h-5 rounded-lg border-primary/20 text-primary focus:ring-primary/20 accent-primary"
+                className="w-5 h-5 rounded-lg border-2 border-slate-200 text-primary focus:ring-primary/20 accent-primary cursor-pointer"
                 checked={formData.isPrivate}
                 onChange={(e) => setFormData(prev => ({ ...prev, isPrivate: e.target.checked }))}
               />
@@ -182,34 +182,34 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
-                className="space-y-2 px-1"
+                className="space-y-sm"
               >
-                <Label htmlFor="password" className="text-[10px] font-bold text-secondary uppercase tracking-widest px-1">Session Password (Optional)</Label>
+                <Label htmlFor="password" className="text-[10px] font-bold text-secondary uppercase tracking-widest">Session Password (Optional)</Label>
                 <Input
                   id="password"
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   placeholder="e.g. carolers2024"
-                  className="rounded-2xl h-12 bg-slate-50 border-none px-4"
+                  className="rounded-lg h-12 bg-slate-50 border-2 border-slate-200 focus:border-primary ring-0 focus:ring-4 focus:ring-primary/10"
                 />
               </motion.div>
             )}
           </div>
 
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-md pt-md">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1"
+              className="flex-1 rounded-xl border-2"
               disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-green-600 hover:bg-green-700"
+              className="flex-1 rounded-xl bg-green-600 hover:bg-green-700 font-bold shadow-md shadow-green-600/20"
               disabled={isSubmitting}
             >
               {isSubmitting ? (

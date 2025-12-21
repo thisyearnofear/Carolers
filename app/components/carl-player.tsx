@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react';
 import { type Event, type Carol } from '@shared/schema';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { VoteCard } from './carol/vote-card';
-import { LyricsModal } from './modals/lyrics-modal';
+import { EnhancedLyricsViewer } from './lyrics/enhanced-lyrics-viewer';
+import { EmptyState } from './empty-state';
 import { Music } from 'lucide-react';
+import { VerseRoulette } from './carol/verse-roulette';
 
 interface CarolPlayerProps {
   event: Event;
 }
-
-import { VerseRoulette } from './carol/verse-roulette';
 
 export function CarolPlayer({ event }: CarolPlayerProps) {
   const [carols, setCarols] = useState<Carol[]>([]);
@@ -67,16 +67,16 @@ export function CarolPlayer({ event }: CarolPlayerProps) {
     <div className="space-y-8">
       <VerseRoulette carols={carols} />
 
-      <Card className="border-primary/5 shadow-lg bg-white/50 backdrop-blur-sm rounded-[2rem] overflow-hidden">
-        <CardHeader className="bg-primary/5 border-b border-primary/5 p-6">
+      <Card className="border-2 border-primary/5 shadow-md-lift bg-white/50 backdrop-blur-sm rounded-[2rem] overflow-hidden">
+        <CardHeader className="bg-primary/5 border-b border-primary/5 p-lg">
           <CardTitle className="font-display text-2xl text-primary flex items-center gap-2">
             <Music className="w-6 h-6" />
             Session Songbook
           </CardTitle>
           <p className="text-xs font-bold text-secondary-foreground/60 uppercase tracking-widest italic">Vote for the carols we'll sing together!</p>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
+        <CardContent className="p-lg">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-md">
             {carols.length > 0 ? (
               carols.map((carol) => (
                 <VoteCard
@@ -88,21 +88,19 @@ export function CarolPlayer({ event }: CarolPlayerProps) {
                 />
               ))
             ) : (
-              <div className="text-center py-12 px-6 border-2 border-dashed border-primary/10 rounded-2xl bg-primary/5 col-span-full">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                  <Music className="w-8 h-8 text-primary/30" />
-                </div>
-                <h3 className="font-display text-xl text-primary mb-2">The songbook is empty</h3>
-                <p className="text-sm text-muted-foreground max-w-[200px] mx-auto">
-                  Add some carols to start the celebration!
-                </p>
+              <div className="col-span-full">
+                <EmptyState
+                  icon={<Music className="w-16 h-16" />}
+                  title="The songbook is empty"
+                  description="Add some carols to start the celebration!"
+                />
               </div>
             )}
           </div>
         </CardContent>
       </Card>
 
-      <LyricsModal
+      <EnhancedLyricsViewer
         carol={selectedCarol}
         open={showLyricsModal}
         onOpenChange={setShowLyricsModal}

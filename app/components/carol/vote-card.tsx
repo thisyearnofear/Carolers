@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
-import { Music, Eye, ThumbsUp, Heart, Sparkles } from 'lucide-react';
+import { Badge } from '../ui/badge';
+import { Music, Eye, Heart, Sparkles } from 'lucide-react';
 import { type Carol } from '@shared/schema';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -40,31 +41,50 @@ export function VoteCard({ carol, voted = false, onVote, onViewLyrics }: VoteCar
       'bg-secondary';
 
   return (
-    <Card className="p-5 hover:shadow-xl transition-all duration-500 relative overflow-hidden border-primary/5 bg-white/50 backdrop-blur-sm group">
-      <AnimatePresence>
-        {showVoteAnimation && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1.5 }}
-            exit={{ opacity: 0, scale: 2 }}
-            className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
-          >
-            <Heart
-              className="w-24 h-24 text-primary opacity-50"
-              fill="currentColor"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <motion.div 
+      whileHover={{ y: -4, scale: 1.01 }} 
+      transition={{ duration: 0.3 }} 
+      className="w-full"
+      role="article"
+      aria-label={`${carol.title} by ${carol.artist}${voted ? ' - You voted for this' : ''}`}
+    >
+      <Card 
+        className={`p-lg hover:shadow-md-lift transition-all duration-300 relative overflow-hidden border-2 bg-white/50 backdrop-blur-sm group rounded-card-lg ${
+          voted ? 'border-primary/20 shadow-sm' : 'border-slate-200 shadow-sm hover:border-primary/30'
+        }`}
+        role="region"
+        aria-live="polite"
+        aria-label={`Carol card: ${carol.title}`}
+      >
+        <AnimatePresence>
+          {showVoteAnimation && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1.5 }}
+              exit={{ opacity: 0, scale: 2 }}
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
+            >
+              <Heart
+                className="w-32 h-32 text-primary opacity-40"
+                fill="currentColor"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      <div className="flex items-start gap-5">
-        <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-          <Music className="w-7 h-7 text-primary" />
-        </div>
+        <div className="space-y-md">
+          {/* Header */}
+          <div className="flex items-start gap-md">
+            <motion.div
+              className={`flex-shrink-0 w-14 h-14 rounded-card-sm flex items-center justify-center transition-transform duration-300 ${
+                voted ? 'bg-primary/10' : 'bg-gradient-to-br from-primary/10 to-accent/10 group-hover:scale-110'
+              }`}
+              whileHover={!voted ? { scale: 1.1 } : {}}
+            >
+              <Music className="w-7 h-7 text-primary" />
+            </motion.div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-3 mb-2">
-            <div className="min-w-0">
+            <div className="flex-1 min-w-0">
               <h3 className="font-display text-xl text-primary truncate leading-tight">
                 {carol.title}
               </h3>
@@ -73,44 +93,56 @@ export function VoteCard({ carol, voted = false, onVote, onViewLyrics }: VoteCar
               </p>
             </div>
 
+            {/* Vote count */}
             <motion.div
-              whileHover={{ scale: 1.1 }}
-              className="flex items-center gap-1.5 bg-primary/5 px-3 py-1 rounded-full border border-primary/10"
+              whileHover={!voted ? { scale: 1.1 } : {}}
+              className={`flex items-center gap-xs px-md py-xs rounded-full whitespace-nowrap ${
+                voted ? 'bg-primary/10 text-primary' : 'bg-slate-100 hover:bg-primary/10 hover:text-primary'
+              } transition-colors`}
             >
-              <ThumbsUp className="w-3.5 h-3.5 text-primary" />
-              <span className="text-sm font-bold text-primary">
-                {carol.votes || 0}
-              </span>
+              <Heart className="w-4 h-4" fill="currentColor" />
+              <span className="text-sm font-bold tabular-nums">{carol.votes || 0}</span>
             </motion.div>
           </div>
 
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-4 italic leading-relaxed">
-            "{lyricsPreview}..."
-          </p>
+          {/* Lyrics preview */}
+          {carol.lyrics && carol.lyrics.length > 0 && (
+            <p className="text-sm text-slate-600 italic line-clamp-2 leading-relaxed">
+              "{lyricsPreview}..."
+            </p>
+          )}
 
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div className="text-[10px] font-bold text-secondary-foreground/40 uppercase tracking-widest">
-                {carol.duration}
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-secondary-foreground/40 uppercase tracking-widest">Energy</span>
-                <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className={`h-full ${energyWidth} ${energyColor} rounded-full`} />
-                </div>
-              </div>
-            </div>
+          {/* Metadata */}
+          <div className="flex flex-wrap items-center gap-md text-xs">
+            {/* Duration badge */}
+            <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">
+              {carol.duration}
+            </Badge>
+
+            {/* Energy visualization */}
+             <div className="flex items-center gap-xs" role="img" aria-label={`Energy level: ${carol.energy || 'unknown'}`}>
+               <span className="text-[10px] font-bold text-slate-700 uppercase">Energy</span>
+               <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden" aria-hidden="true">
+                 <motion.div
+                   className={`h-full rounded-full ${energyColor}`}
+                   initial={{ width: 0 }}
+                   animate={{ width: energyWidth }}
+                   transition={{ duration: 0.6, ease: 'easeOut' }}
+                 />
+               </div>
+             </div>
           </div>
 
-          <div className="flex gap-3">
+          {/* Action buttons */}
+          <div className="flex gap-md pt-md border-t border-slate-100">
             {onViewLyrics && carol.lyrics && carol.lyrics.length > 0 && (
               <Button
+                onClick={onViewLyrics}
                 variant="outline"
                 size="sm"
-                onClick={onViewLyrics}
-                className="flex-1 rounded-xl border-primary/10 hover:bg-primary/5 text-primary font-bold"
+                className="flex-1 border-slate-200 hover:bg-slate-50 text-slate-700"
               >
-                <Eye className="w-4 h-4 mr-2" />
+                <Eye className="w-4 h-4 mr-xs" />
                 Lyrics
               </Button>
             )}
@@ -119,26 +151,28 @@ export function VoteCard({ carol, voted = false, onVote, onViewLyrics }: VoteCar
               onClick={handleVote}
               disabled={voted || isVoting}
               size="sm"
-              className={`flex-1 rounded-xl font-bold shadow-lg transition-all ${voted
-                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                  : 'bg-primary hover:bg-primary/90 text-white shadow-primary/20'
-                }`}
+              className={`flex-1 transition-all ${voted
+                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                : 'active:scale-95'
+              }`}
+              aria-label={voted ? `You voted for ${carol.title}` : `Vote for ${carol.title}`}
+              aria-pressed={voted}
             >
               {voted ? (
                 <>
-                  <Heart className="w-4 h-4 mr-2" fill="currentColor" />
+                  <Heart className="w-4 h-4 mr-xs" fill="currentColor" aria-hidden="true" />
                   Voted
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  {isVoting ? '...' : 'Vote'}
+                  <Sparkles className="w-4 h-4 mr-xs" aria-hidden="true" />
+                  {isVoting ? 'Voting...' : 'Vote'}
                 </>
               )}
             </Button>
           </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </motion.div>
   );
 }

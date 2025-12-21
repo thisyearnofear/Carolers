@@ -16,10 +16,10 @@ export function LyricsModal({ carol, open, onOpenChange }: LyricsModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-[2.5rem] border-none shadow-2xl">
-        <DialogHeader className="p-6 bg-primary/5 border-b border-primary/5">
-          <DialogTitle className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-card-xl border-none shadow-2xl">
+         <DialogHeader className="p-lg bg-primary/5 border-b border-primary/5">
+           <DialogTitle className="flex items-center gap-md">
+             <div className="w-12 h-12 rounded-card-sm bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
               <Music className="w-6 h-6" />
             </div>
             <div className="flex-1 min-w-0 text-left">

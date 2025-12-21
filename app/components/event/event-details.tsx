@@ -17,17 +17,17 @@ export function EventDetails({ event }: EventDetailsProps) {
     <div className="space-y-6">
       <div className="flex flex-col gap-6">
         {isFuture && (
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-primary/5 border border-primary/10">
+          <div className="flex items-center justify-between p-md rounded-card-lg bg-primary/5 border-2 border-primary/10">
             <div className="text-xs font-bold uppercase tracking-widest text-primary">Countdown</div>
             <div className="text-sm font-bold text-primary">{timeLeft}</div>
           </div>
         )}
-        <div className="bg-white/50 backdrop-blur-sm p-6 rounded-[2rem] border border-primary/5 shadow-sm">
+        <div className="bg-white/50 backdrop-blur-sm p-lg rounded-card-xl border-2 border-primary/5 shadow-sm">
           <h3 className="font-display text-2xl text-primary mb-4">Preparation Guide</h3>
           <p className="text-slate-800 font-medium italic leading-relaxed mb-4">
             "{event.description}"
           </p>
-          <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10">
+          <div className="p-md bg-primary/5 rounded-card-lg border-2 border-primary/10">
             <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-2">Vocal Range Guide</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               {['Soprano', 'Alto', 'Tenor', 'Bass'].map((part) => (
@@ -42,8 +42,8 @@ export function EventDetails({ event }: EventDetailsProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white/50 backdrop-blur-sm p-5 rounded-2xl border border-primary/5 flex items-center gap-4">
-            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+          <div className="bg-white/50 backdrop-blur-sm p-md rounded-card-lg border-2 border-primary/5 flex items-center gap-md">
+            <div className="w-10 h-10 bg-primary/10 rounded-xs flex items-center justify-center text-primary">
               <CalendarDays className="h-5 w-5" />
             </div>
             <div>
@@ -58,8 +58,8 @@ export function EventDetails({ event }: EventDetailsProps) {
             </div>
           </div>
 
-          <div className="bg-white/50 backdrop-blur-sm p-5 rounded-2xl border border-primary/5 flex items-center gap-4">
-            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+          <div className="bg-white/50 backdrop-blur-sm p-md rounded-card-lg border-2 border-primary/5 flex items-center gap-md">
+            <div className="w-10 h-10 bg-primary/10 rounded-xs flex items-center justify-center text-primary">
               <MapPin className="h-5 w-5" />
             </div>
             <div>
@@ -71,18 +71,18 @@ export function EventDetails({ event }: EventDetailsProps) {
           </div>
         </div>
 
-        <div className="bg-white/50 backdrop-blur-sm p-6 rounded-[2rem] border border-primary/5 shadow-sm">
-          <div className="flex items-center gap-2 mb-4 text-primary">
-            <Sparkles className="w-5 h-5" />
-            <h3 className="font-display text-xl">Theme Context</h3>
-          </div>
-          <p className="text-sm text-slate-700 leading-relaxed">
-            This session focuses on <strong>{event.theme}</strong> themes. We suggest arriving 10 minutes early to warm up your voice and get familiar with the top voted carols in the <strong>Sing</strong> tab.
-          </p>
-        </div>
+        <div className="bg-white/50 backdrop-blur-sm p-lg rounded-card-xl border-2 border-primary/5 shadow-sm">
+           <div className="flex items-center gap-2 mb-lg text-primary">
+             <Sparkles className="w-5 h-5" />
+             <h3 className="font-display text-xl">Theme Context</h3>
+           </div>
+           <p className="text-sm text-slate-700 leading-relaxed">
+             This session focuses on <strong>{event.theme}</strong> themes. We suggest arriving 10 minutes early to warm up your voice and get familiar with the top voted carols in the <strong>Sing</strong> tab.
+           </p>
+         </div>
 
-        {(event as any).creatorName && (
-          <div className="flex items-center gap-3 px-6 py-4 bg-primary/5 rounded-2xl border border-primary/10">
+         {(event as any).creatorName && (
+           <div className="flex items-center gap-md px-lg py-md bg-primary/5 rounded-card-lg border-2 border-primary/10">
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold">
               {(event as any).creatorName.charAt(0)}
             </div>

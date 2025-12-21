@@ -69,7 +69,9 @@ function HtmlShell({ children, withClerk }: { children: React.ReactNode; withCle
               </div>
             </nav>
           )}
-          <main className="pt-16 min-h-screen">{children}</main>
+          <main id="main-content" className="pt-16 min-h-screen" role="main">
+            {children}
+          </main>
           <Toaster />
         </QueryProvider>
       </body>

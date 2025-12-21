@@ -116,9 +116,9 @@ export function JoinEventModal({ open, onOpenChange }: JoinEventModalProps) {
                 placeholder="Enter Session ID..."
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value)}
-                className="rounded-2xl h-12 bg-slate-50 border-none px-4 flex-1"
+                className="h-12 bg-slate-50 border-slate-200 px-md flex-1"
               />
-              <Button type="submit" className="rounded-2xl h-12 px-6 bg-primary font-bold shadow-lg shadow-primary/10 transition-transform active:scale-95" disabled={!joinCode || isJoining === joinCode}>
+              <Button type="submit" className="h-12 px-lg shadow-lg shadow-primary/10 active:scale-95" disabled={!joinCode || isJoining === joinCode}>
                 Join
               </Button>
             </form>
@@ -134,7 +134,7 @@ export function JoinEventModal({ open, onOpenChange }: JoinEventModalProps) {
           </div>
 
           {error && (
-            <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-800 text-sm font-medium">
+            <div className="p-md bg-red-50 border-2 border-red-100 rounded-card-lg text-red-800 text-sm font-medium">
               {error}
             </div>
           )}
@@ -147,29 +147,29 @@ export function JoinEventModal({ open, onOpenChange }: JoinEventModalProps) {
               </div>
             </div>
           ) : events.length === 0 ? (
-            <div className="text-center py-12 px-6 bg-primary/5 rounded-[2rem] border border-dashed border-primary/10">
-              <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-full shadow-sm flex items-center justify-center">
+            <div className="text-center py-2xl px-lg bg-primary/5 rounded-card-xl border-2 border-dashed border-primary/10">
+              <div className="w-16 h-16 mx-auto mb-lg bg-white rounded-full shadow-sm flex items-center justify-center">
                 <PartyPopper className="w-8 h-8 text-primary" />
               </div>
 
-              <h4 className="text-xl font-display text-primary mb-2">
+              <h4 className="text-xl font-display text-primary mb-md">
                 No public sessions found
               </h4>
-              <p className="text-sm text-slate-500 mb-6">
+              <p className="text-sm text-slate-500 mb-lg">
                 Be the first to start a celebration! Create your own caroling session and invite others.
               </p>
 
               <Button
                 onClick={() => onOpenChange(false)}
-                className="bg-primary hover:bg-primary/90 rounded-2xl px-8 h-12 font-bold shadow-lg shadow-primary/10"
+                className="px-2xl h-12 shadow-lg shadow-primary/10"
               >
                 Start a New Session
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-md">
               {events.map((event) => (
-                <Card key={event.id} className="p-4 bg-white border border-primary/5 rounded-[2rem] hover:shadow-xl transition-all duration-300 group">
+                <Card key={event.id} variant="elevated" size="md" className="p-md bg-white border-primary/5 hover:shadow-xl transition-all duration-300 group">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
@@ -196,10 +196,10 @@ export function JoinEventModal({ open, onOpenChange }: JoinEventModalProps) {
                   </div>
 
                   <Button
-                    onClick={() => handleJoinEvent(event.id)}
-                    disabled={isJoining === event.id}
-                    className="w-full bg-primary/5 hover:bg-primary text-primary hover:text-white rounded-2xl h-12 font-bold transition-all shadow-none hover:shadow-lg hover:shadow-primary/10"
-                  >
+                     onClick={() => handleJoinEvent(event.id)}
+                     disabled={isJoining === event.id}
+                     className="w-full h-12 bg-primary/5 hover:bg-primary text-primary hover:text-white transition-all shadow-none hover:shadow-lg hover:shadow-primary/10"
+                   >
                     {isJoining === event.id ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />

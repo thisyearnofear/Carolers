@@ -128,7 +128,7 @@ export function EventRecap({ event }: EventRecapProps) {
                                         transition={{ delay: 0.5 + index * 0.1 }}
                                         className="flex items-center gap-6 group"
                                     >
-                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-display text-2xl shadow-sm ${index === 0 ? 'bg-yellow-100 text-yellow-600' :
+                                        <div className={`w-12 h-12 rounded-card-sm flex items-center justify-center font-display text-2xl shadow-sm ${index === 0 ? 'bg-yellow-100 text-yellow-600' :
                                                 index === 1 ? 'bg-slate-100 text-slate-500' :
                                                     'bg-orange-100 text-orange-600'
                                             }`}>
@@ -153,22 +153,22 @@ export function EventRecap({ event }: EventRecapProps) {
                 </div>
 
                 <div className="lg:col-span-2 flex flex-col gap-6">
-                    <Card className="rounded-[2.5rem] border-primary/5 bg-gradient-to-br from-secondary to-emerald-900 text-white p-8 shadow-2xl relative overflow-hidden flex-1">
-                        <div className="absolute top-0 right-0 p-8 opacity-10">
+                    <Card variant="elevated" size="lg" className="border-primary/5 bg-gradient-to-br from-secondary to-emerald-900 text-white p-2xl shadow-2xl relative overflow-hidden flex-1">
+                        <div className="absolute top-0 right-0 p-2xl opacity-10">
                             <Share2 className="w-32 h-32 rotate-12" />
                         </div>
-                        <h3 className="text-3xl font-display mb-6">Share the Joy</h3>
-                        <p className="text-white/80 mb-8 leading-relaxed font-medium">
+                        <h3 className="text-3xl font-display mb-lg">Share the Joy</h3>
+                        <p className="text-white/80 mb-lg leading-relaxed font-medium">
                             Tell the world about your caroling session! Share your vocal achievements and the magic of celebration.
                         </p>
-                        <div className="space-y-4">
-                            <Button className="w-full bg-white text-secondary hover:bg-slate-100 rounded-2xl h-14 font-bold text-lg shadow-xl">
+                        <div className="space-y-md">
+                            <Button className="w-full bg-white text-secondary hover:bg-slate-100 h-14 text-lg shadow-xl">
                                 <Share2 className="w-6 h-6 mr-2" />
                                 Social Share
                             </Button>
 
                             <Link href="/" className="block">
-                                <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground rounded-2xl h-14 font-bold text-lg shadow-xl">
+                                <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-14 text-lg shadow-xl">
                                     <Plus className="w-6 h-6 mr-2" />
                                     Plan Next Session
                                 </Button>
@@ -177,7 +177,7 @@ export function EventRecap({ event }: EventRecapProps) {
                     </Card>
 
                     <Link href="/" className="w-full">
-                        <Button variant="outline" className="w-full border-primary/20 text-primary hover:bg-primary/5 rounded-2xl h-14 font-bold text-lg bg-white shadow-lg">
+                        <Button variant="outline" className="w-full border-primary/20 text-primary hover:bg-primary/5 h-14 text-lg bg-white shadow-lg">
                             <ArrowLeft className="w-6 h-6 mr-2" />
                             Back to Home
                         </Button>

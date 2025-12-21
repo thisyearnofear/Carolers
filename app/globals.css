@@ -109,6 +109,70 @@
   -webkit-text-stroke: 1px rgba(0, 0, 0, 0.1);
 }
 
+/* Accessibility: Respects prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Accessibility: High contrast for focus states */
+@media (prefers-contrast: more) {
+  :focus-visible {
+    outline: 3px solid hsl(var(--primary));
+    outline-offset: 3px;
+  }
+  
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible {
+    outline: 3px solid hsl(var(--primary));
+    outline-offset: 3px;
+  }
+}
+
+/* Global focus states */
+:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Link underlines for accessibility */
+a:not([class]) {
+  @apply underline text-primary hover:text-primary/80;
+}
+
+/* Ensure minimum tap target size (44x44px) */
+button,
+a[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  @apply min-h-[44px] min-w-[44px];
+}
+
+/* Skip to main content link */
+.skip-to-main {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  padding: 8px;
+  text-decoration: none;
+  z-index: 100;
+  border-radius: 0 0 4px 0;
+  font-weight: bold;
+}
+
+.skip-to-main:focus {
+  top: 0;
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -116,5 +180,10 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Improved text selection visibility */
+  ::selection {
+    @apply bg-primary/20 text-foreground;
   }
 }

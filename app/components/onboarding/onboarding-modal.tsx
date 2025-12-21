@@ -150,14 +150,23 @@ export function OnboardingModal({ onClose }: { onClose: () => void }) {
                                     ))}
                                 </div>
 
-                                <Button
-                                    onClick={handleNext}
-                                    className={`gap-2 h-12 px-6 rounded-xl shadow-lg transition-all ${step === totalSteps ? 'bg-green-600 hover:bg-green-700' : 'bg-primary hover:bg-primary/90'
-                                        }`}
-                                >
-                                    {step < totalSteps ? 'Next' : 'Get Singing!'}
-                                    <ArrowRight className="w-5 h-5" />
-                                </Button>
+                                <div className="flex gap-3">
+                                    <Button
+                                        variant="outline"
+                                        onClick={handleSkip}
+                                        className="h-12 px-6 rounded-xl shadow-lg transition-all"
+                                    >
+                                        Skip
+                                    </Button>
+                                    <Button
+                                        onClick={handleNext}
+                                        className={`gap-2 h-12 px-6 rounded-xl shadow-lg transition-all ${step === totalSteps ? 'bg-green-600 hover:bg-green-700' : 'bg-primary hover:bg-primary/90'
+                                                }`}
+                                    >
+                                        {step < totalSteps ? 'Next' : 'Get Singing!'}
+                                        <ArrowRight className="w-5 h-5" />
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>

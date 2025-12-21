@@ -92,8 +92,8 @@ export function EventRoom({ event }: EventRoomProps) {
                <button onClick={() => setActiveTab('sing')} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-primary/5 hover:bg-primary/10">Sing</button>
              </div>
            </div>
-            <div className="px-4 pt-4 border-b border-primary/5">
-              <TabsList className="grid w-full grid-cols-4 bg-primary/5 p-1 rounded-2xl">
+            <div className="px-md pt-md border-b border-primary/5">
+              <TabsList className="grid w-full grid-cols-4 bg-primary/5 p-xs rounded-card-lg">
                 <TabsTrigger
                   value="sing"
                   className="rounded-xl py-2.5 text-xs font-bold data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"

@@ -15,7 +15,9 @@ export function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-b border-primary/5">
+        <>
+            <a href="#main-content" className="skip-to-main">Skip to main content</a>
+            <nav className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-b border-primary/5">
             <div className="container mx-auto px-6 h-16 flex items-center justify-between">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 group">
@@ -83,7 +85,7 @@ export function Navbar() {
                             <Link
                                 href="/"
                                 onClick={() => setIsMenuOpen(false)}
-                                className="flex items-center gap-3 p-3 rounded-2xl hover:bg-primary/5 transition-colors text-slate-700 font-bold"
+                                className="flex items-center gap-md p-md rounded-card-lg hover:bg-primary/5 transition-colors text-slate-700 font-bold"
                             >
                                 <House className="w-5 h-5 text-primary" />
                                 Home
@@ -91,7 +93,7 @@ export function Navbar() {
                             <Link
                                 href="/songs"
                                 onClick={() => setIsMenuOpen(false)}
-                                className="flex items-center gap-3 p-3 rounded-2xl hover:bg-primary/5 transition-colors text-slate-700 font-bold"
+                                className="flex items-center gap-md p-md rounded-card-lg hover:bg-primary/5 transition-colors text-slate-700 font-bold"
                             >
                                 <BookOpen className="w-5 h-5 text-primary" />
                                 Songbook
@@ -109,7 +111,7 @@ export function Navbar() {
                                         </div>
                                     ) : (
                                         <SignInButton mode="modal">
-                                            <Button className="w-full bg-primary text-white rounded-2xl h-12 font-bold shadow-lg shadow-primary/10">
+                                            <Button className="w-full h-12 shadow-lg shadow-primary/10">
                                                 Sign In
                                             </Button>
                                         </SignInButton>
@@ -126,5 +128,6 @@ export function Navbar() {
                 )}
             </AnimatePresence>
         </nav>
+        </>
     );
 }

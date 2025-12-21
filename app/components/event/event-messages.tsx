@@ -366,8 +366,13 @@ export function EventMessages({ eventId, event }: EventMessagesProps) {
           </div>
         )}
 
-        <div className="h-64 overflow-y-auto mb-4 space-y-3 pr-2">
-          {messages.map((message: any) => {
+        <div 
+          className="h-64 overflow-y-auto mb-4 space-y-3 pr-2"
+          role="log"
+          aria-live="polite"
+          aria-label="Event messages"
+        >
+           {messages.map((message: any) => {
             const displayName = message.userName || (message.memberId === user?.id ? 'You' : `User ${message.memberId.substring(0, 8)}`);
             
             // Handle different message types
