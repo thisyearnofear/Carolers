@@ -24,13 +24,19 @@ export const metadata: Metadata = {
   title: 'Carolers | Join the Festive Chorus 🎄',
   description: 'Connect with caroling groups, vote on your favorite festive songs, and celebrate the season together.',
   icons: {
-    icon: '/favicon.svg',
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico' },
+    ],
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
   }
 };
 
 function HtmlShell({ children, withClerk }: { children: React.ReactNode; withClerk: boolean }) {
   return (
     <html lang="en" className={`${displayFont.variable} ${sansFont.variable}`}>
+      <head />
       <body className="font-sans antialiased">
         <QueryProvider>
           {withClerk ? (
@@ -66,6 +72,10 @@ export default function RootLayout({
 }) {
   const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   const hasClerk = !!publishableKey;
+
+  if (!hasClerk && typeof window === 'undefined') {
+    console.warn('⚠️ Clerk Publishable Key is missing. Carolers is running in Guest Mode. To enable auth, add NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY to your .env');
+  }
 
   if (hasClerk) {
     return (

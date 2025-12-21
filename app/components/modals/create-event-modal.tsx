@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
 import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
@@ -16,9 +15,11 @@ interface CreateEventModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+import { useSafeUser } from '@/hooks/use-safe-user';
+
 export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) {
   const router = useRouter();
-  const { user } = useUser();
+  const { user } = useSafeUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

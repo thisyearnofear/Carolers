@@ -5,7 +5,7 @@ import { type Message } from '@shared/schema';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { useUser } from '@clerk/nextjs';
+import { useSafeUser } from '@/hooks/use-safe-user';
 
 interface EventMessagesProps {
   eventId: string;
@@ -14,7 +14,7 @@ interface EventMessagesProps {
 export function EventMessages({ eventId }: EventMessagesProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const { user } = useUser(); // Clerk client-side hook
+  const { user } = useSafeUser(); // Safe auth hook
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
 

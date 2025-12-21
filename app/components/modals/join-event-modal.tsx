@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
@@ -16,9 +15,11 @@ interface JoinEventModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+import { useSafeUser } from '@/hooks/use-safe-user';
+
 export function JoinEventModal({ open, onOpenChange }: JoinEventModalProps) {
   const router = useRouter();
-  const { user } = useUser();
+  const { user } = useSafeUser();
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isJoining, setIsJoining] = useState<string | null>(null);

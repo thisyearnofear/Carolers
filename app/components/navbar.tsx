@@ -1,14 +1,16 @@
 'use client';
 
-import { SignInButton, SignOutButton, UserButton, useUser } from '@clerk/nextjs';
+import { SignInButton, SignOutButton, UserButton } from '@clerk/nextjs';
 import { Music, House, BookOpen, Star, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
 
+import { useSafeUser } from '@/hooks/use-safe-user';
+
 export function Navbar() {
-    const { isSignedIn, user } = useUser();
+    const { isSignedIn, user, isClerkDisabled } = useSafeUser();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     return (
@@ -32,23 +34,28 @@ export function Navbar() {
                         <BookOpen className="w-4 h-4" />
                         Songbook
                     </Link>
-                    <div className="h-6 w-px bg-primary/10 mx-2" />
+                    {!isClerkDisabled && <div className="h-6 w-px bg-primary/10 mx-2" />}
                     <div className="flex items-center">
-                        {isSignedIn ? (
-                            <UserButton
-                                afterSignOutUrl="/"
-                                appearance={{
-                                    elements: {
-                                        userButtonAvatarBox: "w-9 h-9 border-2 border-primary/20 hover:border-primary/50 transition-colors"
-                                    }
-                                }}
-                            />
-                        ) : (
-                            <SignInButton mode="modal">
-                                <Button variant="ghost" className="text-sm font-bold text-primary hover:bg-primary/5 rounded-xl">
-                                    Sign In
-                                </Button>
-                            </SignInButton>
+                        {!isClerkDisabled && (
+                            isSignedIn ? (
+                                <UserButton
+                                    afterSignOutUrl="/"
+                                    appearance={{
+                                        elements: {
+                                            userButtonAvatarBox: "w-9 h-9 border-2 border-primary/20 hover:border-primary/50 transition-colors"
+                                        }
+                                    }}
+                                />
+                            ) : (
+                                <SignInButton mode="modal">
+                                    <Button variant="ghost" className="text-sm font-bold text-primary hover:bg-primary/5 rounded-xl">
+                                        Sign In
+                                    </Button>
+                                </SignInButton>
+                            )
+                        )}
+                        {isClerkDisabled && (
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 border border-slate-200 rounded-lg py-1">Guest Mode</span>
                         )}
                     </div>
                 </div>
@@ -90,20 +97,27 @@ export function Navbar() {
                             </Link>
                             <div className="h-px bg-primary/5 w-full my-2" />
                             <div className="px-3">
-                                {isSignedIn ? (
-                                    <div className="flex items-center gap-4 py-2">
-                                        <UserButton afterSignOutUrl="/" />
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-slate-900">{user?.fullName}</span>
-                                            <span className="text-xs text-slate-500">{user?.primaryEmailAddress?.emailAddress}</span>
+                                {!isClerkDisabled && (
+                                    isSignedIn ? (
+                                        <div className="flex items-center gap-4 py-2">
+                                            <UserButton afterSignOutUrl="/" />
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-bold text-slate-900">{user?.fullName}</span>
+                                                <span className="text-xs text-slate-500">{user?.primaryEmailAddress?.emailAddress}</span>
+                                            </div>
                                         </div>
+                                    ) : (
+                                        <SignInButton mode="modal">
+                                            <Button className="w-full bg-primary text-white rounded-2xl h-12 font-bold shadow-lg shadow-primary/10">
+                                                Sign In
+                                            </Button>
+                                        </SignInButton>
+                                    )
+                                )}
+                                {isClerkDisabled && (
+                                    <div className="py-2 text-center text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-50 rounded-xl">
+                                        Guest Mode
                                     </div>
-                                ) : (
-                                    <SignInButton mode="modal">
-                                        <Button className="w-full bg-primary text-white rounded-2xl h-12 font-bold shadow-lg shadow-primary/10">
-                                            Sign In
-                                        </Button>
-                                    </SignInButton>
                                 )}
                             </div>
                         </div>
