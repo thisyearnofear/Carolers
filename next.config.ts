@@ -83,7 +83,7 @@ const nextConfig: NextConfig = {
         },
         {
           key: 'Content-Security-Policy',
-          value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: https://*.clerk.com https://*.clerk.services https://*.accounts.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https: wss: https://*.clerk.com https://*.clerk.services https://*.accounts.dev; frame-src 'self' https://*.clerk.com https://*.clerk.services https://*.accounts.dev; worker-src 'self' blob:;",
+          value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: https://*.clerk.com https://*.clerk.services https://*.accounts.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https: wss: https://*.clerk.com https://*.clerk.services https://*.accounts.dev; frame-src 'self' https://*.clerk.com https://*.clerk.services https://*.accounts.dev https://vercel.live; worker-src 'self' blob:;",
         },
         {
           key: 'Referrer-Policy',
