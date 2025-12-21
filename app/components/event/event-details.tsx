@@ -9,10 +9,25 @@ interface EventDetailsProps {
 
 export function EventDetails({ event }: EventDetailsProps) {
   const eventDate = new Date(event.date);
+  const ms = eventDate.getTime() - Date.now();
+  const isFuture = ms > 0;
+  const toHHMMSS = (ms: number) => {
+    const total = Math.floor(ms / 1000);
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    return `${h}h ${m}m ${s}s`;
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-6">
+        {isFuture && (
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-primary/5 border border-primary/10">
+            <div className="text-xs font-bold uppercase tracking-widest text-primary">Countdown</div>
+            <div className="text-sm font-bold text-primary">{toHHMMSS(ms)}</div>
+          </div>
+        )}
         <div className="bg-white/50 backdrop-blur-sm p-6 rounded-[2rem] border border-primary/5 shadow-sm">
           <h3 className="font-display text-2xl text-primary mb-4">Preparation Guide</h3>
           <p className="text-slate-800 font-medium italic leading-relaxed mb-4">

@@ -47,7 +47,9 @@ export async function POST(
       .values({
         eventId: id,
         memberId: body.memberId,
-        text: body.text
+        text: body.text,
+        type: body.type || 'text',
+        payload: body.payload || null,
       });
 
     // MySQL doesn't support returning, so return the input data

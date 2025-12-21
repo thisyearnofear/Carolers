@@ -33,7 +33,7 @@ export async function GET(
   }
 }
 
-export async function POST(
+export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -41,11 +41,10 @@ export async function POST(
   try {
     const body = await request.json();
 
-    // Check if this is a join request
-    if (body.eventId && body.userId) {
-      const validatedData = joinEventSchema.parse(body);
-      const { joinEvent } = await import('@/lib/events');
-      await joinEvent(validatedData.eventId, validatedData.userId);
+    // Update pinned message
+    if (typeof body.pinnedMessage === 'string') {
+      const { updateEvent } = await import('@/lib/events');
+      await updateEvent(id, { pinnedMessage: body.pinnedMessage });
       return NextResponse.json({ success: true });
     }
 

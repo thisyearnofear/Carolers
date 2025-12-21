@@ -83,7 +83,15 @@ export function EventRoom({ event }: EventRoomProps) {
         </div>
 
         <Card className="border-primary/5 shadow-xl bg-white/90 backdrop-blur-md overflow-hidden rounded-[2.5rem]">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          {/* Chat-first hybrid: Show chat by default with compact actions */}
+           <div className="px-4 pt-4 border-b border-primary/5 flex items-center justify-between">
+             <div className="text-xs font-bold uppercase tracking-widest text-secondary-foreground/60">Chat</div>
+             <div className="flex items-center gap-2">
+               <button onClick={() => setActiveTab('prep')} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-primary/5 hover:bg-primary/10">Prep</button>
+               <button onClick={() => setActiveTab('coord')} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-primary/5 hover:bg-primary/10">Coord</button>
+               <button onClick={() => setActiveTab('sing')} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-primary/5 hover:bg-primary/10">Sing</button>
+             </div>
+           </div>
             <div className="px-4 pt-4 border-b border-primary/5">
               <TabsList className="grid w-full grid-cols-4 bg-primary/5 p-1 rounded-2xl">
                 <TabsTrigger
@@ -140,8 +148,34 @@ export function EventRoom({ event }: EventRoomProps) {
                 </motion.div>
               </AnimatePresence>
             </CardContent>
-          </Tabs>
-        </Card>
+           <CardContent className="p-6 md:p-8">
+             <AnimatePresence mode="wait">
+               <motion.div
+                 key={activeTab}
+                 initial={{ opacity: 0, scale: 0.98 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 exit={{ opacity: 0, scale: 1.02 }}
+                 transition={{ duration: 0.2 }}
+               >
+                 {/* Always show chat first */}
+                 <div className="mb-8">
+                   <EventMessages eventId={event.id} />
+                 </div>
+
+                 {/* Conditionally reveal other primitives under chat */}
+                 {activeTab === 'prep' && (
+                   <div className="mt-6"><EventDetails event={event} /></div>
+                 )}
+                 {activeTab === 'coord' && (
+                   <div className="mt-6"><EventContributions eventId={event.id} /></div>
+                 )}
+                 {activeTab === 'sing' && (
+                   <div className="mt-6"><CarolPlayer event={event} /></div>
+                 )}
+               </motion.div>
+             </AnimatePresence>
+           </CardContent>
+         </Card>
       </motion.div>
     </div>
   );
