@@ -38,6 +38,7 @@ export const carols = mysqlTable("carols", {
   tags: json("tags").$type<string[]>(),
   duration: text("duration").notNull(),
   lyrics: json("lyrics").$type<string[]>(),
+  language: varchar("language", { length: 10 }).default('en'),
   energy: varchar("energy", { length: 50 }).$type<'low' | 'medium' | 'high'>().notNull(),
   coverUrl: text("cover_url"),
   votes: int("votes").default(0),
