@@ -12,7 +12,10 @@
     "db:migrate": "tsx script/migrate.ts",
     "db:generate": "drizzle-kit generate:mysql",
     "auth:verify": "tsx script/verify-clerk.ts",
-    "db:test": "tsx script/test-database.ts"
+    "db:test": "tsx script/test-database.ts",
+    "db:manual-migrate": "tsx scripts/manual-migrate.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:health": "tsx scripts/inspect-db.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.5",
