@@ -9,7 +9,6 @@ const createEventSchema = z.object({
   theme: z.string().min(1),
   venue: z.string().optional(),
   description: z.string().min(1),
-  createdBy: z.string().min(1),
 });
 
 export async function GET() {
@@ -25,17 +24,25 @@ export async function GET() {
   }
 }
 
+import { getCurrentUser } from '@/lib/user';
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const validatedData = createEventSchema.parse(body);
+
+    const current = await getCurrentUser();
+    if (!current) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     // Convert date string to Date object since the schema expects datetime string
     const eventData = {
       ...validatedData,
       date: new Date(validatedData.date),
       venue: validatedData.venue ?? null,
-    };
+      createdBy: current.id,
+    } as const;
 
     const newEvent = await createEventLib(eventData);
     return NextResponse.json(newEvent, { status: 201 });

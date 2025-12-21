@@ -20,7 +20,7 @@ export function Navbar() {
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 group">
                     <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl overflow-hidden group-hover:scale-110 transition-transform shadow-sm border border-primary/10">
-                        <Image src="/caroler.jpeg" alt="Carolers" width={40} height={40} className="w-full h-full object-cover" />
+                        <Image src="/carolers.jpeg" alt="Carolers" width={40} height={40} className="w-full h-full object-cover" />
                     </div>
                     <span className="font-display text-xl md:text-2xl text-primary drop-shadow-sm">Carolers</span>
                 </Link>
