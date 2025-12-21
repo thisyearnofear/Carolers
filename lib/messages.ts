@@ -16,9 +16,18 @@ export async function getEventMessages(eventId: string): Promise<Message[]> {
 export async function addMessage(messageData: Omit<Message, 'id' | 'timestamp'>): Promise<Partial<Message>> {
   try {
     const db = await getDb();
-    await db.insert(messages).values(messageData);
+    // Ensure type and payload are properly handled
+    const messageToInsert = {
+      ...messageData,
+      type: messageData.type || 'text',
+      payload: messageData.payload || null,
+    };
+    await db.insert(messages).values(messageToInsert);
     // MySQL doesn't support returning, so return the input data
-    return messageData;
+    return {
+      ...messageToInsert,
+      timestamp: new Date(),
+    };
   } catch (error) {
     console.error('Failed to add message:', error);
     throw error;

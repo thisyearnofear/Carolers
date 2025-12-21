@@ -16,6 +16,8 @@ export async function GET(
         eventId: messages.eventId,
         memberId: messages.memberId,
         text: messages.text,
+        type: messages.type,
+        payload: messages.payload,
         timestamp: messages.timestamp,
         userName: users.username,
       })

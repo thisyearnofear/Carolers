@@ -2,6 +2,7 @@ import { type Event } from '@shared/schema';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { CalendarDays, MapPin, Users, Sparkles } from 'lucide-react';
+import { useCountdown } from '@/hooks/use-countdown';
 
 interface EventDetailsProps {
   event: Event;
@@ -9,15 +10,8 @@ interface EventDetailsProps {
 
 export function EventDetails({ event }: EventDetailsProps) {
   const eventDate = new Date(event.date);
-  const ms = eventDate.getTime() - Date.now();
-  const isFuture = ms > 0;
-  const toHHMMSS = (ms: number) => {
-    const total = Math.floor(ms / 1000);
-    const h = Math.floor(total / 3600);
-    const m = Math.floor((total % 3600) / 60);
-    const s = total % 60;
-    return `${h}h ${m}m ${s}s`;
-  };
+  const { timeLeft, hasEnded } = useCountdown(eventDate);
+  const isFuture = !hasEnded;
 
   return (
     <div className="space-y-6">
@@ -25,7 +19,7 @@ export function EventDetails({ event }: EventDetailsProps) {
         {isFuture && (
           <div className="flex items-center justify-between p-4 rounded-2xl bg-primary/5 border border-primary/10">
             <div className="text-xs font-bold uppercase tracking-widest text-primary">Countdown</div>
-            <div className="text-sm font-bold text-primary">{toHHMMSS(ms)}</div>
+            <div className="text-sm font-bold text-primary">{timeLeft}</div>
           </div>
         )}
         <div className="bg-white/50 backdrop-blur-sm p-6 rounded-[2rem] border border-primary/5 shadow-sm">

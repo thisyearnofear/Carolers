@@ -143,7 +143,7 @@ export function EventRoom({ event }: EventRoomProps) {
                   </TabsContent>
 
                   <TabsContent value="chat" className="mt-0 outline-none">
-                    <EventMessages eventId={event.id} />
+                    <EventMessages eventId={event.id} event={event} />
                   </TabsContent>
                 </motion.div>
               </AnimatePresence>
@@ -159,7 +159,7 @@ export function EventRoom({ event }: EventRoomProps) {
                >
                  {/* Always show chat first */}
                  <div className="mb-8">
-                   <EventMessages eventId={event.id} />
+                   <EventMessages eventId={event.id} event={event} />
                  </div>
 
                  {/* Conditionally reveal other primitives under chat */}

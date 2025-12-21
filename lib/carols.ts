@@ -40,3 +40,51 @@ export async function voteForCarol(id: string) {
     throw error;
   }
 }
+
+export async function searchCarols(query: string, limit: number = 5): Promise<any[]> {
+  try {
+    const db = await getDb();
+    
+    // Search by title or artist
+    const results = await db
+      .select({
+        id: carols.id,
+        title: carols.title,
+        artist: carols.artist,
+        duration: carols.duration,
+        energy: carols.energy,
+        coverUrl: carols.coverUrl,
+      })
+      .from(carols)
+      .where(
+        sql`${carols.title} LIKE ${`%${query}%`} OR ${carols.artist} LIKE ${`%${query}%`}`
+      )
+      .limit(limit);
+    
+    return results;
+  } catch (error) {
+    console.error('Failed to search carols:', error);
+    return [];
+  }
+}
+
+export async function getPopularCarols(limit: number = 10): Promise<any[]> {
+  try {
+    const db = await getDb();
+    const results = await db
+      .select({
+        id: carols.id,
+        title: carols.title,
+        artist: carols.artist,
+        votes: carols.votes,
+      })
+      .from(carols)
+      .orderBy(carols.votes)
+      .limit(limit);
+    
+    return results;
+  } catch (error) {
+    console.error('Failed to get popular carols:', error);
+    return [];
+  }
+}

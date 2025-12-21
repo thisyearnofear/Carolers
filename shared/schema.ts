@@ -26,6 +26,7 @@ export const events = mysqlTable("events", {
   coverImage: text("cover_image"),
   isPrivate: int("is_private").default(0), // 0 for false, 1 for true
   password: text("password"),
+  pinnedMessage: text("pinned_message"), // Pinned message by host
   createdBy: varchar("created_by", { length: 191 }).notNull().references(() => users.id),
   createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`),
 });
@@ -61,6 +62,8 @@ export const messages = mysqlTable("messages", {
   eventId: varchar("event_id", { length: 191 }).notNull().references(() => events.id),
   memberId: varchar("member_id", { length: 191 }).notNull().references(() => users.id),
   text: text("text").notNull(),
+  type: varchar("type", { length: 50 }).$type<'text' | 'system' | 'carol' | 'poll' | 'ai'>().default('text'),
+  payload: json("payload").$type<any>(),
   timestamp: datetime("timestamp").default(sql`CURRENT_TIMESTAMP`),
 });
 

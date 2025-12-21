@@ -1,237 +1,87 @@
-# Carolers Product Roadmap
+# Carolers Product Roadmap (Concise)
 
-## Vision
-An intuitive, festive, holistic caroling experience that guides users through discovery → preparation → performance → celebration.
+This roadmap reflects the current direction and removes items we have already delivered. It focuses on highest-impact improvements to the event experience and operational robustness.
 
----
+## Recently Delivered
+- Next.js 16 migration: middleware → proxy (proxy.ts)
+- CSP updates for Clerk and vercel.live
+- Clerk build-time guard; guest mode when keys are missing
+- DB health endpoint: `/api/health/db`
+- Seeding and ops scripts (inspect, seed batches, purge non-English, language migration, enrich PD English lyrics, normalize artists)
+- Carols API returns English-only by default with `?lang=` override
+- Branding and social metadata (hero banners; OG/Twitter images; favicon.ico)
 
-## Phase 1: BEFORE (Event Discovery & Preparation)
-**Goal**: Excite users and prepare them to sing together.
+## vNext (Phase 1): Chat-First Event Room
+Goal: Reduce friction before events start; make chat the primary surface.
 
-### 1.1 Song Preview in Event Details [NEW]
-- **Component**: `EventSongPreview` (enhancement to existing Room details tab)
-- **Features**:
-  - Show top 3-5 songs for the event
-  - Display lyrics preview (first verse + chorus)
-  - Energy level badges (low/medium/high)
-  - Theme context ("Why these songs?")
-- **User value**: Know what you're singing before you arrive
+- Chat-first layout
+  - Make chat the hero on event page
+  - Demote tabs to secondary nav or quick actions
+- Pinned message by Host
+  - New event field: `pinnedMessage` (text/markdown)
+  - API: `PATCH /api/events/[id]` to set/unset pinned message
+  - UI: pinned banner above chat with markdown support
+- Countdown to Event
+  - Use event `date`; show live countdown in sidebar/header
+  - System messages at T-10m, T-5m, Live (optional)
+- Message typing (non-breaking)
+  - Extend messages with `type` enum: `text | system | carol | poll | ai`
+  - `payload` JSON for typed content; default to `text`
 
-### 1.2 Prep Guide Modal [NEW]
-- **Component**: `PrepGuideModal` (lazy-loaded on event hover or detail view)
-- **Features**:
-  - Theme explainer (e.g., "Hanukkah celebrates 8 nights of light")
-  - "Learn these lyrics" CTA with difficulty levels
-  - Vocal range guide ("soprano", "alto", "bass" suggestions)
-  - "Bring this" reminders from contribution list
-- **Trigger**: Event card hover or "Prepare" button in event details
-- **User value**: Newcomers feel confident; singers mentally prepare
+Dependencies: minor schema tweak (messages.type + payload), small API updates, UI refactor of event room.
+Success: Event page immediately useful even before “go live.”
 
----
+## Phase 2: Chat Primitives & Composer Shortcuts
+Goal: Make core actions discoverable within chat.
 
-## Phase 2: DURING (Active Singing Experience)
-**Goal**: Center the singing; make lyrics and coordination seamless.
+- Composer actions and slash commands
+  - Add Carol primitive: `/addcarol <query>` → search → confirm → post CarolCard & add contribution
+  - Polls: `/poll Question | Option A | Option B` → inline poll card + votes
+  - Announce: `/announce <text>` → system-styled banner
+- API additions
+  - Extend `/api/events/[id]/messages` to support `type` and `payload`
+  - Optional: `/api/events/[id]/polls` (table) or encode polls as messages
+- Rendering
+  - Message bubble renderer supports typed cards (carol, poll, system)
 
-### 2.1 Restructure Room UI [REFACTOR]
-- **Current state**: Tabs (songs, details, contributions, chat) treat singing as optional
-- **Target state**: Lyrics as hero, logistics as sidebar
-- **Changes**:
-  - Move "Vote on Songs" from tab to sticky header with quick-select buttons
-  - Make lyrics modal default-open (or prominent "tap to see lyrics" overlay)
-  - Right sidebar: "Who's here + contributions" (persistent, collapsible)
-  - Bottom sheet: Chat (swipe up to message)
-  - Full-screen song view option (ideal for group singing)
+Dependencies: minimal; builds on Phase 1 typing.
+Success: Fewer clicks; faster collaboration.
 
-### 2.2 Create LyricsModal Component [NEW]
-- **Component**: `LyricsModal.tsx`
-- **Features**:
-  - Full lyrics with verse/chorus/bridge structure
-  - Large, readable font (mobile-first)
-  - Highlight current verse (if matched to gamification)
-  - Share snippet button
-  - Print-friendly formatting
-- **Accessibility**: Dark mode text size controls, high contrast
-- **User value**: Crystal clear lyrics mid-performance; no squinting
+## Phase 3: AI Assistant (Gemini)
+Goal: Enable smart assistance inside chat.
 
-### 2.3 Enhance VerseRoulette [UPGRADE]
-- **Current state**: Random role assignment, loose connection to song
-- **Target state**: Tied to actual song verses
-- **Changes**:
-  - Pull specific verse from `carol.lyrics` array
-  - Display verse in modal + VerseRoulette card
-  - Suggest harmony part based on role
-  - Post-sing: "You nailed verse 3 as soprano!" celebration
-- **User value**: Gamification feels integrated, not tacked-on
+- SDK & env
+  - `@google/genai` client; `GEMINI_API_KEY` in env
+- Server wrapper & safe tools
+  - `/api/events/[id]/ai` with auth
+  - Tooling (function-calling): `searchCarols`, `addContribution`, `summarizeChat`, `suggestSetlist`
+- UX
+  - `/ai <prompt>` in composer; AI replies as `ai` message type
+  - Summaries and setlist suggestions on demand
 
-### 2.4 Add Audio Playback Preview [NICE-TO-HAVE]
-- **Component**: Simple Spotify/YouTube embed in VoteCard or LyricsModal
-- **Features**:
-  - 30-sec clip or link to full song
-  - Play melody reference
-- **User value**: Harmony guides reference the actual tune
-- **Note**: May require licensing; can defer to Phase 3
+Dependencies: API endpoint, basic rate-limiting, safe tool design.
+Success: Higher-quality setlists and faster information recall.
 
----
+## Phase 4: Live State + Verse Roulette Surfacing
+Goal: Elevate live features during the event proper.
 
-## Phase 3: AFTER (Memory & Celebration)
-**Goal**: Capture the magic; encourage repeat engagement.
+- Event state machine: `upcoming → live → ended`
+- Live affordances
+  - Compact Verse Roulette panel or inline generator while `live`
+  - Countdown transitions to Live state automatically
 
-### 3.1 Event Recap Page [NEW]
-- **Route**: `/events/:id/recap`
-- **Components**:
-  - `RecapHero`: Event name, date, theme, member count
-  - `TopSongs`: Ranked list of most-voted songs
-  - `MemberGrid`: Profile photos of all who attended
-  - `Stats`: "2 hours, 15 songs, 8 traditions celebrated"
-  - `SocialShare`: Shareable summary card
-- **User value**: Celebrate together; prove it happened
+Dependencies: minor state management.
+Success: Live tools are front-and-center when needed, not before.
 
-### 3.2 Memories/Media Section [NEW]
-- **Component**: `EventMemories` (placeholder for Phase 4)
-- **Features**:
-  - Photo gallery (upload after event)
-  - Highlight reel (top moments)
-  - Member testimonials ("That was amazing!")
-- **User value**: Social proof; triggers FOMO for next event
+## Operational / Platform
+- Production Clerk keys (replace dev keys in Production) [Planned]
+- Language filters in UI (future i18n) [Planned]
+- Observability: instrument key chat actions [Planned]
 
-### 3.3 Event Continuity [ENHANCE]
-- **Features**:
-  - "Plan next gathering" CTA on recap page
-  - Auto-populate theme/venue/date suggestions
-  - Invite same members with 1 click
-- **User value**: Reduces friction for organizers; builds community
+## Tracking & Documentation
+- Jira: Create tickets per phase/feature (optional)
+- Confluence: Design notes (chat-first), AI tools spec, and runbooks (DB scripts) (optional)
 
----
-
-## Phase 4: Polish & Monetization (Future)
-- Audio playback with licensing
-- Photo uploads & shared albums
-- Community event discovery
-- Printable carol books
-- PDF export of setlist + lyrics
-
----
-
-## Architecture Principles
-- **ENHANCEMENT FIRST**: Extend existing components (Room, VoteCard, EventCard)
-- **DRY**: Single `carols` table with `lyrics` JSON; no duplicates
-- **MODULAR**: LyricsModal, RecapPage, PrepGuide are isolated, composable
-- **PERFORMANT**: Lyrics loaded once at app start; no per-carol API calls
-- **ORGANIZED**: Domain-driven (before/, during/, after/ conceptual grouping in code)
-- **SERVERLESS**: On-demand polling (no WebSockets); Vercel-compatible stateless architecture
-
----
-
-## Execution Order
-
-### Sprint 1: MVP (Weeks 1-2)
-1. Seed lyrics data from mindprod.com
-2. Create `LyricsModal.tsx`
-3. Enhance `VoteCard` → link to modal
-4. Integrate into `Room.tsx` (replace/enhance "songs" tab)
-5. Test on mobile (primary use case)
-
-### Sprint 2: Before & During Polish (Weeks 3-4)
-1. Create `PrepGuideModal.tsx`
-2. Add to EventCard hover/details
-3. Refactor Room layout (hero lyrics, sidebar logistics)
-4. Enhance VerseRoulette with actual verse display
-5. Optimize Room mobile responsiveness
-
-### Sprint 3: After & Celebration (Weeks 5-6)
-1. Create `/events/:id/recap` page
-2. Build `RecapHero`, `TopSongs`, `MemberGrid`, `Stats`
-3. Add social share card
-4. Add "plan next event" CTA
-5. Polish transitions & animations
-
-### Defer to Future
-- Audio playback (licensing complexity)
-- Photo uploads (storage costs)
-- Advanced gamification (leaderboards, badges)
-
----
-
-## Success Metrics
-- **Before**: 70% of users preview songs before joining event
-- **During**: 100% of songs have readable lyrics; 0 "what verse?" confusion
-- **After**: 60% attend follow-up event within 30 days
-- **Overall**: NPS > 8 (fun factor); app retention > 40% weekly active
-
----
-
-## Design Principles
-- **Festive**: Animations, colors, icons celebrate the season
-- **Inclusive**: Multiple traditions (Christmas, Hanukkah, Easter, etc.)
-- **Intuitive**: New users sing within 30 seconds of joining
-- **Mobile-first**: Optimize for outdoor use (actual caroling venues)
-- **Accessible**: Large text, high contrast, keyboard navigation
-
----
-
-## ✅ Sprint 1 Completed
-
-### Components Built
-- **LyricsModal** (`client/src/components/LyricsModal.tsx`)
-  - Full lyrics display with verse/chorus differentiation
-  - Print and share functionality
-  - Accessible, readable design
-  
-- **Enhanced VoteCard** (updated `client/src/components/VoteCard.tsx`)
-  - Lyrics preview (first 2 lines)
-  - "View Lyrics" button triggers modal
-  - Prevents modal fatigue — no new modals added
-
-### Pages Enhanced
-- **Room Details Tab** (refactored `client/src/pages/Room.tsx`)
-  - Theme explainer section
-  - Song preview cards (ranked by votes)
-  - Vocal range guide (Soprano/Alto/Tenor/Bass)
-  - Unified BEFORE experience in existing tab structure
-
-- **EventRecap Page** (new `client/src/pages/EventRecap.tsx`)
-  - Hero section with trophy icon
-  - Stats grid (singers, songs, votes, duration)
-  - Top 3 songs with medal rankings
-  - All songs list
-  - Attendee section
-  - Share recap and "Plan Next Event" CTAs
-  
-### Router Updates
-- Added `/events/:eventId/recap` route
-
-### UI/UX Improvements
-- **No modal bloat**: Leveraged existing Room tab structure for prep
-- **Cohesive flow**: Home → Event Details (prep) → Room (sing with lyrics) → Recap (celebrate)
-- **Moved from transactional to emotional**: Focus on lyrics and celebration, not logistics
-
----
-
-## Infrastructure: Vercel Deployment (Completed)
-
-### Polling Strategy
-- **On-demand**: User actions (vote, message, contribution) trigger debounced refresh (2s debounce)
-- **Retry logic**: 3 attempts with 1s/2s/3s exponential backoff
-- **No background polling**: Disabled by default to minimize DB queries on serverless
-- **Configuration**: `client/src/config/polling.ts` (toggle background polling if needed)
-
-### Serverless Optimization
-- **Connection pooling**: Drizzle configured with mysql2 pool (handles concurrent requests)
-- **No sessions**: Express-session removed (Clerk handles auth, not stored in memory)
-- **Stateless server**: Exports app for Vercel handler; no port binding in production
-- **Environment variables**: All secrets configured in Vercel project settings
-- **Request timeout**: Keep API endpoints under 10s (Vercel free tier limit)
-
-### What This Enables
-✅ Vercel free tier deployment (no cold start issues for polling)
-✅ Horizontal scaling (stateless invocations)
-✅ No WebSocket limitations
-✅ Zero session storage complexity
-
-## Next Steps (User-Owned)
-1. **Deploy to Vercel**: Ensure DATABASE_URL and CLERK_* env vars are set
-2. **Load test**: Monitor polling behavior under multiple concurrent users
-3. **Seed lyrics data**: Populate `carols` table with real songs from mindprod.com (public domain)
-4. **Test end-to-end**: Walk through BEFORE → DURING → AFTER user journey
-5. **Optimize mobile**: Test Room lyrics readability on actual phone (outdoor venue use)
-6. **Gather feedback**: Validate vocal range guide, theme context, and celebration features
+## Notes
+- English-only catalog is enforced at API by default; `?lang` can be enabled later for i18n.
+- Seed data is idempotent; ops scripts exist for health, seeding, enrichment, and normalization.

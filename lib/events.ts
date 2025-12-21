@@ -19,6 +19,7 @@ export async function getEvents(): Promise<(Event & { creatorName: string | null
         coverImage: events.coverImage,
         isPrivate: events.isPrivate,
         password: events.password,
+        pinnedMessage: events.pinnedMessage,
         createdBy: events.createdBy,
         createdAt: events.createdAt,
         creatorName: users.username,
@@ -48,6 +49,7 @@ export async function getEvent(id: string): Promise<(Event & { creatorName: stri
         coverImage: events.coverImage,
         isPrivate: events.isPrivate,
         password: events.password,
+        pinnedMessage: events.pinnedMessage,
         createdBy: events.createdBy,
         createdAt: events.createdAt,
         creatorName: users.username,
@@ -108,6 +110,72 @@ export async function joinEvent(eventId: string, userId: string) {
     return { success: true };
   } catch (error) {
     console.error('Failed to join event:', error);
+    throw error;
+  }
+}
+
+export async function updateEvent(eventId: string, updates: Partial<Event>) {
+  try {
+    const db = await getDb();
+    await db.update(events)
+      .set(updates)
+      .where(eq(events.id, eventId));
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to update event:', error);
+    throw error;
+  }
+}
+
+export async function addCarolToEvent(eventId: string, carolId: string) {
+  try {
+    const db = await getDb();
+    const event = await getEvent(eventId);
+    
+    if (!event) {
+      throw new Error('Event not found');
+    }
+    
+    const currentCarols = event.carols || [];
+    
+    // Prevent duplicates
+    if (currentCarols.includes(carolId)) {
+      return { success: true, alreadyAdded: true };
+    }
+    
+    // Add the carol
+    const updatedCarols = [...currentCarols, carolId];
+    
+    await db.update(events)
+      .set({ carols: updatedCarols })
+      .where(eq(events.id, eventId));
+    
+    return { success: true, added: true };
+  } catch (error) {
+    console.error('Failed to add carol to event:', error);
+    throw error;
+  }
+}
+
+export async function removeCarolFromEvent(eventId: string, carolId: string) {
+  try {
+    const db = await getDb();
+    const event = await getEvent(eventId);
+    
+    if (!event) {
+      throw new Error('Event not found');
+    }
+    
+    const currentCarols = event.carols || [];
+    const updatedCarols = currentCarols.filter(id => id !== carolId);
+    
+    await db.update(events)
+      .set({ carols: updatedCarols })
+      .where(eq(events.id, eventId));
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to remove carol from event:', error);
     throw error;
   }
 }
