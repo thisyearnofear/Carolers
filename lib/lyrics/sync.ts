@@ -24,7 +24,8 @@ export interface LyricsLine {
  */
 export function getHighlightedLineIndex(
   currentTimeMs: number,
-  lyricsLines: LyricsLine[]
+  lyricsLines: LyricsLine[],
+  durationMs?: number
 ): number {
   if (!lyricsLines || lyricsLines.length === 0) return 0;
 
@@ -42,8 +43,19 @@ export function getHighlightedLineIndex(
   }
 
   // Fallback: estimate based on line count and duration
-  // Assume lyrics are evenly distributed (naive, but works without timing data)
-  // This is a placeholder—ideally Carol would have duration in ms
+  if (durationMs && durationMs > 0) {
+    // Only count actual lyrics (not sections or directions) for estimation
+    const lyricLines = lyricsLines.filter(l => l.type === 'lyric');
+    if (lyricLines.length === 0) return 0;
+
+    const timePerLine = durationMs / lyricLines.length;
+    const estimatedIndex = Math.floor(currentTimeMs / timePerLine);
+
+    // Map the estimated index back to the actual index in the full list
+    const targetLyricLine = lyricLines[Math.min(estimatedIndex, lyricLines.length - 1)];
+    return targetLyricLine ? targetLyricLine.index : 0;
+  }
+
   return 0;
 }
 
@@ -146,10 +158,26 @@ export function estimateLineTiming(
 }
 
 /**
+ * Parse duration string (e.g., "2:30") into milliseconds
+ */
+export function parseDurationMs(durationStr: string): number {
+  if (!durationStr) return 0;
+  const parts = durationStr.split(':').map(Number);
+  if (parts.length === 2) {
+    const [minutes, seconds] = parts;
+    return (minutes * 60 + seconds) * 1000;
+  }
+  if (parts.length === 1) {
+    return parts[0] * 1000;
+  }
+  return 0;
+}
+
+/**
  * Format time in MM:SS for display
  */
 export function formatTime(ms: number): string {
-  const totalSeconds = Math.floor(ms / 1000);
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;

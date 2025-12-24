@@ -16,7 +16,7 @@ interface CarolPlayerProps {
 export function CarolPlayer({ event }: CarolPlayerProps) {
   const [carols, setCarols] = useState<Carol[]>([]);
   const [selectedCarol, setSelectedCarol] = useState<Carol | null>(null);
-  const [showLyricsModal, setShowLyricsModal] = useState(false);
+  const [showLyrics, setShowLyrics] = useState(false);
   const [votedCarols, setVotedCarols] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -60,7 +60,7 @@ export function CarolPlayer({ event }: CarolPlayerProps) {
 
   const handleViewLyrics = (carol: Carol) => {
     setSelectedCarol(carol);
-    setShowLyricsModal(true);
+    setShowLyrics(true);
   };
 
   return (
@@ -102,8 +102,8 @@ export function CarolPlayer({ event }: CarolPlayerProps) {
 
       <EnhancedLyricsViewer
         carol={selectedCarol}
-        open={showLyricsModal}
-        onOpenChange={setShowLyricsModal}
+        open={showLyrics}
+        onOpenChange={setShowLyrics}
       />
     </div>
   );

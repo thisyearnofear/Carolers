@@ -83,99 +83,73 @@ export function EventRoom({ event }: EventRoomProps) {
         </div>
 
         <Card className="border-primary/5 shadow-xl bg-white/90 backdrop-blur-md overflow-hidden rounded-[2.5rem]">
-          {/* Chat-first hybrid: Show chat by default with compact actions */}
-           <div className="px-4 pt-4 border-b border-primary/5 flex items-center justify-between">
-             <div className="text-xs font-bold uppercase tracking-widest text-secondary-foreground/60">Chat</div>
-             <div className="flex items-center gap-2">
-               <button onClick={() => setActiveTab('prep')} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-primary/5 hover:bg-primary/10">Prep</button>
-               <button onClick={() => setActiveTab('coord')} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-primary/5 hover:bg-primary/10">Coord</button>
-               <button onClick={() => setActiveTab('sing')} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-primary/5 hover:bg-primary/10">Sing</button>
-             </div>
-           </div>
-            <div className="px-md pt-md border-b border-primary/5">
-              <TabsList className="grid w-full grid-cols-4 bg-primary/5 p-xs rounded-card-lg">
-                <TabsTrigger
-                  value="sing"
-                  className="rounded-xl py-2.5 text-xs font-bold data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
-                >
-                  Sing
-                </TabsTrigger>
-                <TabsTrigger
-                  value="prep"
-                  className="rounded-xl py-2.5 text-xs font-bold data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
-                >
-                  Prep
-                </TabsTrigger>
-                <TabsTrigger
-                  value="coord"
-                  className="rounded-xl py-2.5 text-xs font-bold data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
-                >
-                  Coord
-                </TabsTrigger>
-                <TabsTrigger
-                  value="chat"
-                  className="rounded-xl py-2.5 text-xs font-bold data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
-                >
-                  Chat
-                </TabsTrigger>
-              </TabsList>
-            </div>
+          <div className="px-md pt-md border-b border-primary/5">
+            <TabsList className="grid w-full grid-cols-4 bg-primary/5 p-xs rounded-card-lg">
+              <TabsTrigger
+                value="sing"
+                onClick={() => setActiveTab('sing')}
+                className={`rounded-xl py-2.5 text-xs font-bold transition-all ${activeTab === 'sing' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-primary'}`}
+              >
+                Sing
+              </TabsTrigger>
+              <TabsTrigger
+                value="prep"
+                onClick={() => setActiveTab('prep')}
+                className={`rounded-xl py-2.5 text-xs font-bold transition-all ${activeTab === 'prep' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-primary'}`}
+              >
+                Prep
+              </TabsTrigger>
+              <TabsTrigger
+                value="coord"
+                onClick={() => setActiveTab('coord')}
+                className={`rounded-xl py-2.5 text-xs font-bold transition-all ${activeTab === 'coord' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-primary'}`}
+              >
+                Coord
+              </TabsTrigger>
+              <TabsTrigger
+                value="chat"
+                onClick={() => setActiveTab('chat')}
+                className={`rounded-xl py-2.5 text-xs font-bold transition-all ${activeTab === 'chat' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-primary'}`}
+              >
+                Chat
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-            <CardContent className="p-6 md:p-8">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeTab}
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.02 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <TabsContent value="sing" className="mt-0 outline-none">
+          <CardContent className="p-6 md:p-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                {activeTab === 'sing' && (
+                  <div className="space-y-8">
                     <CarolPlayer event={event} />
-                  </TabsContent>
+                    <div className="pt-8 border-t border-primary/5">
+                      <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 px-2">Live Session Chat</h3>
+                      <EventMessages eventId={event.id} event={event} />
+                    </div>
+                  </div>
+                )}
 
-                  <TabsContent value="prep" className="mt-0 outline-none">
-                    <EventDetails event={event} />
-                  </TabsContent>
+                {activeTab === 'prep' && (
+                  <EventDetails event={event} />
+                )}
 
-                  <TabsContent value="coord" className="mt-0 outline-none">
-                    <EventContributions eventId={event.id} />
-                  </TabsContent>
+                {activeTab === 'coord' && (
+                  <EventContributions eventId={event.id} />
+                )}
 
-                  <TabsContent value="chat" className="mt-0 outline-none">
-                    <EventMessages eventId={event.id} event={event} />
-                  </TabsContent>
-                </motion.div>
-              </AnimatePresence>
-            </CardContent>
-           <CardContent className="p-6 md:p-8">
-             <AnimatePresence mode="wait">
-               <motion.div
-                 key={activeTab}
-                 initial={{ opacity: 0, scale: 0.98 }}
-                 animate={{ opacity: 1, scale: 1 }}
-                 exit={{ opacity: 0, scale: 1.02 }}
-                 transition={{ duration: 0.2 }}
-               >
-                 {/* Always show chat first */}
-                 <div className="mb-8">
-                   <EventMessages eventId={event.id} event={event} />
-                 </div>
-
-                 {/* Conditionally reveal other primitives under chat */}
-                 {activeTab === 'prep' && (
-                   <div className="mt-6"><EventDetails event={event} /></div>
-                 )}
-                 {activeTab === 'coord' && (
-                   <div className="mt-6"><EventContributions eventId={event.id} /></div>
-                 )}
-                 {activeTab === 'sing' && (
-                   <div className="mt-6"><CarolPlayer event={event} /></div>
-                 )}
-               </motion.div>
-             </AnimatePresence>
-           </CardContent>
-         </Card>
+                {activeTab === 'chat' && (
+                  <EventMessages eventId={event.id} event={event} />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </CardContent>
+        </Card>
       </motion.div>
     </div>
   );

@@ -20,6 +20,8 @@ import {
   getPastLines,
   getSectionLabels,
   parseSimpleLyrics,
+  formatTime,
+  parseDurationMs,
   type LyricsLine,
 } from '@/lib/lyrics/sync';
 import { DISPLAY_MODES, type DisplayMode } from '@/lib/lyrics/display-modes';
@@ -100,10 +102,36 @@ export function useLyricsState({
     setInternalIsPlaying(isPlaying);
   }, [isPlaying]);
 
+  // Duration calculation
+  const durationMs = useMemo(() => {
+    return parseDurationMs(carol.duration);
+  }, [carol.duration]);
+
+  const getDuration = useCallback(() => durationMs, [durationMs]);
+
+  // Internal playback timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (internalIsPlaying) {
+      interval = setInterval(() => {
+        setInternalCurrentTime(prev => {
+          const next = prev + 100;
+          const duration = getDuration();
+          if (next >= duration) {
+            setInternalIsPlaying(false);
+            return duration;
+          }
+          return next;
+        });
+      }, 100);
+    }
+    return () => clearInterval(interval);
+  }, [internalIsPlaying, getDuration]);
+
   // Compute highlighted line index based on current time
   const highlightedLineIndex = useMemo(() => {
-    return getHighlightedLineIndex(internalCurrentTime, lyricsLines);
-  }, [internalCurrentTime, lyricsLines]);
+    return getHighlightedLineIndex(internalCurrentTime, lyricsLines, getDuration());
+  }, [internalCurrentTime, lyricsLines, getDuration]);
 
   // Compute upcoming and past lines based on display mode
   const upcomingLines = useMemo(() => {
@@ -132,21 +160,6 @@ export function useLyricsState({
     }
     return undefined;
   }, [highlightedLineIndex, lyricsLines]);
-
-  // Parse duration from carol (format: "2:30")
-  const getDuration = useCallback(() => {
-    if (!carol.duration) return 0;
-    const [minutes, seconds] = carol.duration.split(':').map(Number);
-    return (minutes * 60 + seconds) * 1000; // Convert to ms
-  }, [carol.duration]);
-
-  // Format time helper
-  const formatTime = useCallback((ms: number): string => {
-    const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  }, []);
 
   // Jump to section
   const jumpToSection = useCallback(

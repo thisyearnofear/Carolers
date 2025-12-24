@@ -8,19 +8,32 @@ import { Card, CardContent } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
-import { LyricsModal } from '../components/modals/lyrics-modal';
+import { EnhancedLyricsViewer } from '../components/lyrics/enhanced-lyrics-viewer';
 
-export default function SongbookPage() {
+import { useSearchParams } from 'next/navigation';
+
+import { Suspense } from 'react';
+
+function SongbookContent() {
+    const searchParams = useSearchParams();
+    const initialQuery = searchParams.get('q') || '';
+    const initialMood = searchParams.get('mood') || '';
+
     const [carols, setCarols] = useState<Carol[]>([]);
-    const [search, setSearch] = useState('');
+    const [search, setSearch] = useState(initialQuery);
     const [loading, setLoading] = useState(true);
     const [selectedCarol, setSelectedCarol] = useState<Carol | null>(null);
     const [isLyricsOpen, setIsLyricsOpen] = useState(false);
 
     useEffect(() => {
         async function fetchCarols() {
+            setLoading(true);
             try {
-                const response = await fetch('/api/carols');
+                const url = new URL('/api/carols', typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+                if (search) url.searchParams.set('q', search);
+                if (initialMood) url.searchParams.set('mood', initialMood);
+
+                const response = await fetch(url.toString());
                 if (!response.ok) throw new Error('Failed to fetch');
                 const data = await response.json();
                 setCarols(data);
@@ -31,34 +44,30 @@ export default function SongbookPage() {
             }
         }
         fetchCarols();
-    }, []);
+    }, [search, initialMood]);
 
-    const filteredCarols = carols.filter(carol =>
-        carol.title.toLowerCase().includes(search.toLowerCase()) ||
-        carol.artist.toLowerCase().includes(search.toLowerCase()) ||
-        carol.tags?.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
-    );
+    const filteredCarols = carols; // We filter on server now
 
     return (
         <div className="container mx-auto px-6 py-12 max-w-5xl">
             <header className="mb-12 text-center relative overflow-hidden rounded-3xl">
                 <div className="absolute inset-0">
-                  <div className="absolute inset-0 bg-[url('/carolersbanner.png')] bg-cover bg-center" />
-                  <div className="absolute inset-0 bg-white/70" />
+                    <div className="absolute inset-0 bg-[url('/carolersbanner.png')] bg-cover bg-center" />
+                    <div className="absolute inset-0 bg-white/70" />
                 </div>
                 <div className="relative py-14 px-6">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="inline-flex items-center gap-3 px-4 py-2 bg-primary/10 rounded-full text-primary text-sm font-bold uppercase tracking-widest mb-6"
-                >
-                    <BookOpen className="w-4 h-4" />
-                    Global Songbook
-                </motion.div>
-                <h1 className="text-4xl md:text-6xl font-display text-primary mb-6">Discovery Every Carol</h1>
-                <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                    Browse our collection of festive songs from around the world. Prepare your voice and learn the lyrics for your next gathering.
-                </p>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="inline-flex items-center gap-3 px-4 py-2 bg-primary/10 rounded-full text-primary text-sm font-bold uppercase tracking-widest mb-6"
+                    >
+                        <BookOpen className="w-4 h-4" />
+                        Global Songbook
+                    </motion.div>
+                    <h1 className="text-4xl md:text-6xl font-display text-primary mb-6">Discovery Every Carol</h1>
+                    <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                        Browse our collection of festive songs from around the world. Prepare your voice and learn the lyrics for your next gathering.
+                    </p>
                 </div>
             </header>
 
@@ -99,16 +108,20 @@ export default function SongbookPage() {
                                 }}
                             >
                                 <CardContent className="p-6 flex items-center gap-6">
-                                    <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-display shadow-inner ${carol.energy === 'high' ? 'bg-red-50 text-red-600' :
-                                            carol.energy === 'medium' ? 'bg-yellow-50 text-yellow-600' :
-                                                'bg-blue-50 text-blue-600'
+                                    <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-display shadow-inner relative overflow-hidden group-hover:scale-105 transition-all duration-500 ${carol.energy === 'high' ? 'bg-red-50 text-red-600' :
+                                        carol.energy === 'medium' ? 'bg-yellow-50 text-yellow-600' :
+                                            'bg-blue-50 text-blue-600'
                                         }`}>
+                                        <div className="absolute inset-0 bg-white/40 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         {carol.title.charAt(0)}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex flex-wrap gap-2 mb-2">
+                                        <div className="flex flex-wrap gap-2 mb-2 items-center">
+                                            {carol.energy === 'high' && <Badge className="bg-red-100/50 text-red-600 border-none text-[8px] h-4">🔥 High Energy</Badge>}
+                                            {carol.energy === 'medium' && <Badge className="bg-yellow-100/50 text-yellow-600 border-none text-[8px] h-4">✨ Medium Energy</Badge>}
+                                            {carol.energy === 'low' && <Badge className="bg-blue-100/50 text-blue-600 border-none text-[8px] h-4">🌙 Low Energy</Badge>}
                                             {carol.tags?.slice(0, 2).map(tag => (
-                                                <Badge key={tag} variant="secondary" className="bg-primary/5 text-primary text-[10px] uppercase font-bold px-2 py-0 border-none">
+                                                <Badge key={tag} variant="secondary" className="bg-primary/5 text-primary text-[10px] uppercase font-bold px-2 py-0 border-none h-4">
                                                     {tag}
                                                 </Badge>
                                             ))}
@@ -134,11 +147,19 @@ export default function SongbookPage() {
                 )}
             </div>
 
-            <LyricsModal
+            <EnhancedLyricsViewer
                 carol={selectedCarol}
                 open={isLyricsOpen}
                 onOpenChange={setIsLyricsOpen}
             />
         </div>
+    );
+}
+
+export default function SongbookPage() {
+    return (
+        <Suspense fallback={<div>Loading Songbook...</div>}>
+            <SongbookContent />
+        </Suspense>
     );
 }

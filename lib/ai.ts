@@ -102,24 +102,24 @@ export async function callGeminiAI(
 }> {
   try {
     const client = getAIClient();
-    
+
     if (!client) {
       throw new Error('Gemini AI client not initialized. Please check GEMINI_API_KEY.');
     }
-    
+
     // Get event context
     const messages = await getEventMessages(eventId);
     const recentMessages = messages.slice(-10); // Last 10 messages for context
-    
+
     // Prepare system prompt with context
     let systemPrompt = `You are a helpful AI assistant for a Christmas caroling event app. `;
-    
+
     if (tool) {
       systemPrompt += `You are using the ${tool} tool. `;
     }
-    
+
     systemPrompt += `Current event context: ${recentMessages.map(m => `${(m as any).userName || 'Someone'}: ${m.text}`).join(' | ')}`;
-    
+
     // Use the appropriate model
     // Note: For now, we'll use the text model since function calling
     // requires specific tool definitions that may differ from our AI_TOOLS
@@ -127,40 +127,40 @@ export async function callGeminiAI(
       model: 'gemini-1.5-flash',
       systemInstruction: systemPrompt
     });
-    
+
     // Start a chat session
     const chat = model.startChat();
-    
+
     // Send the prompt
     const result = await chat.sendMessage(prompt);
-    
+
     // Process the response
     const response = await result.response;
     const text = await response.text();
-    
+
     // Handle tool function calls if any
     let toolUsed: string | undefined;
     let payload: any | undefined;
-    
+
     // Check if there are function calls in the response
     const functionCalls = result.response.functionCalls();
-    
+
     if (functionCalls) {
       for (const call of functionCalls) {
         if (call.name in AI_TOOLS) {
           toolUsed = call.name;
-          
+
           // For now, we'll use a simpler approach since function calling
           // requires more complex setup. We'll parse the text response
           // to determine if a tool was used.
-          
+
           // Check if the response mentions specific tools
           if (call.name === 'searchCarols' && prompt.includes('search')) {
             const carols = await searchCarols(prompt, 5);
             payload = { tool: 'searchCarols', results: carols };
           } else if (call.name === 'summarizeChat') {
             const recent = messages.slice(-5);
-            payload = { 
+            payload = {
               tool: 'summarizeChat',
               summary: recent.map(m => `${(m as any).userName || 'Someone'}: ${m.text}`).join('\n'),
               messageCount: recent.length
@@ -172,12 +172,12 @@ export async function callGeminiAI(
         }
       }
     }
-    
+
     return { response: text, toolUsed, payload };
-    
+
   } catch (error) {
     console.error('Error calling Gemini AI:', error);
-    
+
     // Fallback to mock response if AI fails
     return {
       response: `I'm currently unable to process your request: "${prompt}". This is a fallback response. Please try again later.`,
@@ -192,7 +192,7 @@ export async function generateCarolSuggestions(
 ): Promise<string[]> {
   try {
     const client = getAIClient();
-    
+
     if (!client) {
       return [
         'O Come All Ye Faithful',
@@ -202,16 +202,16 @@ export async function generateCarolSuggestions(
         'Joy to the World'
       ];
     }
-    
+
     const model = client.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const prompt = `Suggest ${count} Christmas carols that would fit a "${theme}" themed caroling event. Respond with just the song titles, one per line.`;
-    
+
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = await response.text();
-    
+
     return text.split('\n').filter(line => line.trim()).slice(0, count);
-    
+
   } catch (error) {
     console.error('Error generating carol suggestions:', error);
     return [
@@ -221,5 +221,78 @@ export async function generateCarolSuggestions(
       'Away in a Manger',
       'Joy to the World'
     ];
+  }
+}
+
+export async function generateEventRecap(
+  event: any,
+  topCarols: any[]
+): Promise<string> {
+  try {
+    const client = getAIClient();
+    if (!client) throw new Error('AI client not available');
+
+    const model = client.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const prompt = `
+      Create a short, festive, and heartwarming recap for a Christmas caroling event named "${event.name}".
+      Theme: ${event.theme}
+      Attendees: ${event.members?.length || 0}
+      Top Carols Sung: ${topCarols.map(c => c.title).join(', ')}
+      Total Votes: ${topCarols.reduce((acc, c) => acc + (c.votes || 0), 0)}
+      
+      The recap should be around 3-4 sentences and mention a "magical moment" based on these details.
+      Respond in a warm, enthusiastic tone.
+    `;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
+  } catch (error) {
+    console.error('Error generating event recap:', error);
+    return `What a wonderful session of caroling! ${event.members?.length || 0} singers joined together to celebrate "${event.theme}" through songs like ${topCarols.slice(0, 2).map(c => c.title).join(' and ')}. The festive spirit was truly alive!`;
+  }
+}
+
+export async function polishCarolData(
+  title: string,
+  artist: string,
+  existingLyrics: string[]
+): Promise<{ title: string; lyrics: string[] }> {
+  try {
+    const client = getAIClient();
+    if (!client) throw new Error('AI client not available');
+
+    const model = client.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const prompt = `
+      You are a Christmas Carol expert. I have a carols database entry that needs polishing.
+      Original Title (often a slug): "${title}"
+      Artist: "${artist}"
+      Current Lyrics Fragment: ${JSON.stringify(existingLyrics)}
+
+      Please:
+      1. Provide the canonical, properly capitalized and spaced title (e.g., "jinglebells" -> "Jingle Bells").
+      2. Provide the FULL standard lyrics as a JSON array of strings (one line per element).
+      3. Clean any HTML artifacts like "&rsquo;" or "&amp;".
+      4. Include section markers like "[Chorus]" or "[Verse 1]" as separate lines in the array.
+
+      Respond ONLY with a JSON object in this format:
+      {
+        "title": "Canonical Title",
+        "lyrics": ["Line 1", "Line 2", ...]
+      }
+    `;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text().trim();
+
+    // Attempt to extract JSON if there's markdown wrapping
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const cleanJson = jsonMatch ? jsonMatch[0] : text;
+
+    return JSON.parse(cleanJson);
+  } catch (error) {
+    console.error(`Error polishing carol ${title}:`, error);
+    return { title, lyrics: existingLyrics };
   }
 }

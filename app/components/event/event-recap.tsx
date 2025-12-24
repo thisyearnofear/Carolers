@@ -14,16 +14,21 @@ interface EventRecapProps {
 
 export function EventRecap({ event }: EventRecapProps) {
     const [topSongs, setTopSongs] = useState<Carol[]>([]);
+    const [magicRecap, setMagicRecap] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        async function fetchTopSongs() {
+        async function fetchRecapData() {
             try {
-                const response = await fetch('/api/carols');
-                if (!response.ok) throw new Error('Failed to fetch carols');
-                const allCarols: Carol[] = await response.json();
+                // Fetch top songs and magic recap in parallel
+                const [carolsRes, aiRes] = await Promise.all([
+                    fetch('/api/carols'),
+                    fetch(`/api/events/${event.id}/recap`)
+                ]);
 
-                // Filter carols by those in the event and sort by votes
+                if (!carolsRes.ok) throw new Error('Failed to fetch carols');
+                const allCarols: Carol[] = await carolsRes.json();
+
                 const eventCarols = event.carols
                     ?.map(id => allCarols.find(c => c.id === id))
                     .filter((c): c is Carol => c !== undefined)
@@ -31,15 +36,20 @@ export function EventRecap({ event }: EventRecapProps) {
                     .slice(0, 3) || [];
 
                 setTopSongs(eventCarols);
+
+                if (aiRes.ok) {
+                    const aiData = await aiRes.json();
+                    setMagicRecap(aiData.magicRecap);
+                }
             } catch (error) {
-                console.error('Failed to fetch top songs:', error);
+                console.error('Failed to fetch recap data:', error);
             } finally {
                 setLoading(false);
             }
         }
 
-        fetchTopSongs();
-    }, [event.carols]);
+        fetchRecapData();
+    }, [event.id, event.carols]);
 
     return (
         <div className="container mx-auto px-4 py-12 max-w-4xl">
@@ -109,6 +119,32 @@ export function EventRecap({ event }: EventRecapProps) {
                 </motion.div>
             </div>
 
+            {magicRecap && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="mb-12"
+                >
+                    <Card className="rounded-[2.5rem] border-none bg-primary text-white p-8 md:p-12 shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-8 opacity-10">
+                            <Plus className="w-32 h-32 rotate-45" />
+                        </div>
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-white/20 rounded-lg backdrop-blur-md">
+                                    <Star className="w-5 h-5 text-yellow-300 fill-yellow-300" />
+                                </div>
+                                <h3 className="text-xl font-bold uppercase tracking-[0.2em]">The Magic Moment</h3>
+                            </div>
+                            <p className="text-2xl md:text-3xl font-display leading-tight italic">
+                                "{magicRecap}"
+                            </p>
+                        </div>
+                    </Card>
+                </motion.div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-12">
                 <div className="lg:col-span-3">
                     <Card className="rounded-[2.5rem] border-primary/5 bg-white/90 backdrop-blur-md overflow-hidden shadow-2xl">
@@ -129,8 +165,8 @@ export function EventRecap({ event }: EventRecapProps) {
                                         className="flex items-center gap-6 group"
                                     >
                                         <div className={`w-12 h-12 rounded-card-sm flex items-center justify-center font-display text-2xl shadow-sm ${index === 0 ? 'bg-yellow-100 text-yellow-600' :
-                                                index === 1 ? 'bg-slate-100 text-slate-500' :
-                                                    'bg-orange-100 text-orange-600'
+                                            index === 1 ? 'bg-slate-100 text-slate-500' :
+                                                'bg-orange-100 text-orange-600'
                                             }`}>
                                             {index + 1}
                                         </div>

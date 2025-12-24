@@ -13,7 +13,7 @@ async function initializeDb() {
 
   try {
     console.log('Initializing database connection...');
-    
+
     // For TiDB, always use SSL. Extract basic config from DATABASE_URL
     let host = 'localhost';
     let port = 3306;

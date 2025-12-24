@@ -19,6 +19,7 @@ const sansFont = Lato({
 });
 
 import { Navbar } from './components/navbar';
+import { Snowfall } from './components/ui/snowfall';
 
 export const metadata: Metadata = {
   title: 'Carolers | Join the Festive Chorus 🎄',
@@ -51,6 +52,7 @@ function HtmlShell({ children, withClerk }: { children: React.ReactNode; withCle
       <head />
       <body className="font-sans antialiased">
         <QueryProvider>
+          <Snowfall />
           {withClerk ? (
             <Navbar />
           ) : (

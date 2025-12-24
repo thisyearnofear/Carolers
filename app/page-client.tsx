@@ -14,10 +14,12 @@ import {
   Heart,
   Calendar,
   Snowflake,
-  BookOpen
+  BookOpen,
+  Search
 } from 'lucide-react';
 import { OnboardingModal, useOnboarding } from './components/onboarding/onboarding-modal';
 import { useEffect } from 'react';
+import { Badge } from './components/ui/badge';
 
 interface PageClientProps {
   children: React.ReactNode;
@@ -38,29 +40,6 @@ export function PageClient({ children }: PageClientProps) {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-50 via-white to-green-50/30 dark:from-slate-900 dark:via-slate-950 dark:to-emerald-950/20 py-8 overflow-hidden">
-      {/* Decorative Snowflakes */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20 dark:opacity-10">
-        {[...Array(6)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute text-primary"
-            initial={{ y: -20, x: Math.random() * 100 + '%' }}
-            animate={{
-              y: '110vh',
-              x: (Math.random() * 100) + (Math.sin(i) * 10) + '%'
-            }}
-            transition={{
-              duration: 10 + Math.random() * 20,
-              repeat: Infinity,
-              ease: "linear",
-              delay: Math.random() * 20
-            }}
-          >
-            <Snowflake size={12 + Math.random() * 24} />
-          </motion.div>
-        ))}
-      </div>
-
       <div className="container mx-auto px-6 relative z-10 pt-8">
         <header className="mb-16 text-center max-w-2xl mx-auto">
           <motion.div
@@ -75,6 +54,25 @@ export function PageClient({ children }: PageClientProps) {
               Whether you're hosting a neighborhood gathering or learning carols for a solo performance, find the joy and lyrics for every festive occasion.
             </p>
           </motion.div>
+
+          <div className="w-full max-w-lg mx-auto mb-10 group">
+            <Link href="/songs" className="block relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-hover:text-primary transition-colors" />
+              <div className="w-full h-14 pl-12 pr-4 bg-white/80 backdrop-blur-xl border border-primary/10 rounded-2xl flex items-center text-slate-400 text-lg shadow-xl shadow-primary/5 group-hover:border-primary/30 transition-all">
+                Search 100+ carols, traditions, or artists...
+              </div>
+            </Link>
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest pt-1 mr-2">Try:</span>
+              {['Relaxing', 'Upbeat', 'Traditional', 'Religious'].map((mood) => (
+                <Link key={mood} href={`/songs?mood=${mood}`}>
+                  <Badge variant="secondary" className="bg-primary/5 text-primary hover:bg-primary/10 cursor-pointer border-none px-3 py-1 text-[10px] uppercase font-bold tracking-tight">
+                    {mood}
+                  </Badge>
+                </Link>
+              ))}
+            </div>
+          </div>
 
           <motion.div
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
