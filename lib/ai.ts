@@ -296,3 +296,64 @@ export async function polishCarolData(
     return { title, lyrics: existingLyrics };
   }
 }
+
+/**
+ * Translate carol lyrics to a target language using Gemini 3
+ * Maintains rhythm, rhyme, and singability
+ * Used to bootstrap translations before community refinement
+ */
+export async function translateCarolWithGemini(
+  title: string,
+  lyrics: string[],
+  targetLanguage: string,
+  languageName: string // Full language name for better context
+): Promise<{ title: string; lyrics: string[] }> {
+  try {
+    const client = getAIClient();
+    if (!client) throw new Error('AI client not available');
+
+    const model = client.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    
+    const lyricsText = lyrics.join('\n');
+    const prompt = `
+      You are a skilled translator and songwriter specializing in Christmas carols.
+      Your task is to translate a carol while maintaining its singability, rhythm, and rhyme scheme.
+      
+      Original Carol Title: "${title}"
+      Target Language: ${languageName} (${targetLanguage})
+      
+      Original Lyrics:
+      ${lyricsText}
+      
+      Please provide:
+      1. A natural, culturally appropriate title in ${languageName}
+      2. Complete translated lyrics that:
+         - Maintain the original verse/chorus structure
+         - Preserve rhyme and rhythm where possible
+         - Sound natural when sung
+         - Are culturally appropriate for ${languageName} speakers
+         - Keep section markers like [Verse 1], [Chorus], etc.
+      
+      Respond ONLY with a JSON object in this format:
+      {
+        "title": "Translated Title",
+        "lyrics": ["Line 1", "Line 2", ...]
+      }
+      
+      Ensure the JSON is valid and properly escaped.
+    `;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text().trim();
+
+    // Extract JSON (handle markdown wrapping)
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const cleanJson = jsonMatch ? jsonMatch[0] : text;
+
+    return JSON.parse(cleanJson);
+  } catch (error) {
+    console.error(`Error translating carol "${title}" to ${languageName}:`, error);
+    throw new Error(`Failed to translate carol: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}

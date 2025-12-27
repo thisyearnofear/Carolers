@@ -9,14 +9,17 @@
 
 'use client';
 
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Music } from 'lucide-react';
-import { type Carol } from '@shared/schema';
+import { type Carol, type CarolTranslation } from '@shared/schema';
 import { useLyricsState } from '@/hooks/useLyricsState';
 import { LyricsDisplay } from './lyrics-display';
 import { PlaybackControls } from './playback-controls';
 import { DisplayModeSelector } from './display-mode-selector';
 import { SectionNavigator } from './section-navigator';
+import { LanguageSelector } from '../translations/language-selector';
+import { TranslationBadge } from '../translations/translation-badge';
 
 interface EnhancedLyricsViewerProps {
   carol: Carol | null;
@@ -38,8 +41,17 @@ export function EnhancedLyricsViewer({
 }: EnhancedLyricsViewerProps) {
   if (!carol) return null;
 
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [translationInfo, setTranslationInfo] = useState<CarolTranslation | null>(null);
+  const [loadingTranslation, setLoadingTranslation] = useState(false);
+
+  // Use either translated or original carol
+  const displayCarol = selectedLanguage === 'en' || !translationInfo
+    ? carol
+    : { ...carol, title: translationInfo.title, lyrics: translationInfo.lyrics || carol.lyrics };
+
   const state = useLyricsState({
-    carol,
+    carol: displayCarol,
     currentTime,
     isPlaying,
     initialDisplayMode: 'progressive',
@@ -48,6 +60,27 @@ export function EnhancedLyricsViewer({
   const handleTimeChange = (time: number) => {
     state.setCurrentTime(time);
     onTimeChange?.(time);
+  };
+
+  const handleLanguageChange = async (language: string, languageName: string) => {
+    setSelectedLanguage(language);
+    
+    // Fetch translation metadata when language changes
+    try {
+      setLoadingTranslation(true);
+      const response = await fetch(`/api/carols/translate?carolId=${carol.id}&language=${language}`);
+      if (response.ok) {
+        const data = await response.json();
+        setTranslationInfo(data.translation);
+      } else {
+        // No translation metadata available (first request)
+        setTranslationInfo(null);
+      }
+    } catch (err) {
+      console.error('Failed to fetch translation metadata:', err);
+    } finally {
+      setLoadingTranslation(false);
+    }
   };
 
   return (
@@ -77,6 +110,28 @@ export function EnhancedLyricsViewer({
 
         {/* Controls Toolbar */}
         <div className="border-b border-primary/5 bg-white/30 p-4 space-y-3">
+          <div className="flex items-end justify-between gap-4">
+            <div className="flex-1">
+              <LanguageSelector
+                carolId={carol.id}
+                currentLanguage={selectedLanguage}
+                onLanguageChange={handleLanguageChange}
+                isLoading={loadingTranslation}
+              />
+            </div>
+
+            {translationInfo && selectedLanguage !== 'en' && (
+              <div className="pb-0.5">
+                <TranslationBadge
+                  source={translationInfo.source || 'ai_generated'}
+                  upvotes={translationInfo.upvotes || 0}
+                  downvotes={translationInfo.downvotes || 0}
+                  isCanonical={translationInfo.isCanonical === 1}
+                />
+              </div>
+            )}
+          </div>
+
           <DisplayModeSelector
             currentMode={state.displayMode}
             onModeChange={state.setDisplayMode}

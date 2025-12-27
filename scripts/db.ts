@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/mysql2';
 import mysql from 'mysql2/promise';
 import { carols } from '../shared/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql, or } from 'drizzle-orm';
 
 async function getDb() {
     const urlStr = (process.env.DATABASE_URL || '').split('?')[0];
@@ -32,6 +32,12 @@ async function inspect() {
         const emptyLyrics = allCarols.filter(c => !c.lyrics || c.lyrics.length === 0);
         console.log(`- Missing Lyrics: ${emptyLyrics.length}`);
 
+        const htmlEntities = allCarols.filter(c => JSON.stringify(c.lyrics).includes('&'));
+        console.log(`- Lyrics with HTML entities: ${htmlEntities.length}`);
+
+        const shortLyrics = allCarols.filter(c => c.lyrics && c.lyrics.length > 0 && c.lyrics.length < 5);
+        console.log(`- Short lyrics fragments (< 5 lines): ${shortLyrics.length}`);
+
         console.log('\nTop 10 Carols by Votes:');
         allCarols.sort((a, b) => (b.votes || 0) - (a.votes || 0)).slice(0, 10).forEach((c, i) => {
             console.log(`${i + 1}. ${c.title} — ${c.artist} (${c.votes} votes)`);
@@ -59,8 +65,13 @@ async function polish() {
     const { db, pool } = await getDb();
 
     try {
+        // Target: Slugs OR HTML entities OR short fragments
         const targetCarols = await db.select().from(carols).where(
-            sql`${carols.title} NOT LIKE '% %'`
+            or(
+                sql`${carols.title} NOT LIKE '% %'`,
+                sql`${carols.lyrics} LIKE '%&%'`,
+                sql`JSON_LENGTH(${carols.lyrics}) < 5`
+            )
         );
 
         console.log(`🔍 Found ${targetCarols.length} carols to polish.`);
