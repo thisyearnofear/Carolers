@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
-import { Send, Loader, Zap, Search, Music, Users, Gift } from 'lucide-react';
+import { ToolResultDisplay } from './tool-result-display';
+import { Send, Loader, Zap } from 'lucide-react';
 
 interface ToolCall {
   tool: string;
@@ -20,27 +21,6 @@ interface Message {
   toolCalls?: ToolCall[];
   timestamp: Date;
 }
-
-const TOOL_ICONS: Record<string, React.ComponentType<any>> = {
-  searchCarols: Search,
-  summarizeChat: Users,
-  suggestSetlist: Music,
-  addContribution: Gift
-};
-
-const TOOL_COLORS: Record<string, string> = {
-  searchCarols: 'bg-blue-50 border-blue-200 text-blue-700',
-  summarizeChat: 'bg-purple-50 border-purple-200 text-purple-700',
-  suggestSetlist: 'bg-pink-50 border-pink-200 text-pink-700',
-  addContribution: 'bg-green-50 border-green-200 text-green-700'
-};
-
-const TOOL_LABELS: Record<string, string> = {
-  searchCarols: 'Carol Search',
-  summarizeChat: 'Chat Summary',
-  suggestSetlist: 'Setlist Generator',
-  addContribution: 'Contribution Ideas'
-};
 
 interface AIAssistantProps {
   eventId: string;
@@ -149,25 +129,28 @@ export function AIAssistant({ eventId }: AIAssistantProps) {
                 </p>
               </div>
               <div className="mt-4 space-y-2 w-full">
-                <p className="text-xs font-medium text-slate-600">Try asking:</p>
-                <button
+                <p className="text-xs font-medium text-slate-600">Quick start:</p>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
                   onClick={() => setInput('Find upbeat carols for our event')}
-                  className="w-full text-left text-xs p-2 rounded-lg hover:bg-slate-100 text-slate-700 transition-colors"
+                  className="w-full text-left text-xs p-2 rounded-lg hover:bg-slate-100 text-slate-700 transition-colors border border-transparent hover:border-slate-200"
                 >
                   • Find upbeat carols for our event
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
                   onClick={() => setInput('Suggest a 1-hour setlist')}
-                  className="w-full text-left text-xs p-2 rounded-lg hover:bg-slate-100 text-slate-700 transition-colors"
+                  className="w-full text-left text-xs p-2 rounded-lg hover:bg-slate-100 text-slate-700 transition-colors border border-transparent hover:border-slate-200"
                 >
                   • Suggest a 1-hour setlist
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
                   onClick={() => setInput('What should people contribute?')}
-                  className="w-full text-left text-xs p-2 rounded-lg hover:bg-slate-100 text-slate-700 transition-colors"
+                  className="w-full text-left text-xs p-2 rounded-lg hover:bg-slate-100 text-slate-700 transition-colors border border-transparent hover:border-slate-200"
                 >
                   • What should people contribute?
-                </button>
+                </motion.button>
               </div>
             </motion.div>
           ) : (
@@ -200,48 +183,13 @@ export function AIAssistant({ eventId }: AIAssistantProps) {
                   {/* Tool calls visualization */}
                   {message.toolCalls && message.toolCalls.length > 0 && (
                     <div className="mt-2 space-y-2">
-                      {message.toolCalls.map((toolCall, toolIdx) => {
-                        const Icon = TOOL_ICONS[toolCall.tool];
-                        const colorClass = TOOL_COLORS[toolCall.tool];
-                        const label = TOOL_LABELS[toolCall.tool];
-
-                        return (
-                          <motion.div
-                            key={`${message.id}-tool-${toolIdx}`}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.1 }}
-                            className={`rounded-lg border p-3 text-xs ${colorClass}`}
-                          >
-                            <div className="flex items-start gap-2">
-                              {Icon && <Icon className="w-4 h-4 flex-shrink-0 mt-0.5" />}
-                              <div className="flex-1 min-w-0">
-                                <p className="font-semibold mb-1">{label}</p>
-                                
-                                {/* Tool result summary */}
-                                {toolCall.result?.success ? (
-                                  <div className="space-y-1 text-opacity-90">
-                                    {toolCall.result.count && (
-                                      <p>Found {toolCall.result.count} results</p>
-                                    )}
-                                    {toolCall.result.setlist?.length && (
-                                      <p>Generated setlist with {toolCall.result.setlist.length} songs</p>
-                                    )}
-                                    {toolCall.result.suggestions?.length && (
-                                      <p>{toolCall.result.suggestions.length} suggestions available</p>
-                                    )}
-                                    {toolCall.result.summary && (
-                                      <p className="truncate">Summarized recent chat activity</p>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <p className="text-opacity-75">Tool execution details</p>
-                                )}
-                              </div>
-                            </div>
-                          </motion.div>
-                        );
-                      })}
+                      {message.toolCalls.map((toolCall, toolIdx) => (
+                        <ToolResultDisplay
+                          key={`${message.id}-tool-${toolIdx}`}
+                          toolCall={toolCall}
+                          index={toolIdx}
+                        />
+                      ))}
                     </div>
                   )}
                 </div>
