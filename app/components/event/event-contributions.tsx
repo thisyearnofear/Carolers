@@ -6,6 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useSafeUser } from '@/hooks/use-safe-user';
+import { ContributionSuggestionCard } from '../contributions/contribution-suggestion-card';
+import { Lightbulb, Loader } from 'lucide-react';
+
+interface ContributionSuggestion {
+  category: string;
+  items: string[];
+  reasoning: string;
+}
 
 interface EventContributionsProps {
   eventId: string;
@@ -15,6 +23,9 @@ export function EventContributions({ eventId }: EventContributionsProps) {
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [newContribution, setNewContribution] = useState('');
   const [loading, setLoading] = useState(true);
+  const [suggestions, setSuggestions] = useState<ContributionSuggestion[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const { user } = useSafeUser();
 
   useEffect(() => {
@@ -60,6 +71,48 @@ export function EventContributions({ eventId }: EventContributionsProps) {
     }
   };
 
+  const handleGetSuggestions = async () => {
+    setLoadingSuggestions(true);
+    try {
+      const response = await fetch(`/api/events/${eventId}/contribution-suggestions`, {
+        method: 'GET'
+      });
+
+      if (!response.ok) throw new Error('Failed to get suggestions');
+
+      const data = await response.json();
+      setSuggestions(data.suggestions || []);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error('Failed to get suggestions:', error);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
+  const handleAddSuggestedItem = async (item: string, category: string) => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(`/api/events/${eventId}/contributions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memberId: user.id,
+          item: item,
+          status: 'proposed'
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to add contribution');
+      const contribution = await response.json();
+
+      setContributions(prev => [...prev, contribution]);
+    } catch (error) {
+      console.error('Failed to add contribution:', error);
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -78,15 +131,61 @@ export function EventContributions({ eventId }: EventContributionsProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Contributions</CardTitle>
+      <CardHeader className="space-y-3">
+        <CardTitle>Contributions & Coordination</CardTitle>
+        
+        {/* Smart Suggestions Section */}
+        <div className="flex items-center justify-between p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
+          <div className="flex items-center gap-2">
+            <Lightbulb className="w-5 h-5 text-amber-600" />
+            <div>
+              <p className="text-sm font-medium text-amber-900">What do we need?</p>
+              <p className="text-xs text-amber-700">AI-powered contribution ideas</p>
+            </div>
+          </div>
+          <Button
+            onClick={handleGetSuggestions}
+            disabled={loadingSuggestions}
+            size="sm"
+            variant="outline"
+            className="text-xs border-amber-200 hover:bg-amber-50"
+          >
+            {loadingSuggestions ? (
+              <>
+                <Loader className="w-3 h-3 mr-1 animate-spin" />
+                Thinking...
+              </>
+            ) : (
+              'Get Suggestions'
+            )}
+          </Button>
+        </div>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
+      <CardContent className="space-y-4">
+        {/* AI Suggestions Grid */}
+        {showSuggestions && suggestions.length > 0 && (
+          <div className="space-y-3 pb-4 border-b border-slate-200">
+            <p className="text-xs font-medium text-slate-600 uppercase tracking-wide">Suggested by AI:</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {suggestions.map((suggestion, idx) => (
+                <ContributionSuggestionCard
+                  key={idx}
+                  suggestion={suggestion}
+                  onAddItem={handleAddSuggestedItem}
+                  isLoading={loadingSuggestions}
+                  index={idx}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Manual Contribution Input */}
+        <form onSubmit={handleSubmit} className="flex gap-2">
           <Input
             value={newContribution}
             onChange={(e) => setNewContribution(e.target.value)}
-            placeholder="What can you contribute?"
+            placeholder="Add custom contribution..."
             className="flex-1"
           />
           <Button type="submit">Add</Button>
