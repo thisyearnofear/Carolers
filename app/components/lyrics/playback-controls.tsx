@@ -8,7 +8,7 @@
 'use client';
 
 import { Button } from '../ui/button';
-import { Play, Pause, Volume2, Type, Minimize2 } from 'lucide-react';
+import { Play, Pause, Zap, Type, Minimize2 } from 'lucide-react';
 
 interface PlaybackControlsProps {
   currentTime: number;
@@ -19,6 +19,7 @@ interface PlaybackControlsProps {
   speed: number;
   onTimeChange: (time: number) => void;
   onPlayPause: () => void;
+  onSpeedChange: (speed: number) => void;
   onFontSizeChange: (size: number) => void;
   onLineSpacingChange: (spacing: number) => void;
 }
@@ -32,6 +33,7 @@ export function PlaybackControls({
   speed,
   onTimeChange,
   onPlayPause,
+  onSpeedChange,
   onFontSizeChange,
   onLineSpacingChange,
 }: PlaybackControlsProps) {
@@ -64,22 +66,23 @@ export function PlaybackControls({
 
       {/* Button Controls */}
       <div className="grid grid-cols-4 gap-2">
-        {/* Play/Pause */}
+        {/* Play/Pause - Lyrics Progression Control */}
         <Button
           onClick={onPlayPause}
-          variant="outline"
+          variant={isPlaying ? "default" : "outline"}
           size="sm"
           className="flex gap-1"
+          title="Highlight lyrics as you read through the song"
         >
           {isPlaying ? (
             <>
               <Pause className="w-4 h-4" />
-              <span className="hidden sm:inline text-xs">Pause</span>
+              <span className="hidden sm:inline text-xs">Reading</span>
             </>
           ) : (
             <>
               <Play className="w-4 h-4" />
-              <span className="hidden sm:inline text-xs">Play</span>
+              <span className="hidden sm:inline text-xs">Read</span>
             </>
           )}
         </Button>
@@ -120,10 +123,22 @@ export function PlaybackControls({
           </span>
         </div>
 
-        {/* Speed (Placeholder) */}
+        {/* Speed Control */}
         <div className="flex items-center gap-1 px-2 bg-white/50 rounded-lg border border-slate-200">
-          <Volume2 className="w-4 h-4 text-slate-600" />
-          <span className="text-xs text-slate-600">1x</span>
+          <Zap className="w-4 h-4 text-slate-600" />
+          <input
+            type="range"
+            min="0.5"
+            max="2.0"
+            step="0.25"
+            value={speed}
+            onChange={(e) => onSpeedChange(parseFloat(e.target.value))}
+            className="flex-1 w-full accent-primary cursor-pointer"
+            title="Reading speed (cadence)"
+          />
+          <span className="text-xs text-slate-600 w-8 text-right font-medium">
+            {speed.toFixed(2)}x
+          </span>
         </div>
       </div>
     </div>

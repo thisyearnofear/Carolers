@@ -582,3 +582,70 @@ transition={{ duration: 0.3 }}
 whileHover={{ scale: 1.2, rotate: 360 }}
 transition={{ duration: 1 }}
 ```
+
+---
+
+## Progressive Disclosure: Songbook Design
+
+### Problem
+Users faced "paradox of choice" when presented with all carols at once, causing analysis paralysis.
+
+### Solution: Smart Defaults with Progressive Disclosure
+
+**Display 7 popular carols by default** (Miller's 7±2 cognitive load rule), with expandable section for remaining carols. Filters (search, energy, mood) apply across all visible carols.
+
+### User Experience
+
+```
+Session Songbook
+┌─────────────────────────────┐
+│ [Search...] 🌙 ✨ ⚡        │  ← Filters
+│             Traditional|Modern
+└─────────────────────────────┘
+
+Popular Carols (Most-loved by your guests)
+├─ Jingle Bells (47 votes)
+├─ Deck the Halls (42 votes)
+├─ Silent Night (38 votes)
+├─ Hark! The Herald Angels Sing (35 votes)
+├─ O Come All Ye Faithful (32 votes)
+├─ Joy to the World (28 votes)
+└─ Angels We Have Heard on High (24 votes)
+
+[+ View all 18 carols]  ← Expandable, collapsed by default
+```
+
+### Architecture
+
+**Components:**
+- **SongbookControls** – Search + Energy + Mood filter chips, "Clear all" button
+- **PopularCarolsSection** – Top 7 carols sorted by votes
+- **ExpandableCarolsSection** – Remaining carols, collapsed by default, smooth animation
+- **CarolPlayer** – Orchestrates filtering, state management, routing
+
+**Filtering Logic (AND logic):**
+- Search: `carol.title` OR `carol.artist` (case-insensitive)
+- Energy: exact match to `carol.energy` (low/medium/high)
+- Mood:
+  - Traditional: `carol.tags.includes('Traditional')` OR `carol.artist === 'Traditional'`
+  - Modern: NOT traditional
+
+**Performance:**
+- `useMemo` for `filteredCarols` (recomputes only on data/filter change)
+- `useMemo` for `popularCarolIds` (sorts only when filtered set changes)
+- Lazy expansion (remaining carols only render when expanded)
+- Client-side filtering (instant feedback, no API calls)
+
+### Scaling Strategy
+
+**Languages (Future):**
+Add language filter chip—popular section auto-adapts to filtered results. No structural changes needed.
+
+**Large Catalogs:**
+7 popular + "View all X carols" pattern works indefinitely. As catalog grows, this prevents UI overwhelming.
+
+### Files
+- `app/components/carol/songbook-controls.tsx`
+- `app/components/carol/popular-carols-section.tsx`
+- `app/components/carol/expandable-carols-section.tsx`
+- `app/components/carl-player.tsx` (updated)

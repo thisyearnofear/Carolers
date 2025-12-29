@@ -42,6 +42,7 @@ export interface LyricsStateValue {
   currentTime: number;
   isPlaying: boolean;
   highlightedLineIndex: number;
+  speed: number; // 0.5 - 2.0
 
   // Display configuration
   displayMode: DisplayMode;
@@ -62,6 +63,7 @@ export interface LyricsStateValue {
   setLineSpacing: (spacing: number) => void;
   setCurrentTime: (time: number) => void;
   setIsPlaying: (playing: boolean) => void;
+  setSpeed: (speed: number) => void;
   jumpToSection: (sectionLabel: string) => void;
   toggleVocalPart: (part: string) => void;
 
@@ -92,6 +94,7 @@ export function useLyricsState({
   // Playback state (controlled by parent)
   const [internalCurrentTime, setInternalCurrentTime] = useState(currentTime);
   const [internalIsPlaying, setInternalIsPlaying] = useState(isPlaying);
+  const [speed, setSpeed] = useState(1);
 
   // Update internal state when props change
   useEffect(() => {
@@ -109,13 +112,13 @@ export function useLyricsState({
 
   const getDuration = useCallback(() => durationMs, [durationMs]);
 
-  // Internal playback timer
+  // Internal playback timer (speed-adjusted)
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (internalIsPlaying) {
       interval = setInterval(() => {
         setInternalCurrentTime(prev => {
-          const next = prev + 100;
+          const next = prev + (100 * speed);
           const duration = getDuration();
           if (next >= duration) {
             setInternalIsPlaying(false);
@@ -126,7 +129,7 @@ export function useLyricsState({
       }, 100);
     }
     return () => clearInterval(interval);
-  }, [internalIsPlaying, getDuration]);
+  }, [internalIsPlaying, getDuration, speed]);
 
   // Compute highlighted line index based on current time
   const highlightedLineIndex = useMemo(() => {
@@ -196,6 +199,7 @@ export function useLyricsState({
     currentTime: internalCurrentTime,
     isPlaying: internalIsPlaying,
     highlightedLineIndex,
+    speed: Math.max(0.5, Math.min(2.0, speed)),
 
     // Display config
     displayMode,
@@ -216,6 +220,7 @@ export function useLyricsState({
     setLineSpacing,
     setCurrentTime: setInternalCurrentTime,
     setIsPlaying: setInternalIsPlaying,
+    setSpeed,
     jumpToSection,
     toggleVocalPart,
 

@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { type Event, type Carol } from '@shared/schema';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { VoteCard } from './carol/vote-card';
 import { EnhancedLyricsViewer } from './lyrics/enhanced-lyrics-viewer';
 import { EmptyState } from './empty-state';
 import { Music } from 'lucide-react';
 import { VerseRoulette } from './carol/verse-roulette';
+import { SongbookControls, type EnergyLevel, type MoodType } from './carol/songbook-controls';
+import { PopularCarolsSection } from './carol/popular-carols-section';
+import { ExpandableCarolsSection } from './carol/expandable-carols-section';
 
 interface CarolPlayerProps {
   event: Event;
@@ -18,6 +20,11 @@ export function CarolPlayer({ event }: CarolPlayerProps) {
   const [selectedCarol, setSelectedCarol] = useState<Carol | null>(null);
   const [showLyrics, setShowLyrics] = useState(false);
   const [votedCarols, setVotedCarols] = useState<Set<string>>(new Set());
+  
+  // Filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedEnergy, setSelectedEnergy] = useState<EnergyLevel>(null);
+  const [selectedMood, setSelectedMood] = useState<MoodType>(null);
 
   useEffect(() => {
     async function fetchCarols() {
@@ -26,7 +33,17 @@ export function CarolPlayer({ event }: CarolPlayerProps) {
         if (!response.ok) throw new Error('Failed to fetch');
         const allCarols: Carol[] = await response.json();
         const eventCarols = event.carols?.map(id => allCarols.find((c: Carol) => c.id === id)).filter((c): c is Carol => c !== undefined) || [];
-        setCarols(eventCarols);
+        
+        // Deduplicate carols by title + artist to prevent display of exact duplicates
+        const seen = new Set<string>();
+        const deduplicated = eventCarols.filter(carol => {
+          const key = `${carol.title}|${carol.artist}`.toLowerCase();
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        
+        setCarols(deduplicated);
       } catch (error) {
         console.error('Failed to fetch carols:', error);
       }
@@ -63,6 +80,50 @@ export function CarolPlayer({ event }: CarolPlayerProps) {
     setShowLyrics(true);
   };
 
+  // Filter and search logic
+  const filteredCarols = useMemo(() => {
+    let result = carols;
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(carol =>
+        carol.title.toLowerCase().includes(query) ||
+        carol.artist.toLowerCase().includes(query)
+      );
+    }
+
+    // Energy filter
+    if (selectedEnergy) {
+      result = result.filter(carol => carol.energy === selectedEnergy);
+    }
+
+    // Mood filter
+    if (selectedMood) {
+      if (selectedMood === 'traditional') {
+        result = result.filter(carol => 
+          (carol.tags && (carol.tags as string[]).includes('Traditional')) ||
+          carol.artist === 'Traditional'
+        );
+      } else if (selectedMood === 'modern') {
+        result = result.filter(carol =>
+          !(carol.tags && (carol.tags as string[]).includes('Traditional')) &&
+          carol.artist !== 'Traditional'
+        );
+      }
+    }
+
+    return result;
+  }, [carols, searchQuery, selectedEnergy, selectedMood]);
+
+  // Get IDs of popular carols for deduplication
+  const popularCarolIds = useMemo(() => {
+    const popular = [...filteredCarols]
+      .sort((a, b) => (b.votes || 0) - (a.votes || 0))
+      .slice(0, 7);
+    return new Set(popular.map(c => c.id));
+  }, [filteredCarols]);
+
   return (
     <div className="space-y-8">
       <VerseRoulette carols={carols} />
@@ -75,28 +136,53 @@ export function CarolPlayer({ event }: CarolPlayerProps) {
           </CardTitle>
           <p className="text-xs font-bold text-secondary-foreground/60 uppercase tracking-widest italic">Vote for the carols we'll sing together!</p>
         </CardHeader>
-        <CardContent className="p-lg">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-md">
-            {carols.length > 0 ? (
-              carols.map((carol) => (
-                <VoteCard
-                  key={carol.id}
-                  carol={carol}
-                  voted={votedCarols.has(carol.id)}
-                  onVote={() => handleVote(carol.id)}
-                  onViewLyrics={() => handleViewLyrics(carol)}
-                />
-              ))
-            ) : (
-              <div className="col-span-full">
-                <EmptyState
-                  icon={<Music className="w-16 h-16" />}
-                  title="The songbook is empty"
-                  description="Add some carols to start the celebration!"
-                />
-              </div>
-            )}
-          </div>
+        <CardContent className="p-lg space-y-lg">
+          {carols.length > 0 ? (
+            <>
+              <SongbookControls
+                onSearchChange={setSearchQuery}
+                onEnergyFilter={setSelectedEnergy}
+                onMoodFilter={setSelectedMood}
+                selectedEnergy={selectedEnergy}
+                selectedMood={selectedMood}
+              />
+
+              {filteredCarols.length > 0 ? (
+                <div className="space-y-lg">
+                  <PopularCarolsSection
+                    carols={filteredCarols}
+                    votedCarolIds={votedCarols}
+                    onVote={handleVote}
+                    onViewLyrics={handleViewLyrics}
+                  />
+
+                  <ExpandableCarolsSection
+                    carols={filteredCarols}
+                    votedCarolIds={votedCarols}
+                    onVote={handleVote}
+                    onViewLyrics={handleViewLyrics}
+                    popularCarolIds={popularCarolIds}
+                  />
+                </div>
+              ) : (
+                <div className="py-8">
+                  <EmptyState
+                    icon={<Music className="w-16 h-16" />}
+                    title="No carols match your filters"
+                    description="Try adjusting your search or filters"
+                  />
+                </div>
+              )}
+            </>
+          ) : (
+            <div>
+              <EmptyState
+                icon={<Music className="w-16 h-16" />}
+                title="The songbook is empty"
+                description="Add some carols to start the celebration!"
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
 

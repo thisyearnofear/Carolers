@@ -151,9 +151,10 @@ export function EnhancedLyricsViewer({
             isPlaying={state.isPlaying}
             fontSize={state.fontSize}
             lineSpacing={state.lineSpacing}
-            speed={1} // TODO: implement speed control in useLyricsState
+            speed={state.speed}
             onTimeChange={handleTimeChange}
             onPlayPause={() => state.setIsPlaying(!state.isPlaying)}
+            onSpeedChange={state.setSpeed}
             onFontSizeChange={state.setFontSize}
             onLineSpacingChange={state.setLineSpacing}
           />
