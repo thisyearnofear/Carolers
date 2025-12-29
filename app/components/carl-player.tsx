@@ -5,11 +5,14 @@ import { type Event, type Carol } from '@shared/schema';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { EnhancedLyricsViewer } from './lyrics/enhanced-lyrics-viewer';
 import { EmptyState } from './empty-state';
-import { Music } from 'lucide-react';
+import { Button } from './ui/button';
+import { Music, Sparkles } from 'lucide-react';
 import { VerseRoulette } from './carol/verse-roulette';
 import { SongbookControls, type EnergyLevel, type MoodType } from './carol/songbook-controls';
 import { PopularCarolsSection } from './carol/popular-carols-section';
 import { ExpandableCarolsSection } from './carol/expandable-carols-section';
+import { CarolRecommendationCard } from './carol/carol-recommendation-card';
+import type { CarolRecommendation } from '@/lib/carol-recommendations';
 
 interface CarolPlayerProps {
   event: Event;
@@ -25,6 +28,11 @@ export function CarolPlayer({ event }: CarolPlayerProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEnergy, setSelectedEnergy] = useState<EnergyLevel>(null);
   const [selectedMood, setSelectedMood] = useState<MoodType>(null);
+  
+  // Recommendation state
+  const [recommendations, setRecommendations] = useState<CarolRecommendation[]>([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [showRecommendations, setShowRecommendations] = useState(false);
 
   useEffect(() => {
     async function fetchCarols() {
@@ -73,6 +81,45 @@ export function CarolPlayer({ event }: CarolPlayerProps) {
     } catch (error) {
       console.error('Failed to vote:', error);
     }
+  };
+
+  const handleGetRecommendations = async () => {
+    setLoadingRecommendations(true);
+    try {
+      const recentCarolIds = Array.from(votedCarols).slice(0, 5);
+      const response = await fetch(`/api/events/${event.id}/recommendations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recentCarolIds,
+          limit: 3
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get recommendations');
+      }
+
+      const data = await response.json();
+      setRecommendations(data.recommendations);
+      setShowRecommendations(true);
+    } catch (error) {
+      console.error('Failed to get recommendations:', error);
+    } finally {
+      setLoadingRecommendations(false);
+    }
+  };
+
+  const handleSelectRecommendation = async (carolId: string) => {
+    // Vote for the recommended carol
+    await handleVote(carolId);
+    // Scroll or navigate to the carol
+    const carol = carols.find(c => c.id === carolId);
+    if (carol) {
+      handleViewLyrics(carol);
+    }
+    // Hide recommendations after selection
+    setShowRecommendations(false);
   };
 
   const handleViewLyrics = (carol: Carol) => {
@@ -146,6 +193,42 @@ export function CarolPlayer({ event }: CarolPlayerProps) {
                 selectedEnergy={selectedEnergy}
                 selectedMood={selectedMood}
               />
+
+              {/* Smart Recommendations */}
+              {votedCarols.size > 0 && (
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-blue-600" />
+                      <h3 className="font-semibold text-sm text-slate-900">What to Sing Next?</h3>
+                      <p className="text-xs text-slate-600">AI-powered recommendations</p>
+                    </div>
+                    <Button
+                      onClick={handleGetRecommendations}
+                      disabled={loadingRecommendations}
+                      size="sm"
+                      variant="default"
+                      className="text-xs"
+                    >
+                      {loadingRecommendations ? 'Loading...' : 'Get Suggestions'}
+                    </Button>
+                  </div>
+
+                  {showRecommendations && recommendations.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {recommendations.map((rec, idx) => (
+                        <CarolRecommendationCard
+                          key={rec.id}
+                          recommendation={rec}
+                          onSelect={handleSelectRecommendation}
+                          isLoading={loadingRecommendations}
+                          index={idx}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {filteredCarols.length > 0 ? (
                 <div className="space-y-lg">
