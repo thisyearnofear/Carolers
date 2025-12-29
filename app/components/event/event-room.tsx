@@ -9,7 +9,8 @@ import { CarolPlayer } from '../carl-player';
 import { EventDetails } from './event-details';
 import { EventContributions } from './event-contributions';
 import { EventMessages } from './event-messages';
-import { Music, Calendar, Users, MessageSquare, Info, Trophy } from 'lucide-react';
+import { AIAssistant } from '../ai-assistant';
+import { Music, Calendar, Users, MessageSquare, Info, Trophy, Zap } from 'lucide-react';
 import { useSafeUser } from '@/hooks/use-safe-user';
 import { Button } from '../ui/button';
 import Link from 'next/link';
@@ -84,7 +85,7 @@ export function EventRoom({ event }: EventRoomProps) {
 
         <Card className="border-primary/5 shadow-xl bg-white/90 backdrop-blur-md overflow-hidden rounded-[2.5rem]">
           <div className="px-md pt-md border-b border-primary/5">
-            <TabsList className="grid w-full grid-cols-4 bg-primary/5 p-xs rounded-card-lg">
+            <TabsList className="grid w-full grid-cols-5 bg-primary/5 p-xs rounded-card-lg">
               <TabsTrigger
                 value="sing"
                 onClick={() => setActiveTab('sing')}
@@ -105,6 +106,14 @@ export function EventRoom({ event }: EventRoomProps) {
                 className={`rounded-xl py-2.5 text-xs font-bold transition-all ${activeTab === 'coord' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-primary'}`}
               >
                 Coord
+              </TabsTrigger>
+              <TabsTrigger
+                value="ai"
+                onClick={() => setActiveTab('ai')}
+                className={`rounded-xl py-2.5 text-xs font-bold transition-all ${activeTab === 'ai' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-primary'}`}
+              >
+                <Zap className="w-3 h-3 mr-1" />
+                AI
               </TabsTrigger>
               <TabsTrigger
                 value="chat"
@@ -141,6 +150,12 @@ export function EventRoom({ event }: EventRoomProps) {
 
                 {activeTab === 'coord' && (
                   <EventContributions eventId={event.id} />
+                )}
+
+                {activeTab === 'ai' && (
+                  <div className="h-[600px]">
+                    <AIAssistant eventId={event.id} />
+                  </div>
                 )}
 
                 {activeTab === 'chat' && (

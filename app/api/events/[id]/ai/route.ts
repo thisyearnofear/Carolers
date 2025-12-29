@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getEvent } from '@/lib/events';
-import { getEventMessages } from '@/lib/messages';
 import { addMessage } from '@/lib/messages';
 import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
-import { callGeminiAI, generateCarolSuggestions } from '@/lib/ai';
+import { callGeminiWithTools } from '@/lib/ai';
 
-// Simple in-memory rate limiting (for demo purposes)
-// In production, use Redis or similar
-const rateLimits = new Map<string, { count: number, lastReset: number }>();
+// Simple in-memory rate limiting
+const rateLimits = new Map<string, { count: number; lastReset: number }>();
 
-function checkRateLimit(userId: string): { allowed: boolean, retryAfter?: number } {
+function checkRateLimit(userId: string): { allowed: boolean; retryAfter?: number } {
   const now = Date.now();
-  const window = 60 * 1000; // 1 minute window
-  const maxRequests = 5; // 5 requests per minute
+  const window = 60 * 1000; // 1 minute
+  const maxRequests = 10; // 10 requests per minute (increased for function calling)
   
   if (!rateLimits.has(userId)) {
     rateLimits.set(userId, { count: 1, lastReset: now });
@@ -41,8 +39,7 @@ function checkRateLimit(userId: string): { allowed: boolean, retryAfter?: number
 
 // AI Request Schema
 const aiRequestSchema = z.object({
-  prompt: z.string().min(1),
-  tool: z.enum(['searchCarols', 'addContribution', 'summarizeChat', 'suggestSetlist']).optional(),
+  prompt: z.string().min(1, 'Prompt cannot be empty'),
 });
 
 export async function POST(
@@ -90,94 +87,34 @@ export async function POST(
       );
     }
 
+    // Validate request
     const body = await request.json();
-    const { prompt, tool } = aiRequestSchema.parse(body);
+    const { prompt } = aiRequestSchema.parse(body);
 
-    // For now, implement a simple mock response
-    // In production, this would call the actual Gemini API
-    let aiResponse = '';
-    let messageType: 'ai' = 'ai';
-    let payload = null;
+    // Call Gemini with function calling
+    const { response, toolCalls } = await callGeminiWithTools(
+      prompt,
+      id,
+      event.theme
+    );
 
-    // Handle different tools
-    if (tool === 'searchCarols') {
-      // Use AI to search for carols
-      const aiResult = await callGeminiAI(prompt, id, 'searchCarols', event.theme);
-      aiResponse = aiResult.response;
-      
-      if (aiResult.payload) {
-        payload = aiResult.payload;
-      } else {
-        // Fallback to mock if AI doesn't provide payload
-        const mockCarols = [
-          { title: 'Silent Night', artist: 'Traditional' },
-          { title: 'Joy to the World', artist: 'Traditional' },
-          { title: 'O Holy Night', artist: 'Adolphe Adam' }
-        ];
-        payload = { tool: 'searchCarols', results: mockCarols };
-      }
-    } else if (tool === 'summarizeChat') {
-      // Use AI to summarize chat
-      const aiResult = await callGeminiAI(`Summarize the recent chat activity for this event: ${prompt}`, id, 'summarizeChat', event.theme);
-      aiResponse = aiResult.response;
-      
-      if (aiResult.payload) {
-        payload = aiResult.payload;
-      } else {
-        // Fallback to simple summary
-        const messages = await getEventMessages(id);
-        const recentMessages = messages.slice(-5);
-        payload = { 
-          tool: 'summarizeChat',
-          summary: recentMessages.map(m => `• ${(m as any).userName || 'Someone'}: ${m.text}`).join('\n'),
-          messageCount: recentMessages.length
-        };
-      }
-    } else if (tool === 'suggestSetlist') {
-      // Use AI to suggest setlist
-      const setlist = await generateCarolSuggestions(event.theme || 'Christmas', 5);
-      aiResponse = `Here's a suggested setlist for your "${event.theme}" themed event:\n\n${setlist.map((song, i) => `${i+1}. ${song}`).join('\n')}`;
-      payload = { tool: 'suggestSetlist', setlist };
-    } else if (tool === 'addContribution') {
-      // Use AI to suggest contributions
-      const aiResult = await callGeminiAI(`Suggest contributions for: ${prompt}`, id, 'addContribution', event.theme);
-      aiResponse = aiResult.response;
-      
-      if (aiResult.payload) {
-        payload = aiResult.payload;
-      } else {
-        // Fallback suggestions
-        const mockContributions = [
-          { item: 'Snacks and drinks', category: 'Food' },
-          { item: 'Extra sheet music', category: 'Music' },
-          { item: 'Portable speaker', category: 'Equipment' }
-        ];
-        payload = { tool: 'addContribution', suggestions: mockContributions };
-      }
-    } else {
-      // General AI response using Gemini
-      const aiResult = await callGeminiAI(prompt, id, undefined, event.theme);
-      aiResponse = aiResult.response;
-      
-      if (aiResult.toolUsed) {
-        payload = { toolUsed: aiResult.toolUsed };
-      }
-    }
-
-    // Add the AI response as a message
+    // Add AI response as message
     await addMessage({
       eventId: id,
       memberId: userId,
-      text: aiResponse,
-      type: messageType,
-      payload: payload
+      text: response,
+      type: 'ai',
+      payload: toolCalls.length > 0 ? { toolCalls } : undefined
     });
 
     return NextResponse.json({
       success: true,
-      response: aiResponse,
-      messageType,
-      payload
+      response,
+      toolCalls: toolCalls.map(tc => ({
+        tool: tc.tool,
+        args: tc.args,
+        result: tc.result
+      }))
     });
 
   } catch (error) {
@@ -189,8 +126,11 @@ export async function POST(
     }
 
     console.error('Error processing AI request:', error);
+    
+    // Return meaningful error to client
+    const errorMessage = error instanceof Error ? error.message : 'Failed to process AI request';
     return NextResponse.json(
-      { error: 'Failed to process AI request' },
+      { error: 'Failed to process AI request', details: errorMessage },
       { status: 500 }
     );
   }
