@@ -1,7 +1,7 @@
 import 'server-only';
 import { getCarols } from './carols';
 import { getEventMessages } from './messages';
-import { generateText } from './ai';
+import { generateText, generateWithReasoning } from './ai';
 
 /**
  * Carol recommendation with reasoning
@@ -58,26 +58,41 @@ export async function getNextCarolRecommendations(
       ? `Recently sung: ${recentlySelectedCarolIds.slice(0, 3).join(', ')}`
       : 'No carols sung yet';
 
-    const prompt = `You are a Christmas caroling event coordinator.
-Given the context below, recommend 3 carols from the provided list that would be perfect to sing next.
+    const prompt = `You are a Christmas caroling event coordinator with deep knowledge of carol traditions, cultural significance, and musical harmonies.
+
+Given the context below, recommend 3 carols from the provided list that would be perfect to sing next. Consider:
+- Emotional arc and energy flow of the event
+- Difficulty progression for singers
+- Cultural and historical appropriateness
+- Harmonic structure and singability in groups
 
 Event Theme: ${eventTheme}
 Sentiment: ${sentiment}
 ${recentSongList}
 Recent Chat: ${chatContext || 'No chat yet'}
-Available Carols: ${JSON.stringify(allCarols.slice(0, 20).map(c => ({ id: c.id, title: c.title, artist: c.artist, energy: c.energy })))}
+Available Carols: ${JSON.stringify(allCarols.slice(0, 20).map(c => ({ id: c.id, title: c.title, artist: c.artist, energy: c.energy, tags: c.tags })))}
 
 For each recommendation:
 1. Choose a carol that fits the theme and current sentiment
-2. Explain WHY it's a good next choice (2-3 sentences max)
+2. Explain WHY it's a good next choice (consider harmony, cultural fit, emotional progression)
 3. Indicate momentum: is this 'building' energy, 'maintaining' it, or 'winding-down'
 
 Format your response as JSON array with objects: { "title": "...", "artist": "...", "reason": "...", "momentum": "building|maintaining|winding-down" }
 
 Only return valid JSON array, no other text.`;
 
-    // Call Gemini to get recommendations
-    const responseText = await generateText(prompt);
+    // Call Gemini 3 with reasoning for better recommendations
+    let responseText = '';
+    try {
+      const { response } = await generateWithReasoning(
+        prompt,
+        'You are a Christmas caroling event coordinator with expertise in carol traditions, harmonic theory, and group singing dynamics.'
+      );
+      responseText = response;
+    } catch (error) {
+      console.warn('Extended thinking failed, falling back to regular generation:', error);
+      responseText = await generateText(prompt);
+    }
     
     // Parse JSON response
     let recommendations: Array<{ title: string; artist: string; reason: string; momentum: 'building' | 'maintaining' | 'winding-down' }>;
@@ -118,7 +133,8 @@ Only return valid JSON array, no other text.`;
 
 /**
  * Generate contextual info about a carol for display
- * E.g., "Perfect for group harmony" or "Traditional classic"
+ * Uses Gemini 3's reasoning for deeper analysis
+ * Provides: history, cultural context, harmony type, difficulty, event fit
  */
 export async function getCarolInfo(
   title: string,
@@ -126,12 +142,34 @@ export async function getCarolInfo(
   eventTheme: string
 ): Promise<string> {
   try {
-    const prompt = `You are a Christmas carol expert. 
+    const prompt = `You are a Christmas carol expert with deep knowledge of musical history, cultural traditions, and group singing.
+
+Provide comprehensive context about "${title}" by ${artist} for a "${eventTheme}" themed event.
+Include:
+1. Historical/cultural origin (1 sentence)
+2. Harmony type (soprano/alto/tenor/bass considerations)
+3. Difficulty level and why
+4. Why it fits this event theme
+5. One unique insight about singability in groups
+
+Keep it under 120 words, practical and engaging.`;
+
+    // Use Gemini 3 reasoning for deeper analysis
+    try {
+      const { response } = await generateWithReasoning(
+        prompt,
+        'You are an expert in Christmas carol traditions, cultural history, and musical harmonics.'
+      );
+      return response;
+    } catch (error) {
+      console.warn('Reasoning failed, using standard generation:', error);
+      // Fallback to simple generation
+      const simplePrompt = `You are a Christmas carol expert. 
 Provide 1-2 sentence context about "${title}" by ${artist} in the context of a "${eventTheme}" themed caroling event.
 Be specific and practical (e.g., harmony type, difficulty, cultural significance, why it fits the theme).
 Keep it under 50 words.`;
-
-    return await generateText(prompt);
+      return await generateText(simplePrompt);
+    }
   } catch (error) {
     console.error('Error generating carol info:', error);
     return '';

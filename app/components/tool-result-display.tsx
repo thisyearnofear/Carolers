@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Search, Music, Users, Gift } from 'lucide-react';
+import { SetlistCard } from './carol/setlist-card';
 
 interface ToolCall {
   tool: string;
@@ -99,24 +100,19 @@ export function ToolResultDisplay({ toolCall, index }: ToolResultDisplayProps) {
         </div>
       )}
 
-      {/* Setlist Results */}
+      {/* Setlist Results - Using SetlistCard component */}
       {toolCall.tool === 'suggestSetlist' && result.setlist?.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="font-medium">Suggested setlist ({result.count} songs, {result.totalDuration}):</p>
-          <ul className="space-y-1">
-            {result.setlist.slice(0, 6).map((song: any, i: number) => (
-              <li key={i} className="flex items-start gap-1.5">
-                <span className="text-opacity-60 flex-shrink-0">{i + 1}.</span>
-                <span>
-                  <strong>{song.title}</strong>
-                  {song.artist && <span className="text-opacity-75"> by {song.artist}</span>}
-                  {song.duration && <span className="text-opacity-60"> ({song.duration})</span>}
-                </span>
-              </li>
-            ))}
-          </ul>
+        <div className="mt-2">
+          <SetlistCard
+            songs={result.setlist.slice(0, 6)}
+            theme={result.theme}
+            totalDuration={result.totalDuration}
+            title={`Setlist (${result.count} songs)`}
+            compact={true}
+            index={index}
+          />
           {result.setlist.length > 6 && (
-            <p className="text-opacity-60 text-[11px] mt-1">... and {result.setlist.length - 6} more</p>
+            <p className="text-opacity-60 text-[11px] mt-2">... and {result.setlist.length - 6} more</p>
           )}
         </div>
       )}

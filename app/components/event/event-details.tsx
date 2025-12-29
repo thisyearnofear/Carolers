@@ -1,8 +1,9 @@
 import { type Event } from '@shared/schema';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
-import { CalendarDays, MapPin, Users, Sparkles } from 'lucide-react';
+import { CalendarDays, MapPin, Users, Sparkles, Zap, Music, Lightbulb } from 'lucide-react';
 import { useCountdown } from '@/hooks/use-countdown';
+import { PlanEventSection } from './plan-event-section';
 
 interface EventDetailsProps {
   event: Event;
@@ -82,17 +83,20 @@ export function EventDetails({ event }: EventDetailsProps) {
          </div>
 
          {(event as any).creatorName && (
-           <div className="flex items-center gap-md px-lg py-md bg-primary/5 rounded-card-lg border-2 border-primary/10">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold">
-              {(event as any).creatorName.charAt(0)}
-            </div>
-            <div>
-              <div className="text-[10px] font-bold text-secondary-foreground/60 uppercase tracking-widest">Session Lead</div>
-              <div className="text-sm font-bold text-primary">{(event as any).creatorName}</div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+            <div className="flex items-center gap-md px-lg py-md bg-primary/5 rounded-card-lg border-2 border-primary/10">
+             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold">
+               {(event as any).creatorName.charAt(0)}
+             </div>
+             <div>
+               <div className="text-[10px] font-bold text-secondary-foreground/60 uppercase tracking-widest">Session Lead</div>
+               <div className="text-sm font-bold text-primary">{(event as any).creatorName}</div>
+             </div>
+           </div>
+         )}
+
+         {/* Event Planning Section */}
+         <PlanEventSection event={event} />
+         </div>
+         </div>
+         );
+         }

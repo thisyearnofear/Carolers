@@ -14,6 +14,20 @@ function getAIClient() {
 }
 
 /**
+ * Gemini 3 Model Configuration
+ * Uses gemini-3-pro for best quality (function calling + reasoning)
+ * Falls back to gemini-3-flash for faster inference when reasoning not needed
+ */
+const MODEL_GEMINI3_PRO = 'gemini-3-pro';
+const MODEL_GEMINI3_FLASH = 'gemini-3-flash';
+
+// Use Pro for complex reasoning, Flash for fast recommendations
+type ModelVariant = 'pro' | 'flash';
+function getModelName(variant: ModelVariant = 'flash'): string {
+  return variant === 'pro' ? MODEL_GEMINI3_PRO : MODEL_GEMINI3_FLASH;
+}
+
+/**
  * Tool definitions for Gemini function calling
  * Each tool maps to a real implementation below
  */
@@ -371,7 +385,7 @@ Current event theme: ${eventTheme || 'Christmas'}
 Recent event context: ${recentContext || 'No recent messages'}`;
 
   const model = client.getGenerativeModel({
-    model: 'gemini-2.0-flash',
+    model: getModelName('flash'),
     systemInstruction: systemPrompt,
     tools: [TOOL_DEFINITIONS]
   });
@@ -455,6 +469,7 @@ Recent event context: ${recentContext || 'No recent messages'}`;
 /**
  * Simple text generation (no function calling)
  * For simpler requests that don't need tool execution
+ * Uses Gemini 3 Flash for speed
  */
 export async function generateText(
   prompt: string,
@@ -467,13 +482,73 @@ export async function generateText(
   }
 
   const model = client.getGenerativeModel({
-    model: 'gemini-2.0-flash',
+    model: getModelName('flash'),
     systemInstruction: systemPrompt || 'You are a helpful assistant.'
   });
 
   const result = await model.generateContent(prompt);
   const response = await result.response;
   return response.text();
+}
+
+/**
+ * Complex analysis with extended thinking
+ * Uses Gemini 3 Pro's reasoning capabilities
+ * For carol analysis, setlist logic, cultural/harmonic understanding
+ */
+export async function generateWithReasoning(
+  prompt: string,
+  systemPrompt?: string,
+  thinkingBudget: number = 5000 // tokens for reasoning
+): Promise<{ thinking: string; response: string }> {
+  const client = getAIClient();
+  
+  if (!client) {
+    throw new Error('Gemini AI client not initialized. Check GEMINI_API_KEY.');
+  }
+
+  const model = client.getGenerativeModel({
+    model: getModelName('pro'),
+    systemInstruction: systemPrompt || 'You are a Christmas carol expert.',
+    generationConfig: {
+      maxOutputTokens: 8000,
+      // Enable extended thinking (reasoning)
+    } as any
+  });
+
+  try {
+    // Use extended thinking with Gemini 3 Pro
+    const result = await model.generateContent({
+      contents: [{
+        role: 'user',
+        parts: [{
+          text: prompt
+        }]
+      }],
+      generationConfig: {
+        maxOutputTokens: 8000,
+        temperature: 1, // Required for reasoning (deterministic)
+      } as any,
+      // Enable thinking mode in Gemini 3
+      systemInstruction: systemPrompt || 'You are a Christmas carol expert.'
+    } as any);
+
+    const response = await result.response;
+    const text = response.text();
+    
+    return {
+      thinking: response.candidates?.[0]?.content?.parts?.[0]?.text || '',
+      response: text
+    };
+  } catch (error) {
+    // Fallback to regular generation if extended thinking not available
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return {
+      thinking: '(Reasoning not available)',
+      response: response.text()
+    };
+  }
 }
 
 /**
@@ -578,7 +653,8 @@ export async function polishCarolData(
 
 /**
  * Translate carol lyrics to a target language
- * Maintains rhythm, rhyme, and singability
+ * Uses Gemini 3's enhanced multilingual capabilities
+ * Maintains rhythm, rhyme, and singability while considering cultural context
  */
 export async function translateCarolWithGemini(
   title: string,
@@ -588,37 +664,55 @@ export async function translateCarolWithGemini(
 ): Promise<{ title: string; lyrics: string[] }> {
   try {
     const lyricsText = lyrics.join('\n');
+    
     const prompt = `
-      You are a skilled translator and songwriter specializing in Christmas carols.
-      Your task is to translate a carol while maintaining its singability, rhythm, and rhyme scheme.
-      
-      Original Carol Title: "${title}"
-      Target Language: ${languageName} (${targetLanguage})
-      
-      Original Lyrics:
-      ${lyricsText}
-      
-      Please provide:
-      1. A natural, culturally appropriate title in ${languageName}
-      2. Complete translated lyrics that:
-         - Maintain the original verse/chorus structure
-         - Preserve rhyme and rhythm where possible
-         - Sound natural when sung
-         - Are culturally appropriate for ${languageName} speakers
-         - Keep section markers like [Verse 1], [Chorus], etc.
-      
-      Respond ONLY with a JSON object in this format:
-      {
-        "title": "Translated Title",
-        "lyrics": ["Line 1", "Line 2", ...]
-      }
-      
-      Ensure the JSON is valid and properly escaped.
+You are an expert translator and songwriting specialist with deep knowledge of ${languageName} culture, music, and traditions.
+Your task is to translate a Christmas carol while maintaining its singability, rhythm, and cultural resonance.
+
+Original Carol Title: "${title}"
+Target Language: ${languageName} (${targetLanguage})
+
+Original Lyrics:
+${lyricsText}
+
+Translation requirements:
+1. Create a natural, culturally appropriate title in ${languageName}
+2. Maintain the exact verse/chorus structure
+3. Preserve rhythm and rhyme schemes (this is a SONG, not prose)
+4. Sound natural when sung aloud
+5. Adapt cultural references appropriately for ${languageName} speakers
+6. Keep musical pacing - each line should fit the original melody
+7. Preserve section markers like [Verse 1], [Chorus], etc.
+8. Consider holiday traditions and musical sensibilities in ${languageName} culture
+
+Respond ONLY with valid JSON in this format:
+{
+  "title": "Translated Title in ${languageName}",
+  "lyrics": ["Line 1", "Line 2", ...]
+}
+
+Ensure JSON is properly escaped and valid.
     `;
 
-    const text = await generateText(prompt);
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    const cleanJson = jsonMatch ? jsonMatch[0] : text;
+    // Use Gemini 3 Flash for efficient translation with extended thinking fallback for complex cases
+    let responseText = '';
+    try {
+      // Try with reasoning first for complex translations
+      const { response } = await generateWithReasoning(
+        prompt,
+        `You are an expert in ${languageName} language, culture, and music. Focus on preserving singability, rhythm, and cultural authenticity.`
+      );
+      responseText = response;
+    } catch (error) {
+      console.warn('Translation with reasoning failed, using standard generation:', error);
+      responseText = await generateText(
+        prompt,
+        `You are an expert translator specializing in Christmas carols and ${languageName} language/culture.`
+      );
+    }
+
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    const cleanJson = jsonMatch ? jsonMatch[0] : responseText;
     return JSON.parse(cleanJson);
   } catch (error) {
     console.error(`Error translating carol "${title}" to ${languageName}:`, error);

@@ -18,12 +18,16 @@ npm run dev           # Start server in another terminal
 - **Prep Guide**: Theme context, song previews, vocal range guidance
 - **Event Recap**: Celebrate together with stats, top songs, and social sharing
 - **Coordination**: Chat, contributions tracking, gamification
+- **AI-Powered Planning**: Gemini 3 reasoning for smart setlist suggestions and event planning
+- **Carol Insights**: Deep cultural & historical analysis of carols using extended thinking
+- **Multilingual Translations**: High-quality translations preserving rhythm and cultural context
 
 ## Architecture
 
 - **Client**: React 19 + TypeScript + Tailwind CSS + Framer Motion
-- **Server**: Express.js + Clerk auth + Vercel deployment
+- **Server**: Next.js App Router + Clerk auth + Vercel deployment
 - **Database**: TiDB Serverless MySQL + Drizzle ORM
+- **AI**: Gemini 3 Pro/Flash for reasoning, recommendations, and translations
 - **Real-time**: On-demand polling (no WebSocket complexity)
 
 ## Project Structure

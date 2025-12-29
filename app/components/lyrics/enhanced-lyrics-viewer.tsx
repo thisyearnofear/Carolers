@@ -11,7 +11,7 @@
 
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Music } from 'lucide-react';
+import { Music, Info, X } from 'lucide-react';
 import { type Carol, type CarolTranslation } from '@shared/schema';
 import { useLyricsState } from '@/hooks/useLyricsState';
 import { LyricsDisplay } from './lyrics-display';
@@ -20,6 +20,7 @@ import { DisplayModeSelector } from './display-mode-selector';
 import { SectionNavigator } from './section-navigator';
 import { LanguageSelector } from '../translations/language-selector';
 import { TranslationBadge } from '../translations/translation-badge';
+import { Button } from '../ui/button';
 
 interface EnhancedLyricsViewerProps {
   carol: Carol | null;
@@ -44,6 +45,9 @@ export function EnhancedLyricsViewer({
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [translationInfo, setTranslationInfo] = useState<CarolTranslation | null>(null);
   const [loadingTranslation, setLoadingTranslation] = useState(false);
+  const [showCarolInfo, setShowCarolInfo] = useState(false);
+  const [carolInfo, setCarolInfo] = useState<string | null>(null);
+  const [loadingCarolInfo, setLoadingCarolInfo] = useState(false);
 
   // Use either translated or original carol
   const displayCarol = selectedLanguage === 'en' || !translationInfo
@@ -83,6 +87,35 @@ export function EnhancedLyricsViewer({
     }
   };
 
+  const handleLoadCarolInfo = async () => {
+    if (carolInfo) {
+      setShowCarolInfo(!showCarolInfo);
+      return;
+    }
+
+    setLoadingCarolInfo(true);
+    try {
+      const response = await fetch('/api/carol-info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: carol.title,
+          artist: carol.artist
+        })
+      });
+      
+      if (response.ok) {
+        const { info } = await response.json();
+        setCarolInfo(info);
+        setShowCarolInfo(true);
+      }
+    } catch (err) {
+      console.error('Failed to load carol info:', err);
+    } finally {
+      setLoadingCarolInfo(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-card-xl border-none shadow-2xl">
@@ -109,28 +142,59 @@ export function EnhancedLyricsViewer({
         </DialogHeader>
 
         {/* Controls Toolbar */}
-        <div className="border-b border-primary/5 bg-white/30 p-4 space-y-3">
-          <div className="flex items-end justify-between gap-4">
-            <div className="flex-1">
-              <LanguageSelector
-                carolId={carol.id}
-                currentLanguage={selectedLanguage}
-                onLanguageChange={handleLanguageChange}
-                isLoading={loadingTranslation}
-              />
-            </div>
+         <div className="border-b border-primary/5 bg-white/30 p-4 space-y-3">
+           {/* Carol Info Panel */}
+           {showCarolInfo && carolInfo && (
+             <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 space-y-2">
+               <div className="flex items-start justify-between gap-2">
+                 <div className="flex items-center gap-2">
+                   <Info className="w-4 h-4 text-primary flex-shrink-0" />
+                   <h4 className="text-xs font-bold text-primary uppercase tracking-wider">About this Carol</h4>
+                 </div>
+                 <button
+                   onClick={() => setShowCarolInfo(false)}
+                   className="text-slate-400 hover:text-slate-600"
+                 >
+                   <X className="w-4 h-4" />
+                 </button>
+               </div>
+               <p className="text-xs text-slate-700 leading-relaxed">{carolInfo}</p>
+             </div>
+           )}
 
-            {translationInfo && selectedLanguage !== 'en' && (
-              <div className="pb-0.5">
-                <TranslationBadge
-                  source={translationInfo.source || 'ai_generated'}
-                  upvotes={translationInfo.upvotes || 0}
-                  downvotes={translationInfo.downvotes || 0}
-                  isCanonical={translationInfo.isCanonical === 1}
-                />
-              </div>
-            )}
-          </div>
+           <div className="flex items-end justify-between gap-4">
+             <div className="flex-1">
+               <LanguageSelector
+                 carolId={carol.id}
+                 currentLanguage={selectedLanguage}
+                 onLanguageChange={handleLanguageChange}
+                 isLoading={loadingTranslation}
+               />
+             </div>
+
+             <Button
+               variant="ghost"
+               size="sm"
+               onClick={handleLoadCarolInfo}
+               disabled={loadingCarolInfo}
+               className="text-xs text-slate-500 hover:text-primary h-8 px-2"
+               title="Learn about this carol"
+             >
+               <Info className="w-3 h-3 mr-1" />
+               {loadingCarolInfo ? 'Loading...' : 'Info'}
+             </Button>
+
+             {translationInfo && selectedLanguage !== 'en' && (
+               <div className="pb-0.5">
+                 <TranslationBadge
+                   source={translationInfo.source || 'ai_generated'}
+                   upvotes={translationInfo.upvotes || 0}
+                   downvotes={translationInfo.downvotes || 0}
+                   isCanonical={translationInfo.isCanonical === 1}
+                 />
+               </div>
+             )}
+           </div>
 
           <DisplayModeSelector
             currentMode={state.displayMode}
