@@ -22,7 +22,7 @@ export function EventCard({ event }: EventCardProps) {
     <motion.div
       whileHover={{ y: -6, scale: 1.02 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      className="w-full max-w-sm"
+      className="w-full"
       role="article"
       aria-label={`${event.name} event on ${eventDate.toLocaleDateString()}`}
     >
@@ -81,9 +81,9 @@ export function EventCard({ event }: EventCardProps) {
               </div>
               <div className="h-4 w-px bg-slate-300" />
               <div className="flex items-center gap-xs">
-                <MapPin className="h-3.5 w-3.5 text-primary" />
-                <span className="truncate max-w-[120px]">{event.venue || 'TBA'}</span>
-              </div>
+                 <MapPin className="h-3.5 w-3.5 text-primary" />
+                 <span className="truncate">{event.venue || 'TBA'}</span>
+               </div>
             </div>
 
             <p className="text-sm text-slate-700 italic leading-relaxed">

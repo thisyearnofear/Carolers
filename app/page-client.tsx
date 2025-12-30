@@ -38,6 +38,12 @@ export function PageClient({ children }: PageClientProps) {
     }
   }, [shouldShow]);
 
+  useEffect(() => {
+    const handleOpenCreate = () => setShowCreateModal(true);
+    document.addEventListener('openCreateEvent', handleOpenCreate);
+    return () => document.removeEventListener('openCreateEvent', handleOpenCreate);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-50 via-white to-green-50/30 dark:from-slate-900 dark:via-slate-950 dark:to-emerald-950/20 py-8 overflow-hidden">
       <div className="container mx-auto px-6 relative z-10 pt-8">

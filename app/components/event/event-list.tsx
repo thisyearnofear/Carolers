@@ -25,8 +25,8 @@ export function EventList({ initialEvents }: EventListProps) {
   }
 
   return (
-    <section aria-label="Available caroling sessions" role="region">
-      <ul className="list-none" role="list">
+    <section aria-label="Available caroling sessions" role="region" className="container mx-auto px-4 md:px-6 py-8">
+      <ul className="list-none grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="list">
         {events.map((event, index) => (
           <li key={event.id}>
             <motion.div
