@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Volume2, VolumeX, Play, Pause, ChevronUp, TreePine } from 'lucide-react';
+import { Volume2, VolumeX, Play, Pause, ChevronUp, Music } from 'lucide-react';
 
 interface AmbianceCompactProps {
   isPlaying: boolean;
@@ -9,7 +9,7 @@ interface AmbianceCompactProps {
   isMuted: boolean;
   volume: number;
   onTogglePlay: () => void;
-  onToggleMute: () => void;
+  onToggleMute: (muted: boolean) => void;
   onVolumeChange: (volume: number) => void;
   onToggleExpand: () => void;
   showVolumeSlider?: boolean;
@@ -27,7 +27,7 @@ export function AmbianceCompact({
   showVolumeSlider = true,
 }: AmbianceCompactProps) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-wrap">
       {/* Play/Pause */}
       <Button
         variant="ghost"
@@ -49,7 +49,7 @@ export function AmbianceCompact({
         variant="ghost"
         size="icon"
         className="h-10 w-10 rounded-full hover:bg-primary/10 flex-shrink-0"
-        onClick={onToggleMute}
+        onClick={() => onToggleMute(!isMuted)}
         aria-label={isMuted ? 'Unmute ambiance' : 'Mute ambiance'}
       >
         {isMuted ? (
@@ -59,8 +59,10 @@ export function AmbianceCompact({
         )}
       </Button>
 
-      {/* Ambiance icon */}
-      <TreePine className="h-5 w-5 text-green-600 flex-shrink-0" />
+      {/* Now playing indicator */}
+      <span className="text-[10px] font-mono text-slate-400 uppercase tracking-tight hidden sm:inline">
+        🎵
+      </span>
 
       {/* Volume slider */}
       {showVolumeSlider && (

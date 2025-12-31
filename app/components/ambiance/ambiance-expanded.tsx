@@ -21,7 +21,7 @@ interface AmbianceExpandedProps {
   currentTrackId?: string;
   onTrackChange?: (trackId: string) => void;
   onTogglePlay: () => void;
-  onToggleMute: () => void;
+  onToggleMute: (muted: boolean) => void;
   onVolumeChange: (volume: number) => void;
   onToggleExpand: () => void;
 }
@@ -44,13 +44,13 @@ export function AmbianceExpanded({
   onToggleExpand,
 }: AmbianceExpandedProps) {
   return (
-    <div className="space-y-4 mt-3 w-full">
-      {/* Visual indicator - animated waveform */}
-      <div className="flex items-center gap-1 h-6 justify-center">
-        {[...Array(12)].map((_, i) => (
+    <div className="space-y-3 w-full">
+      {/* Visual indicator - compact waveform */}
+      <div className="flex items-center gap-1 h-4 justify-center">
+        {[...Array(10)].map((_, i) => (
           <div
             key={i}
-            className={`h-full w-1 rounded-full transition-all duration-100 ${
+            className={`h-full w-0.5 rounded-full transition-all duration-100 ${
               isPlaying ? 'bg-primary animate-bounce' : 'bg-primary/30'
             }`}
             style={{
@@ -83,34 +83,32 @@ export function AmbianceExpanded({
         </div>
       )}
 
-      {/* Track info */}
-      <div className="bg-primary/5 rounded-xl p-3 space-y-2">
-        <div className="flex items-center gap-2">
-          <Music className="h-4 w-4 text-primary flex-shrink-0" />
-          <div>
-            <p className="font-semibold text-sm text-slate-700">
+      {/* Track info - compact */}
+      <div className="bg-primary/5 rounded-lg p-2 space-y-1">
+        <div className="flex items-start gap-2">
+          <Music className="h-3.5 w-3.5 text-primary flex-shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="font-semibold text-xs text-slate-700 truncate">
               {trackName}
             </p>
             {artist && (
-              <p className="text-xs text-slate-600">by {artist}</p>
+              <p className="text-[11px] text-slate-600 truncate">by {artist}</p>
             )}
           </div>
         </div>
         {trackDescription && (
-          <p className="text-xs text-slate-500 italic">{trackDescription}</p>
+          <p className="text-[11px] text-slate-500 italic line-clamp-2 pl-5">{trackDescription}</p>
         )}
         {provenance && (
-          <div className="flex items-center gap-1 pt-1 border-t border-primary/10">
-            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-tight">
-              {provenance}
-            </span>
-          </div>
+          <span className="text-[9px] font-mono text-slate-400 uppercase tracking-tight block pl-5">
+            {provenance}
+          </span>
         )}
       </div>
 
-      {/* Volume control */}
-      <div className="space-y-2">
-        <label className="text-xs font-semibold text-slate-600">
+      {/* Volume control - compact */}
+      <div className="space-y-1">
+        <label className="text-[11px] font-semibold text-slate-600">
           Volume: {Math.round(volume * 100)}%
         </label>
         <input
@@ -120,30 +118,31 @@ export function AmbianceExpanded({
           step="0.01"
           value={volume}
           onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
-          className="w-full h-2 bg-primary/20 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer"
+          className="w-full h-1.5 bg-primary/20 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer"
           aria-label="Volume control"
         />
       </div>
 
-      {/* Main controls */}
-      <div className="flex gap-2">
+      {/* Main controls - compact */}
+      <div className="flex gap-2 pt-1">
         {/* Play/Pause */}
         <Button
           variant="outline"
-          className="flex-1 gap-2 rounded-xl border-primary/20"
+          size="sm"
+          className="flex-1 gap-1.5 rounded-lg border-primary/20 text-xs h-8"
           onClick={onTogglePlay}
           disabled={!isReady}
           aria-label={isPlaying ? 'Pause ambiance' : 'Play ambiance'}
         >
           {isPlaying ? (
             <>
-              <Pause className="h-4 w-4" />
-              Pause
+              <Pause className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Pause</span>
             </>
           ) : (
             <>
-              <Play className="h-4 w-4" />
-              Play
+              <Play className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Play</span>
             </>
           )}
         </Button>
@@ -151,19 +150,20 @@ export function AmbianceExpanded({
         {/* Mute */}
         <Button
           variant="outline"
-          className="flex-1 gap-2 rounded-xl border-primary/20"
-          onClick={onToggleMute}
+          size="sm"
+          className="flex-1 gap-1.5 rounded-lg border-primary/20 text-xs h-8"
+          onClick={() => onToggleMute(!isMuted)}
           aria-label={isMuted ? 'Unmute ambiance' : 'Mute ambiance'}
         >
           {isMuted ? (
             <>
-              <VolumeX className="h-4 w-4" />
-              Unmute
+              <VolumeX className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Unmute</span>
             </>
           ) : (
             <>
-              <Volume2 className="h-4 w-4" />
-              Mute
+              <Volume2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Mute</span>
             </>
           )}
         </Button>
@@ -171,20 +171,20 @@ export function AmbianceExpanded({
         {/* Collapse */}
         <Button
           variant="ghost"
-          size="icon"
-          className="rounded-xl hover:bg-primary/10"
+          size="sm"
+          className="rounded-lg hover:bg-primary/10 h-8 w-8 p-0"
           onClick={onToggleExpand}
           aria-label="Collapse ambiance panel"
         >
-          <ChevronDown className="h-5 w-5 text-primary" />
+          <ChevronDown className="h-4 w-4 text-primary" />
         </Button>
       </div>
 
       {/* Status */}
-      <div className="text-center text-xs text-slate-500">
+      <div className="text-center text-[10px] text-slate-500 pt-1">
         {!isReady && 'Loading...'}
-        {isReady && isPlaying && '🎵 Playing'}
-        {isReady && !isPlaying && 'Paused'}
+        {isReady && isPlaying && '🎵 Now playing'}
+        {isReady && !isPlaying && '⏸ Paused'}
       </div>
     </div>
   );
