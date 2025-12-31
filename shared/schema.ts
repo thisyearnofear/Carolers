@@ -47,6 +47,26 @@ export const carols = mysqlTable("carols", {
   createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`),
 });
 
+// User-generated carols table - tracks Suno generation jobs
+export const userCarols = mysqlTable("user_carols", {
+  id: varchar("id", { length: 191 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+  sunoJobId: varchar("suno_job_id", { length: 191 }).notNull(), // ID from Suno API
+  createdBy: varchar("created_by", { length: 191 }).notNull().references(() => users.id),
+  title: text("title").notNull(),
+  lyrics: text("lyrics"),
+  genre: varchar("genre", { length: 100 }).default('Christmas'),
+  style: varchar("style", { length: 100 }).default('Traditional'),
+  status: varchar("status", { length: 50 }).$type<'processing' | 'complete' | 'error'>().default('processing'),
+  audioUrl: text("audio_url"),
+  videoUrl: text("video_url"),
+  imageUrl: text("image_url"),
+  errorMessage: text("error_message"),
+  likes: int("likes").default(0),
+  plays: int("plays").default(0),
+  createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`),
+  completedAt: datetime("completed_at"),
+});
+
 // Contributions table
 export const contributions = mysqlTable("contributions", {
   id: varchar("id", { length: 191 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -154,6 +174,12 @@ export const insertCarolSchema = createInsertSchema(carols).omit({
   votes: true,
 });
 
+export const insertUserCarolSchema = createInsertSchema(userCarols).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+});
+
 export const insertContributionSchema = createInsertSchema(contributions).omit({
   id: true,
   createdAt: true,
@@ -197,6 +223,7 @@ export const insertTranslationHistorySchema = createInsertSchema(translationHist
 export type User = typeof users.$inferSelect;
 export type Event = typeof events.$inferSelect;
 export type Carol = typeof carols.$inferSelect;
+export type UserCarol = typeof userCarols.$inferSelect;
 export type Contribution = typeof contributions.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type CarolTranslation = typeof carolTranslations.$inferSelect;
@@ -208,6 +235,7 @@ export type TranslationHistory = typeof translationHistory.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type InsertCarol = z.infer<typeof insertCarolSchema>;
+export type InsertUserCarol = z.infer<typeof insertUserCarolSchema>;
 export type InsertContribution = z.infer<typeof insertContributionSchema>;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type InsertCarolTranslation = z.infer<typeof insertCarolTranslationSchema>;

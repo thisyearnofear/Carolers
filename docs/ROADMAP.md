@@ -3,6 +3,31 @@
 This roadmap reflects the current direction and removes items we have already delivered. It focuses on highest-impact improvements to the event experience and operational robustness.
 
 ## Recently Delivered
+- **Onboarding Integration: Carol Creation Entry Point** (Complete)
+  - Added step 1: "Create or Discover?" choice at onboarding start
+  - Two paths: Create Carol (auto-opens modal) or Browse Carols (trending tab)
+  - URL parameters: `?tab=trending` for direct nav, `?create=true` for auto-open modal
+  - Seamless flow from onboarding → songs page with proper context
+  - Leverages existing onboarding modal structure (no duplication)
+
+- **Discovery & Virality Layer** (Complete)
+  - Tab-based filtering: Official | Trending 🔥 | New Community
+  - Leaderboard widget showing top carols by likes
+  - Metrics display: plays + likes on community carols
+  - Query functions for trending/new/all user carols
+  - Optimized card rendering with reusable CarolCard component
+  - Sidebar leaderboard (desktop) with real-time updates
+  - Smart search (disabled on community tabs)
+  
+- **Suno AI User-Generated Carols** (Complete)
+  - Users can create original carols with lyrics + AI composition
+  - Suno API integration (generate, status polling, completion)
+  - `user_carols` table tracking generation jobs, status, audio/video URLs
+  - 4 API endpoints (generate, status, poll-generations, get user carols)
+  - CreateCarolModal + UserCarolsSection components
+  - Real-time status polling (2s client + optional 5-10m cron)
+  - Error handling, metrics (plays, likes), creator attribution
+  
 - **Phase 5: Wikipedia-Style Collaborative Translation** (Complete)
   - Gemini 3-bootstrapped translations (on-demand, no pre-storage)
   - Community voting with reputation-weighted DAO governance

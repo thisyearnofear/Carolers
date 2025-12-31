@@ -43,7 +43,59 @@ DATABASE_URL='mysql://<username>:<password>@<host>:4000/<database>?ssl={"rejectU
   npx tsx script/seed-lyrics.ts
   ```
 
-## 4. Schema: Collaborative Translation Tables
+## 4. Schema: User-Generated Carols (Suno AI)
+
+Users can now create original carols powered by Suno AI. The system tracks generation jobs, status, and completion:
+
+```typescript
+// user_carols: Track AI-generated carols from users
+export const userCarols = mysqlTable("user_carols", {
+  id: varchar("id", { length: 191 }).primaryKey(),
+  sunoJobId: varchar("suno_job_id", { length: 191 }).notNull(), // Suno API job ID
+  createdBy: varchar("created_by", { length: 191 }).references(() => users.id),
+  title: text("title").notNull(),
+  lyrics: text("lyrics"),
+  genre: varchar("genre", { length: 100 }).default('Christmas'),
+  style: varchar("style", { length: 100 }).default('Traditional'),
+  status: varchar("status", { length: 50 }).$type<'processing' | 'complete' | 'error'>().default('processing'),
+  audioUrl: text("audio_url"),
+  videoUrl: text("video_url"),
+  imageUrl: text("image_url"),
+  errorMessage: text("error_message"),
+  likes: int("likes").default(0),
+  plays: int("plays").default(0),
+  createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`),
+  completedAt: datetime("completed_at"),
+});
+```
+
+### Setup
+
+Add to your `.env.local`:
+```env
+SUNO_API_KEY=your_api_key_from_sunoapi.org
+```
+
+Get your key: https://sunoapi.org/dashboard
+
+Then run:
+```bash
+npm run db:push
+```
+
+### API Endpoints
+
+- `POST /api/carols/generate` - Submit generation request
+- `GET /api/carols/{id}/status` - Poll for status updates
+- `POST /api/carols/poll-generations` - Background cron job (optional)
+- `GET /api/users/{userId}/carols` - Fetch user's carols
+
+### UI
+
+- Modal: Click "Create Carol" on `/songs` page
+- Component: `UserCarolsSection` displays created carols with status, audio preview, metrics
+
+## 5. Schema: Collaborative Translation Tables
 
 Phase 5 introduces Wikipedia-style collaborative translation with DAO governance:
 
@@ -119,7 +171,35 @@ export const translationHistory = mysqlTable("translation_history", {
 // ALTER TABLE users ADD COLUMN preferred_language VARCHAR(10) DEFAULT 'en';
 ```
 
-## 5. Troubleshooting
+## 6. Troubleshooting
 
-- **Connection Errors:** Ensure your IP is allowed in TiDB (or set to allow all: `0.0.0.0/0`) and that your `DATABASE_URL` is correct.
-- **SSL Issues:** The connection string must include `?ssl={"rejectUnauthorized":true}` to ensure a secure connection.
+### Connection Issues
+- Ensure your IP is allowed in TiDB (or set to allow all: `0.0.0.0/0`)
+- Verify `DATABASE_URL` is correct in `.env.local`
+- Connection string must include `?ssl={"rejectUnauthorized":true}`
+
+### Suno Generation Issues
+- **Carol stuck on processing:** Check Suno API quota at https://sunoapi.org/dashboard
+- **"Unauthorized" error:** Verify `SUNO_API_KEY` is set in `.env.local` and restart dev server
+- **Empty audio URLs:** Carol may still be processing; wait 60+ seconds or check database error_message
+- **"Carol not found" in status check:** Verify carol ID and creator (ownership) in database
+
+### Database Queries
+
+```sql
+-- View user-generated carols
+SELECT * FROM user_carols WHERE created_by = 'user_id' ORDER BY created_at DESC;
+
+-- Find stuck carols (processing > 2 hours)
+SELECT * FROM user_carols 
+WHERE status = 'processing' 
+AND created_at < DATE_SUB(NOW(), INTERVAL 2 HOUR);
+
+-- Check error messages
+SELECT id, title, error_message FROM user_carols WHERE status = 'error';
+
+-- Top liked carols
+SELECT * FROM user_carols 
+WHERE status = 'complete' 
+ORDER BY likes DESC LIMIT 10;
+```

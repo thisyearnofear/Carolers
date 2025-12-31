@@ -24,9 +24,24 @@ export function OnboardingModal({ onClose }: { onClose: () => void }) {
     const [isVisible, setIsVisible] = useState(true);
     const router = useRouter();
 
-    const totalSteps = 4;
+    const totalSteps = 5;
 
     const steps = [
+        {
+            title: "Create or Discover?",
+            description: "You can create your own AI-generated carols or browse community creations. Which speaks to you?",
+            icon: <Sparkles className="w-12 h-12 text-accent" />,
+            image: "✨",
+            color: "from-purple-50 to-purple-100",
+            action: "choose"
+        },
+        {
+            title: "Create Original Carols",
+            description: "Write lyrics and let AI compose music. Share your creations with the caroling community.",
+            icon: <Music className="w-12 h-12 text-primary" />,
+            image: "🎵",
+            color: "from-red-50 to-red-100"
+        },
         {
             title: "Prepare for the Magic",
             description: "Browse carols, explore themes, and find your vocal range before you even start singing.",
@@ -40,13 +55,6 @@ export function OnboardingModal({ onClose }: { onClose: () => void }) {
             icon: <Users className="w-12 h-12 text-secondary" />,
             image: "👥",
             color: "from-green-50 to-green-100"
-        },
-        {
-            title: "Vote & Sing Along",
-            description: "Democratically choose carols and access synchronized lyrics optimized for mobile and outdoors.",
-            icon: <Sparkles className="w-12 h-12 text-accent" />,
-            image: "🎶",
-            color: "from-yellow-50 to-yellow-100"
         },
         {
             title: "Remember the Joy",
@@ -63,6 +71,16 @@ export function OnboardingModal({ onClose }: { onClose: () => void }) {
         } else {
             completeOnboarding();
         }
+    };
+
+    const handleCreateCarol = () => {
+        router.push('/songs?create=true');
+        completeOnboarding();
+    };
+
+    const handleBrowseCarols = () => {
+        router.push('/songs?tab=trending');
+        completeOnboarding();
     };
 
     const completeOnboarding = () => {
@@ -151,21 +169,42 @@ export function OnboardingModal({ onClose }: { onClose: () => void }) {
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <Button
-                                        variant="outline"
-                                        onClick={handleSkip}
-                                        className="h-12 px-6 rounded-xl shadow-lg transition-all"
-                                    >
-                                        Skip
-                                    </Button>
-                                    <Button
-                                        onClick={handleNext}
-                                        className={`gap-2 h-12 px-6 rounded-xl shadow-lg transition-all ${step === totalSteps ? 'bg-green-600 hover:bg-green-700' : 'bg-primary hover:bg-primary/90'
-                                                }`}
-                                    >
-                                        {step < totalSteps ? 'Next' : 'Get Singing!'}
-                                        <ArrowRight className="w-5 h-5" />
-                                    </Button>
+                                    {step === 1 ? (
+                                        <>
+                                            <Button
+                                                variant="outline"
+                                                onClick={handleBrowseCarols}
+                                                className="h-12 px-6 rounded-xl shadow-lg transition-all"
+                                            >
+                                                Browse Carols
+                                            </Button>
+                                            <Button
+                                                onClick={handleCreateCarol}
+                                                className="gap-2 h-12 px-6 rounded-xl shadow-lg transition-all bg-primary hover:bg-primary/90"
+                                            >
+                                                <Sparkles className="w-5 h-5" />
+                                                Create Carol
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Button
+                                                variant="outline"
+                                                onClick={handleSkip}
+                                                className="h-12 px-6 rounded-xl shadow-lg transition-all"
+                                            >
+                                                Skip
+                                            </Button>
+                                            <Button
+                                                onClick={handleNext}
+                                                className={`gap-2 h-12 px-6 rounded-xl shadow-lg transition-all ${step === totalSteps ? 'bg-green-600 hover:bg-green-700' : 'bg-primary hover:bg-primary/90'
+                                                        }`}
+                                            >
+                                                {step < totalSteps ? 'Next' : 'Get Singing!'}
+                                                <ArrowRight className="w-5 h-5" />
+                                            </Button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>

@@ -21,6 +21,7 @@ npm run dev           # Start server in another terminal
 - **AI-Powered Planning**: Gemini 3 reasoning for smart setlist suggestions and event planning
 - **Carol Insights**: Deep cultural & historical analysis of carols using extended thinking
 - **Multilingual Translations**: High-quality translations preserving rhythm and cultural context
+- **Create Carols**: Generate original carols with Suno AI (lyrics + composition) for community events
 
 ## Architecture
 
@@ -65,12 +66,27 @@ The app guides users through three phases:
 2. **DURING** — Sing together (lyrics modal, voting, coordination)
 3. **AFTER** — Celebrate & remember (recap page, social sharing, plan next event)
 
+## Getting Started
+
+### Setup Suno AI Integration
+
+1. Get your Suno API key: https://sunoapi.org/dashboard
+2. Add to `.env.local`:
+   ```env
+   SUNO_API_KEY=your_api_key_here
+   ```
+3. Run migrations: `npm run db:push`
+4. Navigate to `/songs` and click "Create Carol"
+
+See [DATABASE_MIGRATIONS.md](docs/DATABASE_MIGRATIONS.md) for detailed setup.
+
 ## Next Steps
 
-1. Seed `carols` table with public-domain lyrics from [mindprod.com](https://www.mindprod.com/carol/carols.html)
-2. Test end-to-end user flow
+1. Test carol creation with real users
+2. Monitor Suno API usage and costs
 3. Optimize mobile experience for outdoor venues
-4. Gather community feedback
+4. Gather community feedback on carol generation
+5. Plan monetization strategy based on user metrics
 
 ## Development
 
