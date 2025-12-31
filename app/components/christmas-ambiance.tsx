@@ -10,12 +10,16 @@ export function ChristmasAmbiance() {
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.3); // Default to 30% volume for ambiance
   const [isReady, setIsReady] = useState(false);
-  
+
   const soundRef = useRef<Howl | null>(null);
+  const isInitialized = useRef(false); // Prevent multiple initializations
 
   useEffect(() => {
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+
     // Initialize the Howl instance
-    soundRef.current = new Howl({
+    const sound = new Howl({
       src: ['/music/OnaE.mp3'],
       loop: true, // Loop the ambiance music
       volume: volume,
@@ -38,17 +42,19 @@ export function ChristmasAmbiance() {
         console.error('Error playing ambiance music:', err);
         // Try to play again after a short delay
         setTimeout(() => {
-          if (soundRef.current) {
-            soundRef.current.play();
-          }
+          if (soundRef.current?.state() === 'unloaded') return;
+          soundRef.current?.play();
         }, 100);
       }
     });
+
+    soundRef.current = sound;
 
     // Clean up on unmount
     return () => {
       if (soundRef.current) {
         soundRef.current.unload();
+        soundRef.current = null;
       }
     };
   }, []);
