@@ -4,6 +4,7 @@ import { Berkshire_Swash, Lato } from 'next/font/google';
 import { ClerkProvider } from '@clerk/nextjs';
 
 import { QueryProvider } from '@/providers/query-provider';
+import { AmbianceProvider } from '@/app/providers/ambiance-provider';
 import { Toaster } from './components/ui/toaster';
 
 const displayFont = Berkshire_Swash({
@@ -52,9 +53,10 @@ function HtmlShell({ children, withClerk }: { children: React.ReactNode; withCle
     <html lang="en" className={`${displayFont.variable} ${sansFont.variable}`}>
       <head />
       <body className="font-sans antialiased">
-        <QueryProvider>
-          <Snowfall />
-          <ChristmasAmbiance />
+        <AmbianceProvider>
+          <QueryProvider>
+            <Snowfall />
+            <ChristmasAmbiance />
           {withClerk ? (
             <Navbar />
           ) : (
@@ -76,8 +78,9 @@ function HtmlShell({ children, withClerk }: { children: React.ReactNode; withCle
           <main id="main-content" className="pt-16 min-h-screen" role="main">
             {children}
           </main>
-          <Toaster />
-        </QueryProvider>
+            <Toaster />
+          </QueryProvider>
+        </AmbianceProvider>
       </body>
     </html>
   );

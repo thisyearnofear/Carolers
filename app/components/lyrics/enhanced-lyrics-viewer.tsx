@@ -9,9 +9,9 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Music, Info, X } from 'lucide-react';
+import { Music, Info, X, Sparkles, BookOpen } from 'lucide-react';
 import { type Carol, type CarolTranslation } from '@shared/schema';
 import { useLyricsState } from '@/hooks/useLyricsState';
 import { LyricsDisplay } from './lyrics-display';
@@ -20,7 +20,10 @@ import { DisplayModeSelector } from './display-mode-selector';
 import { SectionNavigator } from './section-navigator';
 import { LanguageSelector } from '../translations/language-selector';
 import { TranslationBadge } from '../translations/translation-badge';
+import { CarolInsightsPanel } from './carol-insights-panel';
+import { TranslationSuggestions } from './translation-suggestions';
 import { Button } from '../ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
 interface EnhancedLyricsViewerProps {
   carol: Carol | null;
@@ -45,9 +48,9 @@ export function EnhancedLyricsViewer({
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [translationInfo, setTranslationInfo] = useState<CarolTranslation | null>(null);
   const [loadingTranslation, setLoadingTranslation] = useState(false);
-  const [showCarolInfo, setShowCarolInfo] = useState(false);
   const [carolInfo, setCarolInfo] = useState<string | null>(null);
   const [loadingCarolInfo, setLoadingCarolInfo] = useState(false);
+  const [activeTab, setActiveTab] = useState<'lyrics' | 'insights'>('lyrics');
 
   // Use either translated or original carol
   const displayCarol = selectedLanguage === 'en' || !translationInfo
@@ -66,7 +69,14 @@ export function EnhancedLyricsViewer({
     onTimeChange?.(time);
   };
 
-  const handleLanguageChange = async (language: string, languageName: string) => {
+  // Auto-load carol info when dialog opens
+  useEffect(() => {
+    if (open && carol && !carolInfo && !loadingCarolInfo) {
+      handleLoadCarolInfo();
+    }
+  }, [open, carol]);
+
+  const handleLanguageChange = async (language: string, languageName?: string) => {
     setSelectedLanguage(language);
     
     // Fetch translation metadata when language changes
@@ -89,7 +99,6 @@ export function EnhancedLyricsViewer({
 
   const handleLoadCarolInfo = async () => {
     if (carolInfo) {
-      setShowCarolInfo(!showCarolInfo);
       return;
     }
 
@@ -107,7 +116,6 @@ export function EnhancedLyricsViewer({
       if (response.ok) {
         const { info } = await response.json();
         setCarolInfo(info);
-        setShowCarolInfo(true);
       }
     } catch (err) {
       console.error('Failed to load carol info:', err);
@@ -118,11 +126,11 @@ export function EnhancedLyricsViewer({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-card-xl border-none shadow-2xl">
-         {/* Header */}
-         <DialogHeader className="p-lg bg-primary/5 border-b border-primary/5">
-           <DialogTitle className="flex items-center gap-md">
-             <div className="w-12 h-12 rounded-card-sm bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-card-xl border-none shadow-2xl">
+        {/* Header */}
+        <DialogHeader className="p-lg bg-gradient-to-r from-primary/10 to-accent/5 border-b border-primary/10">
+          <DialogTitle className="flex items-center gap-md">
+            <div className="w-12 h-12 rounded-card-sm bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
               <Music className="w-6 h-6" />
             </div>
             <div className="flex-1 min-w-0 text-left">
@@ -141,100 +149,88 @@ export function EnhancedLyricsViewer({
           </DialogTitle>
         </DialogHeader>
 
-        {/* Controls Toolbar */}
-         <div className="border-b border-primary/5 bg-white/30 p-4 space-y-3">
-           {/* Carol Info Panel */}
-           {showCarolInfo && carolInfo && (
-             <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 space-y-2">
-               <div className="flex items-start justify-between gap-2">
-                 <div className="flex items-center gap-2">
-                   <Info className="w-4 h-4 text-primary flex-shrink-0" />
-                   <h4 className="text-xs font-bold text-primary uppercase tracking-wider">About this Carol</h4>
-                 </div>
-                 <button
-                   onClick={() => setShowCarolInfo(false)}
-                   className="text-slate-400 hover:text-slate-600"
-                 >
-                   <X className="w-4 h-4" />
-                 </button>
-               </div>
-               <p className="text-xs text-slate-700 leading-relaxed">{carolInfo}</p>
-             </div>
-           )}
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'lyrics' | 'insights')} className="flex flex-col flex-1 overflow-hidden">
+          <TabsList className="w-full justify-start rounded-none border-b border-primary/10 bg-white/50 p-0 h-auto gap-0">
+            <TabsTrigger 
+              value="lyrics"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/5 px-4 py-3 text-sm font-bold"
+            >
+              <BookOpen className="w-4 h-4 mr-2" />
+              Lyrics
+            </TabsTrigger>
+            <TabsTrigger
+              value="insights"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/5 px-4 py-3 text-sm font-bold"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              AI Insights
+            </TabsTrigger>
+          </TabsList>
 
-           <div className="flex items-end justify-between gap-4">
-             <div className="flex-1">
-               <LanguageSelector
-                 carolId={carol.id}
-                 currentLanguage={selectedLanguage}
-                 onLanguageChange={handleLanguageChange}
-                 isLoading={loadingTranslation}
-               />
-             </div>
+          {/* Lyrics Tab */}
+          <TabsContent value="lyrics" className="flex flex-col flex-1 overflow-hidden m-0">
+            {/* Lyrics Controls */}
+            <div className="p-4 bg-white/50 border-b border-primary/5 space-y-3 overflow-y-auto">
+              <DisplayModeSelector
+                currentMode={state.displayMode}
+                onModeChange={state.setDisplayMode}
+              />
 
-             <Button
-               variant="ghost"
-               size="sm"
-               onClick={handleLoadCarolInfo}
-               disabled={loadingCarolInfo}
-               className="text-xs text-slate-500 hover:text-primary h-8 px-2"
-               title="Learn about this carol"
-             >
-               <Info className="w-3 h-3 mr-1" />
-               {loadingCarolInfo ? 'Loading...' : 'Info'}
-             </Button>
+              <div className="flex gap-2">
+                <SectionNavigator
+                  sections={state.sectionLabels}
+                  currentSection={state.currentSection}
+                  onSelectSection={state.jumpToSection}
+                />
+              </div>
 
-             {translationInfo && selectedLanguage !== 'en' && (
-               <div className="pb-0.5">
-                 <TranslationBadge
-                   source={translationInfo.source || 'ai_generated'}
-                   upvotes={translationInfo.upvotes || 0}
-                   downvotes={translationInfo.downvotes || 0}
-                   isCanonical={translationInfo.isCanonical === 1}
-                 />
-               </div>
-             )}
-           </div>
+              <PlaybackControls
+                currentTime={state.currentTime}
+                duration={state.getDuration()}
+                isPlaying={state.isPlaying}
+                fontSize={state.fontSize}
+                lineSpacing={state.lineSpacing}
+                speed={state.speed}
+                onTimeChange={handleTimeChange}
+                onPlayPause={() => state.setIsPlaying(!state.isPlaying)}
+                onSpeedChange={state.setSpeed}
+                onFontSizeChange={state.setFontSize}
+                onLineSpacingChange={state.setLineSpacing}
+              />
+            </div>
 
-          <DisplayModeSelector
-            currentMode={state.displayMode}
-            onModeChange={state.setDisplayMode}
-          />
+            {/* Lyrics Display */}
+            <div className="flex-1 overflow-y-auto">
+              <LyricsDisplay state={state} />
+            </div>
 
-          <div className="flex gap-2">
-            <SectionNavigator
-              sections={state.sectionLabels}
-              currentSection={state.currentSection}
-              onSelectSection={state.jumpToSection}
-            />
-          </div>
+            {/* Footer */}
+            <div className="p-3 bg-white border-t border-primary/5 text-center text-xs text-slate-400">
+              {state.formatTime(state.currentTime)} / {state.formatTime(state.getDuration())}
+            </div>
+          </TabsContent>
 
-          <PlaybackControls
-            currentTime={state.currentTime}
-            duration={state.getDuration()}
-            isPlaying={state.isPlaying}
-            fontSize={state.fontSize}
-            lineSpacing={state.lineSpacing}
-            speed={state.speed}
-            onTimeChange={handleTimeChange}
-            onPlayPause={() => state.setIsPlaying(!state.isPlaying)}
-            onSpeedChange={state.setSpeed}
-            onFontSizeChange={state.setFontSize}
-            onLineSpacingChange={state.setLineSpacing}
-          />
-        </div>
+          {/* Insights Tab */}
+          <TabsContent value="insights" className="flex flex-col flex-1 overflow-hidden m-0">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <CarolInsightsPanel
+                title={carol.title}
+                artist={carol.artist}
+                carolInfo={carolInfo}
+                isLoading={loadingCarolInfo}
+                onLoadInsight={handleLoadCarolInfo}
+              />
 
-        {/* Lyrics Display */}
-        <div className="flex-1 overflow-y-auto">
-          <LyricsDisplay
-            state={state}
-          />
-        </div>
-
-        {/* Footer */}
-        <div className="p-4 bg-white border-t border-primary/5 text-center text-xs text-slate-400">
-          {state.formatTime(state.currentTime)} / {state.formatTime(state.getDuration())}
-        </div>
+              <TranslationSuggestions
+                carolId={carol.id}
+                currentLanguage={selectedLanguage}
+                onLanguageSelect={handleLanguageChange}
+                isLoading={loadingTranslation}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

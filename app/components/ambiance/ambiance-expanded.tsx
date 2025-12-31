@@ -3,6 +3,11 @@
 import { Button } from '@/app/components/ui/button';
 import { Volume2, VolumeX, Play, Pause, ChevronDown, Music } from 'lucide-react';
 
+interface AmbianceTrack {
+  id: string;
+  name: string;
+}
+
 interface AmbianceExpandedProps {
   isPlaying: boolean;
   isReady: boolean;
@@ -10,6 +15,11 @@ interface AmbianceExpandedProps {
   volume: number;
   trackName: string;
   trackDescription?: string;
+  artist?: string;
+  provenance?: string;
+  availableTracks?: AmbianceTrack[];
+  currentTrackId?: string;
+  onTrackChange?: (trackId: string) => void;
   onTogglePlay: () => void;
   onToggleMute: () => void;
   onVolumeChange: (volume: number) => void;
@@ -23,6 +33,11 @@ export function AmbianceExpanded({
   volume,
   trackName,
   trackDescription,
+  artist,
+  provenance,
+  availableTracks,
+  currentTrackId,
+  onTrackChange,
   onTogglePlay,
   onToggleMute,
   onVolumeChange,
@@ -46,16 +61,50 @@ export function AmbianceExpanded({
         ))}
       </div>
 
+      {/* Track Selector */}
+      {availableTracks && availableTracks.length > 1 && (
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-slate-600 block">Select Ambiance</label>
+          <div className="flex gap-2">
+            {availableTracks.map((track) => (
+              <button
+                key={track.id}
+                onClick={() => onTrackChange?.(track.id)}
+                className={`flex-1 px-2 py-2 rounded-lg text-xs font-bold transition-all ${
+                  currentTrackId === track.id
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'bg-white/50 text-slate-700 border border-primary/10 hover:bg-white hover:border-primary/30'
+                }`}
+              >
+                {track.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Track info */}
-      <div className="bg-primary/5 rounded-xl p-3">
-        <div className="flex items-center gap-2 mb-2">
+      <div className="bg-primary/5 rounded-xl p-3 space-y-2">
+        <div className="flex items-center gap-2">
           <Music className="h-4 w-4 text-primary flex-shrink-0" />
-          <p className="font-semibold text-sm text-slate-700">
-            {trackName}
-          </p>
+          <div>
+            <p className="font-semibold text-sm text-slate-700">
+              {trackName}
+            </p>
+            {artist && (
+              <p className="text-xs text-slate-600">by {artist}</p>
+            )}
+          </div>
         </div>
         {trackDescription && (
-          <p className="text-xs text-slate-500">{trackDescription}</p>
+          <p className="text-xs text-slate-500 italic">{trackDescription}</p>
+        )}
+        {provenance && (
+          <div className="flex items-center gap-1 pt-1 border-t border-primary/10">
+            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-tight">
+              {provenance}
+            </span>
+          </div>
         )}
       </div>
 

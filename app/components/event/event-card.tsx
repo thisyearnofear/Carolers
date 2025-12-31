@@ -37,70 +37,70 @@ export function EventCard({ event }: EventCardProps) {
           transition={{ duration: 0.3 }}
         />
 
-        <CardHeader className="p-lg pb-sm relative">
+        <CardHeader className="p-xl pb-md relative">
           {/* Live indicator */}
           {!isPast && daysUntil <= 7 && (
             <motion.div
-              className="absolute top-lg right-lg z-10"
+              className="absolute top-xl right-xl z-10"
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              <Badge className="bg-primary text-white text-[10px] font-bold uppercase animate-pulse-glow">
+              <Badge className="bg-primary text-white text-xs font-bold uppercase animate-pulse-glow">
                 🔴 Coming Soon
               </Badge>
             </motion.div>
           )}
 
-          <div className="flex flex-col gap-xs text-center items-center">
-            <div className="flex gap-sm">
-              <Badge variant="outline" className={`${isPast ? 'border-yellow-500/20 text-yellow-600 bg-yellow-50' : 'border-primary/20 text-primary'}`}>
+          <div className="flex flex-col gap-md text-center items-center">
+            <div className="flex gap-sm flex-wrap justify-center">
+              <Badge variant="outline" className={`text-sm ${isPast ? 'border-yellow-500/20 text-yellow-600 bg-yellow-50' : 'border-primary/20 text-primary'}`}>
                 {isPast ? '🎉 Wrapped' : event.theme}
               </Badge>
               {event.isPrivate === 1 && (
-                <Badge variant="outline" className="border-red-200 text-red-600 bg-red-50">
-                  <Lock className="w-2.5 h-2.5 mr-1" />
+                <Badge variant="outline" className="border-red-200 text-red-600 bg-red-50 text-sm">
+                  <Lock className="w-3 h-3 mr-1" />
                   Private
                 </Badge>
               )}
             </div>
-            <CardTitle className="text-xl font-display text-primary group-hover:text-primary transition-colors mt-xs">
+            <CardTitle className="text-2xl font-display text-primary group-hover:text-primary transition-colors">
               {event.name}
             </CardTitle>
           </div>
         </CardHeader>
 
-        <CardContent className="p-lg pt-sm pb-md">
-          <div className="space-y-md text-center">
-            <div className="flex items-center justify-center text-xs font-bold text-slate-800 gap-md flex-wrap">
-              <div className="flex items-center gap-xs">
-                <CalendarDays className="h-3.5 w-3.5 text-primary" />
+        <CardContent className="p-xl pt-md pb-md">
+          <div className="space-y-lg text-center">
+            <div className="flex items-center justify-center text-sm font-semibold text-slate-800 gap-md flex-wrap">
+              <div className="flex items-center gap-sm">
+                <CalendarDays className="h-4 w-4 text-primary flex-shrink-0" />
                 {eventDate.toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric'
                 })}
               </div>
-              <div className="h-4 w-px bg-slate-300" />
-              <div className="flex items-center gap-xs">
-                 <MapPin className="h-3.5 w-3.5 text-primary" />
+              <div className="h-5 w-px bg-slate-300" />
+              <div className="flex items-center gap-sm">
+                 <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
                  <span className="truncate">{event.venue || 'TBA'}</span>
-               </div>
+                </div>
             </div>
 
-            <p className="text-sm text-slate-700 italic leading-relaxed">
+            <p className="text-base text-slate-700 italic leading-relaxed">
               "{event.description}"
             </p>
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col gap-md p-lg pt-sm mt-auto">
-          <div className="flex items-center justify-between w-full gap-md text-[10px] font-bold text-secondary uppercase tracking-widest border-t border-primary/5 pt-lg">
-            <div className="flex items-center gap-xs">
-              <Users className="h-3 w-3" />
-              {event.members?.length || 0} Singers
+        <CardFooter className="flex flex-col gap-lg p-xl pt-md mt-auto">
+          <div className="flex items-center justify-between w-full gap-md text-sm font-semibold text-slate-700 border-t border-primary/10 pt-lg">
+            <div className="flex items-center gap-sm">
+              <Users className="h-4 w-4 text-primary" />
+              <span>{event.members?.length || 0} <span className="hidden sm:inline">Singers</span></span>
             </div>
-            <div className="flex items-center gap-xs">
-              <Music className="h-3 w-3" />
-              {event.carols?.length || 0} Carols
+            <div className="flex items-center gap-sm">
+              <Music className="h-4 w-4 text-primary" />
+              <span>{event.carols?.length || 0} <span className="hidden sm:inline">Carols</span></span>
             </div>
           </div>
 

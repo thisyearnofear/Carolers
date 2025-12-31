@@ -17,7 +17,7 @@ const STORAGE_KEYS = {
 const DEFAULTS: AmbiancePreferences = {
   volume: 0.3,
   muted: false,
-  trackId: 'snowfall',
+  trackId: 'onae',
   expanded: false,
 };
 
