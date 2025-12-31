@@ -90,19 +90,35 @@ The app guides users through three phases:
 2. Add to `.env.local`:
    ```env
    SUNO_API_KEY=your_api_key_here
+   CRON_SECRET=your_cron_secret_here  # For background polling
    ```
 3. Run migrations: `npm run db:push`
 4. Navigate to `/songs` and click "Create Carol"
+
+#### Suno API Optimization
+
+The integration is optimized for reliability and performance:
+
+- **Smart Rate Limiting**: Respects Suno's 20 requests/10 seconds limit with automatic throttling
+- **Intelligent Polling**: Progressive intervals based on generation phase (PENDING → TEXT_SUCCESS → FIRST_SUCCESS → SUCCESS)
+- **Error Recovery**: Automatic retries with exponential backoff for transient failures
+- **Model Selection**: 
+  - V5 (default): Best for emotional expression in carols
+  - V4: Faster generation for demos
+  - V4_5PLUS: Extended duration up to 8 minutes
+- **Status Tracking**: Real-time updates with proper error handling
+- **Batch Processing**: Efficient background polling for multiple generations
 
 See [DATABASE_MIGRATIONS.md](docs/DATABASE_MIGRATIONS.md) for detailed setup.
 
 ## Next Steps
 
 1. Test carol creation with real users
-2. Monitor Suno API usage and costs
-3. Optimize mobile experience for outdoor venues
-4. Gather community feedback on carol generation
-5. Plan monetization strategy based on user metrics
+2. Monitor Suno API usage and costs (rate limits: 20 req/10s)
+3. Set up cron job for `/api/carols/poll-generations` (recommended: every 30 seconds)
+4. Optimize mobile experience for outdoor venues
+5. Gather community feedback on carol generation
+6. Plan monetization strategy based on user metrics
 
 ## Development
 

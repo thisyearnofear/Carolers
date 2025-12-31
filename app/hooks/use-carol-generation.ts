@@ -33,6 +33,13 @@ export function useCarolGeneration() {
       lyrics?: string;
       genre?: string;
       style?: string;
+      model?: string;
+      instrumental?: boolean;
+      vocalGender?: string;
+      styleWeight?: number;
+      weirdnessConstraint?: number;
+      negativeTags?: string;
+      customMode?: boolean;
     }) => {
       setState({ status: 'submitting' });
 

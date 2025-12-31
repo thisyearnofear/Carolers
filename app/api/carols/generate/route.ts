@@ -1,81 +1,122 @@
-import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import { generateCarol } from '@/lib/suno';
-import { createUserCarol } from '@/lib/user-carols';
+import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { generateCarol, validateGenerationParams } from "@/lib/suno";
+import { createUserCarol } from "@/lib/user-carols";
 
 export async function POST(request: Request) {
   try {
     // Get user session from Clerk
     const session = await auth();
     const { userId } = session;
-    
+
     if (!userId) {
       return NextResponse.json(
-        { 
-          error: 'Authentication required',
-          message: 'Please sign in to create carols',
-          code: 'UNAUTHORIZED'
+        {
+          error: "Authentication required",
+          message: "Please sign in to create carols",
+          code: "UNAUTHORIZED",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     const body = await request.json();
-    const { title, lyrics, genre = 'Christmas', style = 'Traditional' } = body;
-
-    if (!title) {
-      return NextResponse.json(
-        { error: 'Title is required' },
-        { status: 400 }
-      );
-    }
-
-    // Call Suno API to generate carol
-    const clips = await generateCarol({
+    const {
       title,
       lyrics,
       genre,
       style,
+      model,
+      instrumental = false,
+      vocalGender,
+      styleWeight,
+      weirdnessConstraint,
+      negativeTags,
+      customMode = true,
+    } = body;
+
+    if (!title || !title.trim()) {
+      return NextResponse.json({ error: "Title is required" }, { status: 400 });
+    }
+
+    // Validate parameters before sending to API
+    const validation = validateGenerationParams({
+      title,
+      lyrics,
+      genre,
+      style,
+      model,
+      instrumental,
+      vocalGender,
+      styleWeight,
+      weirdnessConstraint,
+      negativeTags,
+      customMode,
     });
 
-    if (!clips || clips.length === 0) {
+    if (!validation.valid) {
       return NextResponse.json(
-        { 
-          error: 'Carol generation failed',
-          message: 'Could not queue the carol for generation. Please check your Suno API connection and try again.',
-          code: 'SUNO_QUEUE_FAILED'
+        {
+          error: "Invalid parameters",
+          message: "Please check your input and try again.",
+          details: validation.errors,
+          code: "INVALID_PARAMS",
         },
-        { status: 500 }
+        { status: 400 },
       );
     }
 
-    // Track first clip (Suno returns array but we generate one)
-    const clip = clips[0];
+    // Call Suno API to generate carol with all available parameters
+    const taskId = await generateCarol({
+      title,
+      lyrics,
+      genre,
+      style,
+      model,
+      instrumental,
+      vocalGender,
+      styleWeight,
+      weirdnessConstraint,
+      negativeTags,
+      customMode,
+    });
 
-    // Store in database with Suno job ID
+    if (!taskId) {
+      return NextResponse.json(
+        {
+          error: "Carol generation failed",
+          message:
+            "Could not queue the carol for generation. Please check your Suno API connection and try again.",
+          code: "SUNO_QUEUE_FAILED",
+        },
+        { status: 500 },
+      );
+    }
+
+    // Store in database with Suno task ID
     const userCarol = await createUserCarol({
-      sunoJobId: clip.id,
+      sunoJobId: taskId,
       createdBy: userId,
       title,
       lyrics: lyrics || null,
-      genre,
-      style,
-      status: 'processing',
+      genre: genre || null,
+      style: style || null,
+      status: "processing",
     });
 
     return NextResponse.json({
       success: true,
       carol: {
         id: userCarol.id,
-        sunoJobId: clip.id,
+        sunoJobId: taskId,
         title: userCarol.title,
-        status: 'processing',
+        status: "processing",
         createdAt: userCarol.createdAt,
       },
     });
   } catch (error: any) {
     // Log full error for debugging
-    console.error('Carol generation error:', {
+    console.error("Carol generation error:", {
       message: error?.message,
       code: error?.code,
       status: error?.status,
@@ -83,47 +124,99 @@ export async function POST(request: Request) {
     });
 
     // Map common errors to user-friendly messages
-    if (error?.message?.includes('Clerk')) {
+    if (error?.message?.includes("Clerk")) {
       return NextResponse.json(
         {
-          error: 'Authentication setup error',
-          message: 'There is a configuration issue with authentication. Please try again or contact support.',
-          code: 'CLERK_CONFIG_ERROR'
+          error: "Authentication setup error",
+          message:
+            "There is a configuration issue with authentication. Please try again or contact support.",
+          code: "CLERK_CONFIG_ERROR",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
-    if (error?.message?.includes('SUNO') || error?.message?.includes('API')) {
+    // Check for specific Suno API errors
+    if (error?.message?.includes("Invalid Suno API key")) {
       return NextResponse.json(
         {
-          error: 'Suno API error',
-          message: 'Unable to reach the Suno AI service. Please check your API key and try again.',
-          code: 'SUNO_API_ERROR'
+          error: "Authentication failed",
+          message: "Invalid API key. Please check your Suno API configuration.",
+          code: "INVALID_API_KEY",
         },
-        { status: 503 }
+        { status: 401 },
       );
     }
 
-    if (error?.message?.includes('database') || error?.message?.includes('Database')) {
+    if (error?.message?.includes("Rate limit exceeded")) {
       return NextResponse.json(
         {
-          error: 'Database error',
-          message: 'Failed to save the carol. Please try again.',
-          code: 'DATABASE_ERROR'
+          error: "Rate limit exceeded",
+          message: "Too many requests. Please wait a moment and try again.",
+          code: "RATE_LIMIT",
         },
-        { status: 500 }
+        { status: 429 },
+      );
+    }
+
+    if (error?.message?.includes("Insufficient credits")) {
+      return NextResponse.json(
+        {
+          error: "Insufficient credits",
+          message:
+            "Your Suno account has insufficient credits. Please add more credits to continue.",
+          code: "INSUFFICIENT_CREDITS",
+        },
+        { status: 402 },
+      );
+    }
+
+    if (error?.message?.includes("maintenance")) {
+      return NextResponse.json(
+        {
+          error: "Service maintenance",
+          message:
+            "Suno AI is currently under maintenance. Please try again later.",
+          code: "MAINTENANCE",
+        },
+        { status: 503 },
+      );
+    }
+
+    if (error?.message?.includes("SUNO") || error?.message?.includes("API")) {
+      return NextResponse.json(
+        {
+          error: "Suno API error",
+          message: "Unable to reach the Suno AI service. Please try again.",
+          code: "SUNO_API_ERROR",
+        },
+        { status: 503 },
+      );
+    }
+
+    if (
+      error?.message?.includes("database") ||
+      error?.message?.includes("Database")
+    ) {
+      return NextResponse.json(
+        {
+          error: "Database error",
+          message: "Failed to save the carol. Please try again.",
+          code: "DATABASE_ERROR",
+        },
+        { status: 500 },
       );
     }
 
     // Generic error
     return NextResponse.json(
       {
-        error: 'Carol generation failed',
-        message: error?.message || 'An unexpected error occurred. Please try again.',
-        code: 'UNKNOWN_ERROR'
+        error: "Carol generation failed",
+        message:
+          error?.message || "An unexpected error occurred. Please try again.",
+        code: "UNKNOWN_ERROR",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
