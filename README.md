@@ -41,12 +41,27 @@ script/          # Database & utility scripts
 docs/            # Documentation
 ```
 
+## Why Gemini 3?
+
+| Feature | Gemini 3 | GPT-4o | Claude 3.5 |
+|---------|----------|--------|-----------|
+| **Extended Thinking** | ✅ Native | ❌ (o1 separate) | ❌ |
+| **Reasoning Transparency** | ✅ Visible in UI | ⚠️ Hidden | ❌ |
+| **Multimodal (Vision)** | ✅ 81% MMMU-Pro | ⚠️ 73% | ⚠️ 75% |
+| **Cost (per 1M tokens)** | $3 Flash | $15 | $15 |
+| **Context Window** | 1M | 128k | 200k |
+
+**Carolers uniquely leverages Gemini 3's native extended thinking** to provide expert-level musical analysis. Users see the reasoning process—understanding why they get specific guidance. This transparency and depth is exclusive to Gemini 3.
+
+### Key Innovation
+The **Deep Analysis Panel** displays model reasoning in the UI for transparency. This makes AI more trustworthy and educational—users understand not just "what" but "why."
+
 ## Documentation
 
-- **[GEMINI_3_INTEGRATION.md](GEMINI_3_INTEGRATION.md)** — Technical deep-dive into Gemini 3 implementation ⭐ **START HERE for hackathon judges**
-- **[ROADMAP.md](docs/ROADMAP.md)** — Product vision, phases, and completion status
+- **[ROADMAP.md](docs/ROADMAP.md)** — Product vision and Gemini 3 implementation details ⭐ **START HERE** (Phase 3)
 - **[DATABASE_MIGRATIONS.md](docs/DATABASE_MIGRATIONS.md)** — Database setup and schema
 - **[CLERK_AUTHENTICATION.md](docs/CLERK_AUTHENTICATION.md)** — Auth configuration
+- **[TRANSLATION_SYSTEM.md](docs/TRANSLATION_SYSTEM.md)** — Multilingual translation architecture
 
 ## Design Principles
 
