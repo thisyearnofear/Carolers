@@ -43,6 +43,7 @@ docs/            # Documentation
 
 ## Documentation
 
+- **[GEMINI_3_INTEGRATION.md](GEMINI_3_INTEGRATION.md)** — Technical deep-dive into Gemini 3 implementation ⭐ **START HERE for hackathon judges**
 - **[ROADMAP.md](docs/ROADMAP.md)** — Product vision, phases, and completion status
 - **[DATABASE_MIGRATIONS.md](docs/DATABASE_MIGRATIONS.md)** — Database setup and schema
 - **[CLERK_AUTHENTICATION.md](docs/CLERK_AUTHENTICATION.md)** — Auth configuration
