@@ -228,6 +228,11 @@ export function CreateCarolModal({ open, onOpenChange }: CreateCarolModalProps) 
                 <p className="text-slate-600 max-w-sm">
                   Our AI is composing the music and arranging the lyrics. This usually takes 30-60 seconds...
                 </p>
+                {state.progress && (
+                  <p className="text-xs text-slate-500 mt-4">
+                    {state.progress.message}
+                  </p>
+                )}
               </div>
               <div className="flex gap-1">
                 {[0, 1, 2].map(i => (
@@ -238,6 +243,78 @@ export function CreateCarolModal({ open, onOpenChange }: CreateCarolModalProps) 
                     transition={{ delay: i * 0.15, duration: 0.6, repeat: Infinity }}
                   />
                 ))}
+              </div>
+            </motion.div>
+          )}
+
+          {state.status === 'error' && (
+            <motion.div
+              key="error"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-6"
+            >
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-600" />
+                  Carol Generation Failed
+                </DialogTitle>
+              </DialogHeader>
+
+              <Card className="border-red-200 bg-red-50">
+                <CardContent className="p-6 space-y-4">
+                  <div>
+                    <p className="text-sm font-bold text-red-700 mb-2">{state.error}</p>
+                    {state.errorDetails && (
+                      <p className="text-sm text-red-600 mb-3">{state.errorDetails}</p>
+                    )}
+                  </div>
+
+                  <div className="bg-white rounded-lg p-3 space-y-2 border border-red-100">
+                    <p className="text-xs font-bold text-slate-700 uppercase">What went wrong?</p>
+                    {state.errorCode === 'UNAUTHORIZED' && (
+                      <p className="text-sm text-slate-600">
+                        You need to be signed in to create carols. Please sign in and try again.
+                      </p>
+                    )}
+                    {state.errorCode === 'SUNO_API_ERROR' && (
+                      <p className="text-sm text-slate-600">
+                        The Suno AI service is temporarily unavailable. Please check your API key is configured correctly and try again in a few moments.
+                      </p>
+                    )}
+                    {state.errorCode === 'CLERK_CONFIG_ERROR' && (
+                      <p className="text-sm text-slate-600">
+                        There's a configuration issue with authentication. Please refresh the page and try again.
+                      </p>
+                    )}
+                    {state.errorCode === 'DATABASE_ERROR' && (
+                      <p className="text-sm text-slate-600">
+                        Failed to save your carol. Please try again.
+                      </p>
+                    )}
+                    {!state.errorCode || !['UNAUTHORIZED', 'SUNO_API_ERROR', 'CLERK_CONFIG_ERROR', 'DATABASE_ERROR'].includes(state.errorCode) && (
+                      <p className="text-sm text-slate-600">
+                        An unexpected error occurred. Please try again or contact support if the problem persists.
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex gap-2 justify-end pt-4">
+                <Button
+                  variant="outline"
+                  onClick={handleClose}
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => reset()}
+                  className="gap-2"
+                >
+                  Try Again
+                </Button>
               </div>
             </motion.div>
           )}

@@ -67,6 +67,21 @@ async function callSunoAPI(
   
   if (!response.ok) {
     const error = await response.text();
+    
+    // Provide specific error messages based on status
+    if (response.status === 401 || response.status === 403) {
+      throw new Error('Invalid Suno API key. Please check your SUNO_API_KEY environment variable.');
+    }
+    if (response.status === 404) {
+      throw new Error('Suno API endpoint not found. The API may have changed or the service is unavailable.');
+    }
+    if (response.status === 429) {
+      throw new Error('Too many requests to Suno. Please wait a moment and try again.');
+    }
+    if (response.status >= 500) {
+      throw new Error('Suno API service is temporarily unavailable. Please try again later.');
+    }
+    
     throw new Error(`Suno API error: ${response.status} - ${error}`);
   }
 
