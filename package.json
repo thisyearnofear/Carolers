@@ -21,7 +21,8 @@
     "db:purge:non-english": "tsx scripts/purge-non-english-carols.ts",
     "db:migrate:add-language": "tsx scripts/migrate-add-language.ts",
     "db:enrich:english-lyrics": "tsx scripts/enrich-english-lyrics.ts",
-    "db:normalize:artists": "tsx scripts/normalize-artists.ts"
+    "db:normalize:artists": "tsx scripts/normalize-artists.ts",
+    "test:gemini": "tsx test/test-gemini.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.5",
@@ -59,6 +60,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
+    "dotenv": "^16.6.1",
     "drizzle-orm": "^0.39.3",
     "drizzle-zod": "^0.7.0",
     "embla-carousel-react": "^8.6.0",

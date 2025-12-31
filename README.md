@@ -28,7 +28,7 @@ npm run dev           # Start server in another terminal
 - **Client**: React 19 + TypeScript + Tailwind CSS + Framer Motion
 - **Server**: Next.js App Router + Clerk auth + Vercel deployment
 - **Database**: TiDB Serverless MySQL + Drizzle ORM
-- **AI**: Gemini 3 Pro/Flash for reasoning, recommendations, and translations
+- **AI**: Gemini 3 Pro/Flash Preview for reasoning, recommendations, and translations
 - **Real-time**: On-demand polling (no WebSocket complexity)
 
 ## Project Structure
