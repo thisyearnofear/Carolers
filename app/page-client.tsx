@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreateEventModal } from './components/modals/create-event-modal';
 import { JoinEventModal } from './components/modals/join-event-modal';
@@ -20,12 +20,14 @@ import {
 import { OnboardingModal, useOnboarding } from './components/onboarding/onboarding-modal';
 import { useEffect } from 'react';
 import { Badge } from './components/ui/badge';
+import { EventList } from './components/event/event-list';
+import { EventCardSkeleton } from './components/event/event-card-skeleton';
 
 interface PageClientProps {
-  children: React.ReactNode;
+  events: Awaited<ReturnType<typeof import('@/lib/events').getEvents>>;
 }
 
-export function PageClient({ children }: PageClientProps) {
+export function PageClient({ events }: PageClientProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const { shouldShow } = useOnboarding();
@@ -134,6 +136,30 @@ export function PageClient({ children }: PageClientProps) {
           </p>
         </motion.div>
 
+        <section className="bg-primary/5 py-12 md:py-16 -mx-6 md:-mx-0">
+          <div className="container mx-auto px-4 md:px-6">
+            <h2 className="text-2xl md:text-3xl font-display text-primary mb-8 text-center">
+              Jump In
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+              <a 
+                href="/songs" 
+                className="p-4 md:p-6 bg-white rounded-xl text-center hover:shadow-lg hover:scale-105 transition-all group"
+              >
+                <Music className="w-8 h-8 md:w-10 md:h-10 mx-auto mb-3 text-primary group-hover:scale-110 transition-transform" />
+                <span className="text-xs md:text-sm font-bold text-slate-700">Browse Songs</span>
+              </a>
+              <button 
+                onClick={() => setShowCreateModal(true)}
+                className="p-4 md:p-6 bg-white rounded-xl text-center hover:shadow-lg hover:scale-105 transition-all group"
+              >
+                <Plus className="w-8 h-8 md:w-10 md:h-10 mx-auto mb-3 text-primary group-hover:scale-110 transition-transform" />
+                <span className="text-xs md:text-sm font-bold text-slate-700">New Event</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
         <motion.div
           className="mb-12 max-w-4xl mx-auto"
           initial={{ opacity: 0 }}
@@ -147,7 +173,15 @@ export function PageClient({ children }: PageClientProps) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 place-items-center">
-            {children}
+            <Suspense fallback={
+              <>
+                {[...Array(3)].map((_, i) => (
+                  <EventCardSkeleton key={i} />
+                ))}
+              </>
+            }>
+              <EventList initialEvents={events} />
+            </Suspense>
           </div>
         </motion.div>
 
