@@ -130,7 +130,7 @@ export function EnhancedLyricsViewer({
           onValueChange={(v) => setActiveTab(v as "lyrics" | "insights")}
           className="flex flex-col flex-1 overflow-hidden"
         >
-          <TabsList className="w-full justify-start rounded-none border-b border-primary/10 bg-white/50 p-0 h-auto gap-0">
+          <TabsList className="w-full justify-center rounded-none border-b border-primary/10 bg-white/50 p-0 h-auto gap-0">
             <TabsTrigger
               value="lyrics"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/5 px-4 py-3 text-sm font-bold"

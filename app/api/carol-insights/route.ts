@@ -26,14 +26,22 @@ export async function POST(req: Request) {
     let prompt = "";
 
     if (customPrompt) {
-      prompt = `${customPrompt} for the Christmas carol "${title}" by ${artist || "traditional"}. Keep the response warm, engaging, and concise.`;
+      prompt = `${customPrompt} for the Christmas carol "${title}" by ${artist || "traditional"}.
+
+      Structure the response as follows:
+      1. Start with a warm, festive opening (1 sentence).
+      2. Provide 3-4 interesting insights using bullet points.
+      3. **Important:** Start each bullet point on a NEW LINE with "* **Title:**".
+      4. End with a short, sweet closing sentiment.
+      5. Tone: Magical, storytelling, and inviting.
+      6. Formatting: Ensure clear line breaks between bullet points.`;
     } else {
       prompt = prompts[insightType] || prompts.history;
     }
 
     const insight = await generateText(
       prompt,
-      "You are a warm, knowledgeable Christmas carol expert. Keep responses festive and concise.",
+      "You are a warm, knowledgeable Christmas carol expert. You write in a structured, easy-to-read Markdown format with a magical and festive tone. Use clean Markdown formatting.",
     );
 
     return Response.json({ insight });

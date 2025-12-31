@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
   Heart,
@@ -12,15 +12,15 @@ import {
   BookOpen,
   Star,
   ChevronRight,
-  Loader2
-} from 'lucide-react';
+  Loader2,
+} from "lucide-react";
 
 interface CarolCompanionProps {
   carolTitle: string;
   carolArtist: string;
 }
 
-type InsightType = 'story' | 'singAlong' | 'traditions' | 'performance';
+type InsightType = "story" | "singAlong" | "traditions" | "performance";
 
 interface InsightCard {
   id: InsightType;
@@ -34,46 +34,51 @@ interface InsightCard {
 
 const INSIGHT_CARDS: InsightCard[] = [
   {
-    id: 'story',
-    title: 'The Story',
+    id: "story",
+    title: "The Story",
     icon: <BookOpen className="w-5 h-5" />,
-    color: 'text-rose-600',
-    bgGradient: 'from-rose-50 to-pink-50',
-    borderColor: 'border-rose-200',
-    prompt: 'Tell me the heartwarming story and history behind this carol'
+    color: "text-rose-600",
+    bgGradient: "from-rose-50 to-pink-50",
+    borderColor: "border-rose-200",
+    prompt: "Tell me the heartwarming story and history behind this carol",
   },
   {
-    id: 'singAlong',
-    title: 'Sing Along',
+    id: "singAlong",
+    title: "Sing Along",
     icon: <Mic className="w-5 h-5" />,
-    color: 'text-emerald-600',
-    bgGradient: 'from-emerald-50 to-green-50',
-    borderColor: 'border-emerald-200',
-    prompt: 'Give me tips to sing this carol beautifully with others'
+    color: "text-emerald-600",
+    bgGradient: "from-emerald-50 to-green-50",
+    borderColor: "border-emerald-200",
+    prompt: "Give me tips to sing this carol beautifully with others",
   },
   {
-    id: 'traditions',
-    title: 'Traditions',
+    id: "traditions",
+    title: "Traditions",
     icon: <Globe className="w-5 h-5" />,
-    color: 'text-blue-600',
-    bgGradient: 'from-blue-50 to-sky-50',
-    borderColor: 'border-blue-200',
-    prompt: 'Share the cultural traditions and celebrations around this carol'
+    color: "text-blue-600",
+    bgGradient: "from-blue-50 to-sky-50",
+    borderColor: "border-blue-200",
+    prompt: "Share the cultural traditions and celebrations around this carol",
   },
   {
-    id: 'performance',
-    title: 'Performance',
+    id: "performance",
+    title: "Performance",
     icon: <Users className="w-5 h-5" />,
-    color: 'text-purple-600',
-    bgGradient: 'from-purple-50 to-violet-50',
-    borderColor: 'border-purple-200',
-    prompt: 'Help me arrange this carol for our group performance'
-  }
+    color: "text-purple-600",
+    bgGradient: "from-purple-50 to-violet-50",
+    borderColor: "border-purple-200",
+    prompt: "Help me arrange this carol for our group performance",
+  },
 ];
 
-export function CarolCompanion({ carolTitle, carolArtist }: CarolCompanionProps) {
+export function CarolCompanion({
+  carolTitle,
+  carolArtist,
+}: CarolCompanionProps) {
   const [activeInsight, setActiveInsight] = useState<InsightType | null>(null);
-  const [insights, setInsights] = useState<Record<InsightType, string>>({} as any);
+  const [insights, setInsights] = useState<Record<InsightType, string>>(
+    {} as any,
+  );
   const [loading, setLoading] = useState<InsightType | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
 
@@ -89,30 +94,83 @@ export function CarolCompanion({ carolTitle, carolArtist }: CarolCompanionProps)
     setHasInteracted(true);
 
     try {
-      const card = INSIGHT_CARDS.find(c => c.id === type);
-      const response = await fetch('/api/carol-insights', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const card = INSIGHT_CARDS.find((c) => c.id === type);
+      const response = await fetch("/api/carol-insights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: carolTitle,
           artist: carolArtist,
           insightType: type,
-          prompt: card?.prompt
-        })
+          prompt: card?.prompt,
+        }),
       });
 
       if (response.ok) {
         const { insight } = await response.json();
-        setInsights(prev => ({ ...prev, [type]: insight }));
+        setInsights((prev) => ({ ...prev, [type]: insight }));
       }
     } catch (error) {
-      console.error('Failed to fetch insight:', error);
+      console.error("Failed to fetch insight:", error);
     } finally {
       setLoading(null);
     }
   };
 
-  const activeCard = INSIGHT_CARDS.find(c => c.id === activeInsight);
+  const activeCard = INSIGHT_CARDS.find((c) => c.id === activeInsight);
+
+  const renderContent = (text: string) => {
+    // 1. Clean formatting: fix embedded newlines for bullet points
+    const normalized = text
+      .replace(/([^\n])\s\* \*\*/g, "$1\n* **") // Fix "...Text * **Title"
+      .replace(/([^\n])\s\*\s/g, "$1\n* "); // Fix "...Text * Item"
+
+    return normalized.split("\n").map((line, i) => {
+      let content = line.trim();
+      if (!content) return <div key={i} className="h-3" />;
+
+      // Check for bullet points (supports *, -, •)
+      const isBullet = /^[\*\-•]\s/.test(content);
+
+      if (isBullet) {
+        // Strip the bullet marker
+        content = content.replace(/^[\*\-•]\s+/, "");
+
+        return (
+          <div key={i} className="flex gap-3 pl-2 mb-3">
+            <div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 shrink-0 opacity-80" />
+            <div className="text-sm text-slate-700 leading-relaxed">
+              {parseFormatting(content)}
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <p key={i} className="text-sm text-slate-700 leading-relaxed mb-3">
+          {parseFormatting(content)}
+        </p>
+      );
+    });
+  };
+
+  const parseFormatting = (text: string) => {
+    // Split by bold markers (**text** or ***text***)
+    const parts = text.split(/(\*{2,3}.*?\*{2,3})/);
+
+    return parts.map((part, j) => {
+      if (part.startsWith("**") || part.endsWith("**")) {
+        // Clean up asterisks to just get text
+        const cleanContent = part.replace(/^[\*]+|[\*]+$/g, "").trim();
+        return (
+          <strong key={j} className="font-semibold text-slate-900">
+            {cleanContent}
+          </strong>
+        );
+      }
+      return part;
+    });
+  };
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
@@ -124,7 +182,9 @@ export function CarolCompanion({ carolTitle, carolArtist }: CarolCompanionProps)
       >
         <div className="flex items-center justify-center gap-2 text-amber-600">
           <Star className="w-4 h-4 fill-current" />
-          <span className="text-sm font-semibold tracking-wide">Carol Companion</span>
+          <span className="text-sm font-semibold tracking-wide">
+            Carol Companion
+          </span>
           <Star className="w-4 h-4 fill-current" />
         </div>
         <p className="text-xs text-slate-500">
@@ -148,7 +208,7 @@ export function CarolCompanion({ carolTitle, carolArtist }: CarolCompanionProps)
             className={`relative p-4 rounded-2xl transition-all duration-300 ${
               activeInsight === card.id
                 ? `bg-gradient-to-br ${card.bgGradient} ${card.borderColor} border-2 shadow-md`
-                : 'bg-white border-2 border-slate-100 hover:border-slate-200 hover:shadow-sm'
+                : "bg-white border-2 border-slate-100 hover:border-slate-200 hover:shadow-sm"
             }`}
           >
             {/* Loading State */}
@@ -159,12 +219,18 @@ export function CarolCompanion({ carolTitle, carolArtist }: CarolCompanionProps)
             )}
 
             <div className="flex flex-col items-center text-center gap-2">
-              <div className={`${activeInsight === card.id ? card.color : 'text-slate-400'}`}>
+              <div
+                className={`${activeInsight === card.id ? card.color : "text-slate-400"}`}
+              >
                 {card.icon}
               </div>
-              <span className={`text-sm font-semibold ${
-                activeInsight === card.id ? 'text-slate-800' : 'text-slate-600'
-              }`}>
+              <span
+                className={`text-sm font-semibold ${
+                  activeInsight === card.id
+                    ? "text-slate-800"
+                    : "text-slate-600"
+                }`}
+              >
                 {card.title}
               </span>
             </div>
@@ -175,7 +241,9 @@ export function CarolCompanion({ carolTitle, carolArtist }: CarolCompanionProps)
                 layoutId="active-indicator"
                 className="absolute -bottom-1 left-1/2 transform -translate-x-1/2"
               >
-                <div className={`w-2 h-2 rounded-full ${card.color.replace('text', 'bg')}`} />
+                <div
+                  className={`w-2 h-2 rounded-full ${card.color.replace("text", "bg")}`}
+                />
               </motion.div>
             )}
           </motion.button>
@@ -188,7 +256,7 @@ export function CarolCompanion({ carolTitle, carolArtist }: CarolCompanionProps)
           <motion.div
             key={activeInsight}
             initial={{ opacity: 0, height: 0, y: 10 }}
-            animate={{ opacity: 1, height: 'auto', y: 0 }}
+            animate={{ opacity: 1, height: "auto", y: 0 }}
             exit={{ opacity: 0, height: 0, y: -10 }}
             transition={{ duration: 0.3 }}
             className={`rounded-2xl bg-gradient-to-br ${activeCard.bgGradient} ${activeCard.borderColor} border-2 overflow-hidden`}
@@ -196,7 +264,9 @@ export function CarolCompanion({ carolTitle, carolArtist }: CarolCompanionProps)
             <div className="p-6 space-y-4">
               {/* Section Header */}
               <div className="flex items-start gap-3">
-                <div className={`p-2 rounded-xl bg-white/70 ${activeCard.color}`}>
+                <div
+                  className={`p-2 rounded-xl bg-white/70 ${activeCard.color}`}
+                >
                   {activeCard.icon}
                 </div>
                 <div className="flex-1">
@@ -211,12 +281,8 @@ export function CarolCompanion({ carolTitle, carolArtist }: CarolCompanionProps)
 
               {/* Insight Content */}
               <div className="prose prose-sm max-w-none">
-                <div className="space-y-3 text-slate-700 leading-relaxed">
-                  {insights[activeInsight].split('\n\n').map((paragraph, idx) => (
-                    <p key={idx} className="text-sm">
-                      {paragraph}
-                    </p>
-                  ))}
+                <div className="text-slate-700 leading-relaxed">
+                  {renderContent(insights[activeInsight])}
                 </div>
               </div>
 
