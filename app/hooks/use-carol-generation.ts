@@ -14,6 +14,8 @@ export interface GenerationState {
     completedAt?: string;
   };
   error?: string;
+  errorCode?: string;
+  errorDetails?: string;
   progress?: {
     message: string;
     step: number;
@@ -43,7 +45,10 @@ export function useCarolGeneration() {
 
         if (!response.ok) {
           const data = await response.json();
-          throw new Error(data.error || 'Failed to start generation');
+          const error: any = new Error(data.message || data.error || 'Failed to start generation');
+          error.code = data.code;
+          error.status = response.status;
+          throw error;
         }
 
         const data = await response.json();
@@ -56,9 +61,18 @@ export function useCarolGeneration() {
         // Start polling
         pollStatus(data.carol.id);
       } catch (error: any) {
+        const errorCode = error.code || 'UNKNOWN_ERROR';
+        const errorMessage = error.message || 'Failed to submit carol';
+        
         setState({
           status: 'error',
-          error: error.message || 'Failed to submit carol',
+          error: errorMessage,
+          errorCode,
+          errorDetails: error.status === 401 
+            ? 'Please sign in to create carols'
+            : error.status === 503
+            ? 'Suno AI service is temporarily unavailable. Please try again later.'
+            : undefined,
         });
         throw error;
       }
