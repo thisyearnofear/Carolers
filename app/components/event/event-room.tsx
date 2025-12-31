@@ -84,57 +84,53 @@ export function EventRoom({ event }: EventRoomProps) {
         </div>
 
         <Card className="border-primary/5 shadow-xl bg-white/90 backdrop-blur-md overflow-hidden rounded-[2.5rem]">
-          <div className="px-md pt-md border-b border-primary/5">
-            <TabsList className="grid w-full grid-cols-5 bg-primary/5 p-xs rounded-card-lg">
-              <TabsTrigger
-                value="sing"
-                onClick={() => setActiveTab('sing')}
-                className={`rounded-xl py-2.5 text-xs font-bold transition-all ${activeTab === 'sing' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-primary'}`}
-              >
-                Sing
-              </TabsTrigger>
-              <TabsTrigger
-                value="prep"
-                onClick={() => setActiveTab('prep')}
-                className={`rounded-xl py-2.5 text-xs font-bold transition-all ${activeTab === 'prep' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-primary'}`}
-              >
-                Prep
-              </TabsTrigger>
-              <TabsTrigger
-                value="coord"
-                onClick={() => setActiveTab('coord')}
-                className={`rounded-xl py-2.5 text-xs font-bold transition-all ${activeTab === 'coord' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-primary'}`}
-              >
-                Coord
-              </TabsTrigger>
-              <TabsTrigger
-                value="ai"
-                onClick={() => setActiveTab('ai')}
-                className={`rounded-xl py-2.5 text-xs font-bold transition-all ${activeTab === 'ai' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-primary'}`}
-              >
-                <Zap className="w-3 h-3 mr-1" />
-                AI
-              </TabsTrigger>
-              <TabsTrigger
-                value="chat"
-                onClick={() => setActiveTab('chat')}
-                className={`rounded-xl py-2.5 text-xs font-bold transition-all ${activeTab === 'chat' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-primary'}`}
-              >
-                Chat
-              </TabsTrigger>
-            </TabsList>
-          </div>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <div className="px-md pt-md border-b border-primary/5">
+              <TabsList className="grid w-full grid-cols-5 bg-primary/5 p-xs rounded-card-lg">
+                <TabsTrigger
+                  value="sing"
+                  className="rounded-xl py-2.5 text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm text-slate-500 hover:text-primary"
+                >
+                  Sing
+                </TabsTrigger>
+                <TabsTrigger
+                  value="prep"
+                  className="rounded-xl py-2.5 text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm text-slate-500 hover:text-primary"
+                >
+                  Prep
+                </TabsTrigger>
+                <TabsTrigger
+                  value="coord"
+                  className="rounded-xl py-2.5 text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm text-slate-500 hover:text-primary"
+                >
+                  Coord
+                </TabsTrigger>
+                <TabsTrigger
+                  value="ai"
+                  className="rounded-xl py-2.5 text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm text-slate-500 hover:text-primary"
+                >
+                  <Zap className="w-3 h-3 mr-1" />
+                  AI
+                </TabsTrigger>
+                <TabsTrigger
+                  value="chat"
+                  className="rounded-xl py-2.5 text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm text-slate-500 hover:text-primary"
+                >
+                  Chat
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-          <CardContent className="p-6 md:p-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.02 }}
-                transition={{ duration: 0.2 }}
-              >
-                {activeTab === 'sing' && (
+            <CardContent className="p-6 md:p-8">
+              <TabsContent value="sing">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                >
                   <div className="space-y-8">
                     <CarolPlayer event={event} />
                     <div className="pt-8 border-t border-primary/5">
@@ -142,28 +138,69 @@ export function EventRoom({ event }: EventRoomProps) {
                       <EventMessages eventId={event.id} event={event} />
                     </div>
                   </div>
-                )}
+                </motion.div>
+              </AnimatePresence>
+            </TabsContent>
 
-                {activeTab === 'prep' && (
+            <TabsContent value="prep">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                >
                   <EventDetails event={event} />
-                )}
+                </motion.div>
+              </AnimatePresence>
+            </TabsContent>
 
-                {activeTab === 'coord' && (
+            <TabsContent value="coord">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                >
                   <EventContributions eventId={event.id} />
-                )}
+                </motion.div>
+              </AnimatePresence>
+            </TabsContent>
 
-                {activeTab === 'ai' && (
+            <TabsContent value="ai">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                >
                   <div className="h-[600px]">
                     <AIAssistant eventId={event.id} />
                   </div>
-                )}
+                </motion.div>
+              </AnimatePresence>
+            </TabsContent>
 
-                {activeTab === 'chat' && (
+            <TabsContent value="chat">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                >
                   <EventMessages eventId={event.id} event={event} />
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </CardContent>
+                </motion.div>
+              </AnimatePresence>
+              </TabsContent>
+            </CardContent>
+          </Tabs>
         </Card>
       </motion.div>
     </div>
