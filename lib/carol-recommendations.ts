@@ -142,23 +142,23 @@ export async function getCarolInfo(
   eventTheme: string
 ): Promise<string> {
   try {
-    const prompt = `You are a Christmas carol expert with deep knowledge of musical history, cultural traditions, and group singing.
+    // Gemini 3: Be concise and direct. Avoid verbose prompt engineering.
+    const prompt = `Provide context about "${title}" by ${artist} for a "${eventTheme}" event.
 
-Provide comprehensive context about "${title}" by ${artist} for a "${eventTheme}" themed event.
 Include:
-1. Historical/cultural origin (1 sentence)
-2. Harmony type (soprano/alto/tenor/bass considerations)
-3. Difficulty level and why
-4. Why it fits this event theme
-5. One unique insight about singability in groups
+1. Historical origin (1 sentence)
+2. Vocal range and harmony type
+3. Performance difficulty
+4. Fit for "${eventTheme}" theme
+5. Group singing tips
 
-Keep it under 120 words, practical and engaging.`;
+Limit: 120 words, practical tone.`;
 
-    // Use Gemini 3 reasoning for deeper analysis
+    // Use Gemini 3 with thinking for deeper cultural/musical insight
     try {
       const { response } = await generateWithReasoning(
         prompt,
-        'You are an expert in Christmas carol traditions, cultural history, and musical harmonics.'
+        'Expert in Christmas carol history, harmony, and group vocal performance.'
       );
       return response;
     } catch (error) {

@@ -22,6 +22,7 @@ import { LanguageSelector } from '../translations/language-selector';
 import { TranslationBadge } from '../translations/translation-badge';
 import { CarolInsightsPanel } from './carol-insights-panel';
 import { TranslationSuggestions } from './translation-suggestions';
+import { DeepAnalysisPanel } from '../carol/deep-analysis-panel';
 import { Button } from '../ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
@@ -206,7 +207,12 @@ export function EnhancedLyricsViewer({
 
           {/* Insights Tab */}
           <TabsContent value="insights" className="flex flex-col flex-1 overflow-hidden m-0">
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              <DeepAnalysisPanel
+                carolTitle={carol.title}
+                carolArtist={carol.artist}
+              />
+
               <CarolInsightsPanel
                 title={carol.title}
                 artist={carol.artist}

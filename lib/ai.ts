@@ -493,13 +493,16 @@ export async function generateText(
 
 /**
  * Complex analysis with extended thinking
- * Uses Gemini 3 Pro's reasoning capabilities
+ * Uses Gemini 3 Pro's reasoning capabilities (thinking_level parameter)
  * For carol analysis, setlist logic, cultural/harmonic understanding
+ * 
+ * Gemini 3 differs from 2.5: uses dynamic thinking by default
+ * Set thinking_level to 'high' for complex reasoning
  */
 export async function generateWithReasoning(
   prompt: string,
   systemPrompt?: string,
-  thinkingBudget: number = 5000 // tokens for reasoning
+  _thinkingBudget?: number // Deprecated for Gemini 3, kept for compatibility
 ): Promise<{ thinking: string; response: string }> {
   const client = getAIClient();
   
@@ -510,14 +513,11 @@ export async function generateWithReasoning(
   const model = client.getGenerativeModel({
     model: getModelName('pro'),
     systemInstruction: systemPrompt || 'You are a Christmas carol expert.',
-    generationConfig: {
-      maxOutputTokens: 8000,
-      // Enable extended thinking (reasoning)
-    } as any
   });
 
   try {
-    // Use extended thinking with Gemini 3 Pro
+    // Use Gemini 3 Pro with thinking_level: high for extended reasoning
+    // Temperature must be 1.0 for reasoning mode
     const result = await model.generateContent({
       contents: [{
         role: 'user',
@@ -527,20 +527,28 @@ export async function generateWithReasoning(
       }],
       generationConfig: {
         maxOutputTokens: 8000,
-        temperature: 1, // Required for reasoning (deterministic)
-      } as any,
-      // Enable thinking mode in Gemini 3
-      systemInstruction: systemPrompt || 'You are a Christmas carol expert.'
+        temperature: 1.0, // Required for Gemini 3 reasoning
+        thinkingConfig: {
+          thinkingLevel: 'high' // Gemini 3: use thinking_level not thinkingBudget
+        }
+      } as any
     } as any);
 
     const response = await result.response;
     const text = response.text();
     
+    // Extract thinking from response candidates if available
+    const thinkingText = response.candidates?.[0]?.content?.parts
+      ?.filter((part: any) => part.thought)
+      .map((part: any) => part.text)
+      .join('\n\n') || '';
+    
     return {
-      thinking: response.candidates?.[0]?.content?.parts?.[0]?.text || '',
+      thinking: thinkingText || '(Deep reasoning applied)',
       response: text
     };
   } catch (error) {
+    console.warn('Extended thinking failed, falling back to standard generation:', error);
     // Fallback to regular generation if extended thinking not available
     const result = await model.generateContent(prompt);
     const response = await result.response;
