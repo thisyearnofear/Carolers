@@ -15,41 +15,38 @@ interface EventRecapProps {
 export function EventRecap({ event }: EventRecapProps) {
     const [topSongs, setTopSongs] = useState<Carol[]>([]);
     const [magicRecap, setMagicRecap] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        async function fetchRecapData() {
-            try {
-                // Fetch top songs and magic recap in parallel
-                const [carolsRes, aiRes] = await Promise.all([
-                    fetch('/api/carols'),
-                    fetch(`/api/events/${event.id}/recap`)
-                ]);
+    const fetchRecapData = async () => {
+        try {
+            setLoading(true);
+            // Fetch top songs and magic recap in parallel
+            const [carolsRes, aiRes] = await Promise.all([
+                fetch('/api/carols'),
+                fetch(`/api/events/${event.id}/recap`)
+            ]);
 
-                if (!carolsRes.ok) throw new Error('Failed to fetch carols');
-                const allCarols: Carol[] = await carolsRes.json();
+            if (!carolsRes.ok) throw new Error('Failed to fetch carols');
+            const allCarols: Carol[] = await carolsRes.json();
 
-                const eventCarols = event.carols
-                    ?.map(id => allCarols.find(c => c.id === id))
-                    .filter((c): c is Carol => c !== undefined)
-                    .sort((a, b) => (b.votes || 0) - (a.votes || 0))
-                    .slice(0, 3) || [];
+            const eventCarols = event.carols
+                ?.map(id => allCarols.find(c => c.id === id))
+                .filter((c): c is Carol => c !== undefined)
+                .sort((a, b) => (b.votes || 0) - (a.votes || 0))
+                .slice(0, 3) || [];
 
-                setTopSongs(eventCarols);
+            setTopSongs(eventCarols);
 
-                if (aiRes.ok) {
-                    const aiData = await aiRes.json();
-                    setMagicRecap(aiData.magicRecap);
-                }
-            } catch (error) {
-                console.error('Failed to fetch recap data:', error);
-            } finally {
-                setLoading(false);
+            if (aiRes.ok) {
+                const aiData = await aiRes.json();
+                setMagicRecap(aiData.magicRecap);
             }
+        } catch (error) {
+            console.error('Failed to fetch recap data:', error);
+        } finally {
+            setLoading(false);
         }
-
-        fetchRecapData();
-    }, [event.id, event.carols]);
+    };
 
     return (
         <div className="container mx-auto px-4 py-12 max-w-4xl">
@@ -74,9 +71,18 @@ export function EventRecap({ event }: EventRecapProps) {
                 <h1 className="text-5xl md:text-7xl font-display text-primary mb-4 drop-shadow-sm">
                     Session Recap
                 </h1>
-                <p className="text-xl text-slate-800 font-medium">
+                <p className="text-xl text-slate-800 font-medium mb-6">
                     The magic of {event.name} has been captured.
                 </p>
+                {(topSongs.length === 0 && magicRecap === null) && (
+                    <Button
+                        onClick={fetchRecapData}
+                        disabled={loading}
+                        className="bg-primary text-white hover:shadow-lg"
+                    >
+                        {loading ? 'Loading Recap...' : 'Generate Recap'}
+                    </Button>
+                )}
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">

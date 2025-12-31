@@ -105,7 +105,7 @@ export function AIAssistant({ eventId }: AIAssistantProps) {
           </div>
           <div>
             <h2 className="font-semibold text-slate-900">AI Assistant</h2>
-            <p className="text-xs text-slate-500">Powered by Gemini 2.0 Flash</p>
+            <p className="text-xs text-slate-500">Powered by Gemini 3</p>
           </div>
         </div>
       </div>

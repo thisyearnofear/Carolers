@@ -1,6 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-const client = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+import { generateText } from '@/lib/ai';
 
 export async function POST(req: Request) {
   try {
@@ -13,8 +11,6 @@ export async function POST(req: Request) {
       );
     }
 
-    const model = client.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
     const prompts: Record<string, string> = {
       history: `Provide a brief, engaging 2-3 sentence history or origin story of the carol "${title}" by ${artist || 'traditional'}. Focus on cultural context and historical significance.`,
       techniques: `Give 2-3 practical singing tips for performing "${title}" by ${artist || 'traditional'}. Include advice on breath control, pacing, or emotional delivery.`,
@@ -24,8 +20,7 @@ export async function POST(req: Request) {
 
     const prompt = prompts[insightType] || prompts.history;
 
-    const result = await model.generateContent(prompt);
-    const insight = result.response.text();
+    const insight = await generateText(prompt);
 
     return Response.json({ insight });
   } catch (error) {

@@ -69,13 +69,6 @@ export function EnhancedLyricsViewer({
     onTimeChange?.(time);
   };
 
-  // Auto-load carol info when dialog opens
-  useEffect(() => {
-    if (open && carol && !carolInfo && !loadingCarolInfo) {
-      handleLoadCarolInfo();
-    }
-  }, [open, carol]);
-
   const handleLanguageChange = async (language: string, languageName?: string) => {
     setSelectedLanguage(language);
     
