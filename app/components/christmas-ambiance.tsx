@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAmbianceAudio } from '@/app/hooks/useAmbianceAudio';
-import { useAmbiancePreferences } from '@/app/hooks/useAmbiancePreferences';
-import { useAmbianceContext } from '@/app/providers/ambiance-provider';
+// TODO: Ambiance hooks not yet fully implemented
+// import { useAmbianceAudio } from '@/hooks/useAmbianceAudio';
+// import { useAmbiancePreferences } from '@/hooks/useAmbiancePreferences';
+// import { useAmbianceContext } from '@/providers/ambiance-provider';
 import { AmbianceCompact } from './ambiance/ambiance-compact';
 import { AmbianceExpanded } from './ambiance/ambiance-expanded';
 
@@ -36,6 +37,9 @@ const AMBIANCE_TRACKS: AmbianceTrack[] = [
 ];
 
 export function ChristmasAmbiance() {
+  // TODO: AmbianceProvider implementation pending
+  return null;
+  /*
   const [isMobile, setIsMobile] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const context = useAmbianceContext();
@@ -131,4 +135,5 @@ export function ChristmasAmbiance() {
       </div>
     </div>
   );
+  */
 }

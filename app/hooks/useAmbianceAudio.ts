@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { useAmbianceContext } from '@/app/providers/ambiance-provider';
+// TODO: AmbianceProvider not yet implemented
+// import { useAmbianceContext } from '@/providers/ambiance-provider';
 
 interface UseAmbianceAudioProps {
   src: string;
@@ -10,8 +11,15 @@ interface UseAmbianceAudioProps {
 /**
  * Hook to sync track changes and preferences with the global ambiance context.
  * The context manages the Howl instance lifecycle, this hook just syncs state.
+ * TODO: Implement when AmbianceProvider is ready
  */
 export function useAmbianceAudio({ src, volume, muted }: UseAmbianceAudioProps) {
+  return {
+    isPlaying: false,
+    isReady: false,
+    togglePlay: () => {},
+  };
+  /*
   const context = useAmbianceContext();
 
   // Load track when src changes
@@ -34,4 +42,5 @@ export function useAmbianceAudio({ src, volume, muted }: UseAmbianceAudioProps) 
     isReady: context.isReady,
     togglePlay: context.togglePlay,
   };
+  */
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/app/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Volume2, VolumeX, Play, Pause, ChevronUp, TreePine } from 'lucide-react';
 
 interface AmbianceCompactProps {

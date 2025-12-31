@@ -15,8 +15,8 @@
  */
 
 import 'dotenv/config';
-import { getDb } from '../lib/db';
-import { getCarol, searchCarols } from '../lib/carols';
+import { getDb } from "@/lib/db";
+import { getCarol, searchCarols } from "@/lib/carols";
 import {
   getCanonicalTranslation,
   getOrCreateTranslation,
@@ -24,8 +24,8 @@ import {
   voteOnProposal,
   getLeaderboard,
   getOrCreateReputation,
-} from '../lib/translations';
-import { translateCarolWithGemini } from '../lib/ai';
+} from "@/lib/translations";
+import { translateCarolWithGemini } from "@/lib/ai";
 import { carols } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 

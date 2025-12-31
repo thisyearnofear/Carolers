@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getEvent } from '@/lib/events';
-import { EventRecap } from '@/app/components/event/event-recap';
+import { EventRecap } from '@/components/event/event-recap';
 
 export default async function RecapPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;

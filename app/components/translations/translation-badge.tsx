@@ -1,6 +1,6 @@
 'use client';
 
-import { Badge } from '@/app/components/ui/badge';
+import { Badge } from '@/components/ui/badge';
 import { Sparkles } from 'lucide-react';
 
 interface TranslationBadgeProps {
