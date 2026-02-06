@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Loader2,
 } from "lucide-react";
+import { useAISettings } from "@/store/use-ai-settings";
 
 interface CarolCompanionProps {
   carolTitle: string;
@@ -81,6 +82,8 @@ export function CarolCompanion({
   );
   const [loading, setLoading] = useState<InsightType | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
+  
+  const settings = useAISettings();
 
   const fetchInsight = async (type: InsightType) => {
     // If already loaded, just set active
@@ -95,19 +98,28 @@ export function CarolCompanion({
 
     try {
       const card = INSIGHT_CARDS.find((c) => c.id === type);
-      const response = await fetch("/api/carol-insights", {
+      const response = await fetch("/api/carol-reasoning", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: carolTitle,
-          artist: carolArtist,
-          insightType: type,
-          prompt: card?.prompt,
+          action: "getQuickInsight",
+          args: {
+            title: carolTitle,
+            artist: carolArtist,
+            insightType: type,
+            prompt: card?.prompt
+          },
+          settings: {
+            provider: settings.provider,
+            geminiKey: settings.geminiKey,
+            veniceKey: settings.veniceKey,
+            useGemini3: settings.useGemini3
+          }
         }),
       });
 
       if (response.ok) {
-        const { insight } = await response.json();
+        const { result: insight } = await response.json();
         setInsights((prev) => ({ ...prev, [type]: insight }));
       }
     } catch (error) {

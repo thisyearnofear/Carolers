@@ -8,79 +8,130 @@ import { getEventMessages } from "./messages";
 import { getCarols, type CarolFilters } from "./carols";
 
 // Initialize Gemini AI client
-let aiClient: GoogleGenerativeAI | null = null;
+function getAIClient(userKey?: string) {
+  const apiKey = userKey || process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+  return new GoogleGenerativeAI(apiKey);
+}
 
-function getAIClient() {
-  if (!aiClient && process.env.GEMINI_API_KEY) {
-    aiClient = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  }
-  return aiClient;
+/**
+ * AI Provider Configuration
+ */
+export type AIProvider = 'gemini' | 'venice';
+
+interface RequestOptions {
+  provider?: AIProvider;
+  userKey?: string;
+  useGemini3?: boolean;
 }
 
 /**
  * Gemini 3 Model Configuration
- * Uses gemini-3-pro-preview for best quality (function calling + reasoning)
- * Falls back to gemini-3-flash-preview for faster inference when reasoning not needed
  */
 const MODEL_GEMINI3_PRO = "gemini-3-pro-preview";
 const MODEL_GEMINI3_FLASH = "gemini-3-flash-preview";
-
-// Fallback models if Gemini 3 is not available
 const MODEL_FALLBACK_PRO = "gemini-1.5-pro";
 const MODEL_FALLBACK_FLASH = "gemini-1.5-flash";
 
-// Use Pro for complex reasoning, Flash for fast recommendations
-type ModelVariant = "pro" | "flash";
+async function getModelName(variant: "pro" | "flash" = "flash", useGemini3: boolean = false): Promise<string> {
+  if (useGemini3) {
+    return variant === "pro" ? MODEL_GEMINI3_PRO : MODEL_GEMINI3_FLASH;
+  }
+  return variant === "pro" ? MODEL_FALLBACK_PRO : MODEL_FALLBACK_FLASH;
+}
 
-let modelAvailability: Record<string, boolean> = {};
+/**
+ * Complex analysis with extended thinking
+ */
+export async function generateWithReasoning(
+  prompt: string,
+  systemPrompt?: string,
+  options: RequestOptions = {}
+): Promise<{ thinking: string; response: string; modelUsed?: string; providerUsed?: string }> {
+  // Handle Venice AI (Placeholder for OpenAI-compatible API)
+  if (options.provider === 'venice') {
+    return handleVeniceReasoning(prompt, systemPrompt, options.userKey);
+  }
 
-async function testModelAvailability(
-  client: GoogleGenerativeAI,
-  modelName: string,
-): Promise<boolean> {
+  const client = getAIClient(options.userKey);
+  if (!client) {
+    throw new Error("AI Key missing. Please provide a key in settings to unlock deep reasoning.");
+  }
+
+  const modelName = await getModelName("pro", options.useGemini3);
+  const model = client.getGenerativeModel({
+    model: modelName,
+    systemInstruction: systemPrompt || "You are a Christmas carol expert.",
+  });
+
   try {
-    const model = client.getGenerativeModel({ model: modelName });
-    await model.generateContent("test");
-    return true;
-  } catch (error: any) {
-    if (error.status === 404) {
-      return false;
-    }
-    // For other errors, assume model is available
-    return true;
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        maxOutputTokens: 8000,
+        temperature: 1.0,
+        thinkingConfig: options.useGemini3 ? { thinkingLevel: "high" } : undefined,
+      } as any,
+    } as any);
+
+    const response = await result.response;
+    const thinkingText = response.candidates?.[0]?.content?.parts
+        ?.filter((part: any) => part.thought)
+        .map((part: any) => part.text)
+        .join("\n\n") || "";
+
+    return {
+      thinking: thinkingText || (options.useGemini3 ? "(Deep reasoning applied)" : "(Standard reasoning applied)"),
+      response: response.text(),
+      modelUsed: modelName,
+      providerUsed: 'gemini'
+    };
+  } catch (error) {
+    console.warn("Reasoning failed, falling back to standard generation:", error);
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return {
+      thinking: "(Extended reasoning unavailable)",
+      response: response.text(),
+      modelUsed: MODEL_FALLBACK_FLASH,
+      providerUsed: 'gemini'
+    };
   }
 }
 
-async function getModelName(variant: ModelVariant = "flash"): Promise<string> {
-  const client = getAIClient();
-  if (!client)
-    return variant === "pro" ? MODEL_FALLBACK_PRO : MODEL_FALLBACK_FLASH;
+/**
+ * Venice AI Implementation (OpenAI Compatible)
+ */
+async function handleVeniceReasoning(prompt: string, systemPrompt?: string, userKey?: string) {
+  const apiKey = userKey || process.env.VENICE_API_KEY;
+  if (!apiKey) throw new Error("Venice AI Key missing.");
 
-  const primaryModel =
-    variant === "pro" ? MODEL_GEMINI3_PRO : MODEL_GEMINI3_FLASH;
-  const fallbackModel =
-    variant === "pro" ? MODEL_FALLBACK_PRO : MODEL_FALLBACK_FLASH;
+  const response = await fetch("https://api.venice.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-instruct", // Example Venice model
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt }
+      ]
+    }),
+  });
 
-  // Check cache first
-  if (modelAvailability[primaryModel] === true) return primaryModel;
-  if (modelAvailability[primaryModel] === false) return fallbackModel;
-
-  // Test availability
-  const isAvailable = await testModelAvailability(client, primaryModel);
-  modelAvailability[primaryModel] = isAvailable;
-
-  if (!isAvailable) {
-    console.warn(
-      `Model ${primaryModel} not available, falling back to ${fallbackModel}`,
-    );
-  }
-
-  return isAvailable ? primaryModel : fallbackModel;
+  const data = await response.json();
+  return {
+    thinking: "(Venice AI reasoning applied)",
+    response: data.choices[0].message.content,
+    modelUsed: "llama-3.3-70b-instruct",
+    providerUsed: 'venice'
+  };
 }
 
 /**
  * Tool definitions for Gemini function calling
- * Each tool maps to a real implementation below
  */
 const TOOL_DEFINITIONS: FunctionDeclarationsTool = {
   functionDeclarations: [
@@ -448,20 +499,20 @@ async function handleAddContribution(args: {
 
 /**
  * Main function calling orchestrator
- * Sends prompt to Gemini with tool definitions and loops until done
  */
 export async function callGeminiWithTools(
   prompt: string,
   eventId: string,
   eventTheme?: string,
+  options: RequestOptions = {}
 ): Promise<{
   response: string;
   toolCalls: Array<{ tool: string; args: any; result: any }>;
 }> {
-  const client = getAIClient();
+  const client = getAIClient(options.userKey);
 
   if (!client) {
-    throw new Error("Gemini AI client not initialized. Check GEMINI_API_KEY.");
+    throw new Error("Gemini AI client not initialized. Check AI settings.");
   }
 
   // Get event context for system prompt
@@ -478,7 +529,7 @@ Use these tools proactively when they would help answer the user's question.
 Current event theme: ${eventTheme || "Christmas"}
 Recent event context: ${recentContext || "No recent messages"}`;
 
-  const modelName = await getModelName("flash");
+  const modelName = await getModelName("flash", options.useGemini3);
   const model = client.getGenerativeModel({
     model: modelName,
     systemInstruction: systemPrompt,
@@ -493,7 +544,7 @@ Recent event context: ${recentContext || "No recent messages"}`;
   const result = await chat.sendMessage(prompt);
   let response = result.response;
 
-  // Function calling loop: process tool calls until model stops
+  // Function calling loop
   while (continueLoop) {
     const calls = response.functionCalls();
 
@@ -564,21 +615,17 @@ Recent event context: ${recentContext || "No recent messages"}`;
 }
 
 /**
- * Simple text generation (no function calling)
- * For simpler requests that don't need tool execution
- * Uses Gemini 3 Flash Preview for speed
+ * Simple text generation
  */
 export async function generateText(
   prompt: string,
   systemPrompt?: string,
+  options: RequestOptions = {}
 ): Promise<string> {
-  const client = getAIClient();
+  const client = getAIClient(options.userKey);
+  if (!client) return "AI Key missing. Please provide a key in settings.";
 
-  if (!client) {
-    throw new Error("Gemini AI client not initialized. Check GEMINI_API_KEY.");
-  }
-
-  const modelName = await getModelName("flash");
+  const modelName = await getModelName("flash", options.useGemini3);
   const model = client.getGenerativeModel({
     model: modelName,
     systemInstruction: systemPrompt || "You are a helpful assistant.",
@@ -590,104 +637,27 @@ export async function generateText(
 }
 
 /**
- * Complex analysis with extended thinking
- * Uses Gemini 3 Pro's reasoning capabilities (thinking_level parameter)
- * For carol analysis, setlist logic, cultural/harmonic understanding
- *
- * Gemini 3 differs from 2.5: uses dynamic thinking by default
- * Set thinking_level to 'high' for complex reasoning
- */
-export async function generateWithReasoning(
-  prompt: string,
-  systemPrompt?: string,
-  _thinkingBudget?: number, // Deprecated for Gemini 3, kept for compatibility
-): Promise<{ thinking: string; response: string }> {
-  const client = getAIClient();
-
-  if (!client) {
-    throw new Error("Gemini AI client not initialized. Check GEMINI_API_KEY.");
-  }
-
-  const modelName = await getModelName("pro");
-  const model = client.getGenerativeModel({
-    model: modelName,
-    systemInstruction: systemPrompt || "You are a Christmas carol expert.",
-  });
-
-  try {
-    // Use Gemini 3 Pro with thinking_level: high for extended reasoning
-    // Temperature must be 1.0 for reasoning mode
-    const result = await model.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [
-            {
-              text: prompt,
-            },
-          ],
-        },
-      ],
-      generationConfig: {
-        maxOutputTokens: 8000,
-        temperature: 1.0, // Required for Gemini 3 reasoning
-        thinkingConfig: {
-          thinkingLevel: "high", // Gemini 3: use thinking_level not thinkingBudget
-        },
-      } as any,
-    } as any);
-
-    const response = await result.response;
-    const text = response.text();
-
-    // Extract thinking from response candidates if available
-    const thinkingText =
-      response.candidates?.[0]?.content?.parts
-        ?.filter((part: any) => part.thought)
-        .map((part: any) => part.text)
-        .join("\n\n") || "";
-
-    return {
-      thinking: thinkingText || "(Deep reasoning applied)",
-      response: text,
-    };
-  } catch (error) {
-    console.warn(
-      "Extended thinking failed, falling back to standard generation:",
-      error,
-    );
-    // Fallback to regular generation if extended thinking not available
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return {
-      thinking: "(Reasoning not available)",
-      response: response.text(),
-    };
-  }
-}
-
-/**
  * Generate carol suggestions based on theme
- * Used by suggestSetlist and setlist generation
  */
 export async function generateCarolSuggestions(
   theme: string,
   count: number = 5,
+  options: RequestOptions = {}
 ): Promise<string[]> {
   try {
     const text = await generateText(
       `Suggest ${count} Christmas carols that would fit a "${theme}" themed caroling event. Respond with just the song titles, one per line, no numbering.`,
       "You are a Christmas carol expert who knows traditional and popular Christmas songs.",
+      options
     );
 
     return text
       .split("\n")
       .map((line) => line.trim())
-      .filter((line) => line && !line.match(/^\d+\./)) // Remove numbered lines
+      .filter((line) => line && !line.match(/^\d+\./)) 
       .slice(0, count);
   } catch (error) {
     console.error("Error generating carol suggestions:", error);
-    // Fallback to popular classics
     return [
       "Silent Night",
       "Joy to the World",
@@ -699,11 +669,12 @@ export async function generateCarolSuggestions(
 }
 
 /**
- * Generate event recap/summary
+ * Generate event recap
  */
 export async function generateEventRecap(
   event: any,
   topCarols: any[],
+  options: RequestOptions = {}
 ): Promise<string> {
   try {
     const prompt = `
@@ -720,6 +691,7 @@ export async function generateEventRecap(
     return await generateText(
       prompt,
       "You are a creative writer who creates warm, festive event recaps.",
+      options
     );
   } catch (error) {
     console.error("Error generating event recap:", error);
@@ -734,6 +706,7 @@ export async function polishCarolData(
   title: string,
   artist: string,
   existingLyrics: string[],
+  options: RequestOptions = {}
 ): Promise<{ title: string; lyrics: string[] }> {
   try {
     const prompt = `
@@ -755,7 +728,7 @@ export async function polishCarolData(
       }
     `;
 
-    const text = await generateText(prompt);
+    const text = await generateText(prompt, undefined, options);
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     const cleanJson = jsonMatch ? jsonMatch[0] : text;
     return JSON.parse(cleanJson);
@@ -766,15 +739,14 @@ export async function polishCarolData(
 }
 
 /**
- * Translate carol lyrics to a target language
- * Uses Gemini 3's enhanced multilingual capabilities
- * Maintains rhythm, rhyme, and singability while considering cultural context
+ * Translate carol lyrics
  */
 export async function translateCarolWithGemini(
   title: string,
   lyrics: string[],
   targetLanguage: string,
   languageName: string,
+  options: RequestOptions = {}
 ): Promise<{ title: string; lyrics: string[] }> {
   try {
     const lyricsText = lyrics.join("\n");
@@ -792,52 +764,37 @@ ${lyricsText}
 Translation requirements:
 1. Create a natural, culturally appropriate title in ${languageName}
 2. Maintain the exact verse/chorus structure
-3. Preserve rhythm and rhyme schemes (this is a SONG, not prose)
+3. Preserve rhythm and rhyme schemes
 4. Sound natural when sung aloud
-5. Adapt cultural references appropriately for ${languageName} speakers
-6. Keep musical pacing - each line should fit the original melody
-7. Preserve section markers like [Verse 1], [Chorus], etc.
-8. Consider holiday traditions and musical sensibilities in ${languageName} culture
+5. Adapt cultural references appropriately
+6. Keep musical pacing
+7. Preserve section markers
+8. Consider holiday traditions
 
 Respond ONLY with valid JSON in this format:
 {
-  "title": "Translated Title in ${languageName}",
+  "title": "Translated Title",
   "lyrics": ["Line 1", "Line 2", ...]
 }
-
-Ensure JSON is properly escaped and valid.
     `;
 
-    // Use Gemini 3 Flash Preview for efficient translation with extended thinking fallback for complex cases
     let responseText = "";
     try {
-      // Try with reasoning first for complex translations
       const { response } = await generateWithReasoning(
         prompt,
-        `You are an expert in ${languageName} language, culture, and music. Focus on preserving singability, rhythm, and cultural authenticity.`,
+        `You are an expert in ${languageName} language, culture, and music.`,
+        options
       );
       responseText = response;
     } catch (error) {
-      console.warn(
-        "Translation with reasoning failed, using standard generation:",
-        error,
-      );
-      responseText = await generateText(
-        prompt,
-        `You are an expert translator specializing in Christmas carols and ${languageName} language/culture.`,
-      );
+      responseText = await generateText(prompt, undefined, options);
     }
 
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     const cleanJson = jsonMatch ? jsonMatch[0] : responseText;
     return JSON.parse(cleanJson);
   } catch (error) {
-    console.error(
-      `Error translating carol "${title}" to ${languageName}:`,
-      error,
-    );
-    throw new Error(
-      `Failed to translate carol: ${error instanceof Error ? error.message : "Unknown error"}`,
-    );
+    console.error(`Error translating carol "${title}":`, error);
+    throw new Error(`Failed to translate carol.`);
   }
 }

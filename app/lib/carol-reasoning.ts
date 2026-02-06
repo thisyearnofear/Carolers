@@ -1,6 +1,7 @@
 import 'server-only';
 import { generateWithReasoning } from './ai';
 import { getCarols } from './carols';
+import { CarolPrompts, SystemInstructions } from './ai-prompts';
 
 /**
  * Advanced setlist reasoning using Gemini 3's extended thinking
@@ -12,7 +13,7 @@ export async function reasonAboutSetlist(args: {
   duration: number; // minutes
   singerSkillLevel?: 'beginner' | 'intermediate' | 'advanced';
   preferredLanguages?: string[];
-}): Promise<{
+}, options?: any): Promise<{
   reasoning: string;
   recommendations: string[];
   keyInsights: string[];
@@ -70,7 +71,8 @@ Provide:
 
     const { thinking, response } = await generateWithReasoning(
       prompt,
-      'You are an expert caroling conductor analyzing group singing dynamics, cultural authenticity, and emotional pacing.'
+      SystemInstructions.conductor,
+      options
     );
 
     // Parse recommendations from response
@@ -89,12 +91,43 @@ Provide:
 }
 
 /**
+ * Deep detailed analysis of a single carol
+ * Used for the Deep Analysis Panel
+ */
+export async function analyzeCarolDeeply(
+  title: string,
+  artist: string,
+  type: 'structure' | 'performance' | 'cultural' | 'harmony',
+  options?: any
+): Promise<{ thinking: string; response: string }> {
+  try {
+    const promptGenerator = CarolPrompts[type] || CarolPrompts.structure;
+    const prompt = promptGenerator(title, artist);
+
+    const { thinking, response } = await generateWithReasoning(
+      prompt,
+      SystemInstructions.deepAnalysis,
+      options
+    );
+
+    return {
+      thinking: thinking || '(Deep reasoning applied to analysis)',
+      response
+    };
+  } catch (error) {
+    console.error(`Error in deep analysis (${type}):`, error);
+    throw new Error(`Failed to analyze carol deeply: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
  * Analyze carol cultural origins and historical context
  * Returns rich metadata for educational purposes
  */
 export async function analyzeCarolCulture(
   title: string,
-  artist: string
+  artist: string,
+  options?: any
 ): Promise<{
   origin: string;
   culturalContext: string;
@@ -128,7 +161,8 @@ Only return valid JSON.`;
 
     const { response } = await generateWithReasoning(
       prompt,
-      'You are a musicologist with expertise in Christmas carol history, cultural traditions, and harmonic analysis.'
+      'You are a musicologist with expertise in Christmas carol history, cultural traditions, and harmonic analysis.',
+      options
     );
 
     const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -146,7 +180,8 @@ Only return valid JSON.`;
  */
 export async function suggestComplementaryCarols(
   mainCarol: string,
-  carols: Array<{ title: string; artist: string; energy: string; tags?: string[] }>
+  carols: Array<{ title: string; artist: string; energy: string; tags?: string[] }>,
+  options?: any
 ): Promise<string[]> {
   try {
     const prompt = `You are a Christmas carol expert analyzing musical and cultural relationships between songs.
@@ -171,7 +206,8 @@ Only return valid JSON.`;
 
     const { response } = await generateWithReasoning(
       prompt,
-      'You are an expert in Christmas carol traditions, harmonic theory, and emotional pacing. Focus on creating setlists that flow naturally.'
+      'You are an expert in Christmas carol traditions, harmonic theory, and emotional pacing. Focus on creating setlists that flow naturally.',
+      options
     );
 
     const jsonMatch = response.match(/\[[\s\S]*\]/);

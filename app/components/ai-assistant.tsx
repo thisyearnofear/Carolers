@@ -7,6 +7,7 @@ import { Input } from './ui/input';
 import { Card } from './ui/card';
 import { ToolResultDisplay } from './tool-result-display';
 import { Send, Loader, Zap } from 'lucide-react';
+import { useAISettings } from '@/store/use-ai-settings';
 
 interface ToolCall {
   tool: string;
@@ -31,6 +32,8 @@ export function AIAssistant({ eventId }: AIAssistantProps) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const settings = useAISettings();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -54,7 +57,15 @@ export function AIAssistant({ eventId }: AIAssistantProps) {
       const response = await fetch(`/api/events/${eventId}/ai`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: input })
+        body: JSON.stringify({ 
+          prompt: input,
+          settings: {
+            provider: settings.provider,
+            geminiKey: settings.geminiKey,
+            veniceKey: settings.veniceKey,
+            useGemini3: settings.useGemini3
+          }
+        })
       });
 
       if (!response.ok) {

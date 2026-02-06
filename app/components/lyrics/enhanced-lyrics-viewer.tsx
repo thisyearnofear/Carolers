@@ -22,8 +22,11 @@ import { LanguageSelector } from "../translations/language-selector";
 import { TranslationBadge } from "../translations/translation-badge";
 import { TranslationSuggestions } from "./translation-suggestions";
 import { CarolCompanion } from "../carol/carol-companion";
+import { DeepAnalysisPanel } from "../carol/deep-analysis-panel";
+import { VisionAnalysisPanel } from "../carol/vision-analysis-panel";
 import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { ScrollArea } from "../ui/scroll-area";
 
 interface EnhancedLyricsViewerProps {
   carol: Carol | null;
@@ -143,7 +146,7 @@ export function EnhancedLyricsViewer({
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/5 px-4 py-3 text-sm font-bold"
             >
               <Sparkles className="w-4 h-4 mr-2" />
-              Carol Companion
+              AI Insights
             </TabsTrigger>
           </TabsList>
 
@@ -199,19 +202,39 @@ export function EnhancedLyricsViewer({
             value="insights"
             className="flex flex-col flex-1 overflow-hidden m-0"
           >
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
-              <CarolCompanion
-                carolTitle={carol.title}
-                carolArtist={carol.artist}
-              />
+            <ScrollArea className="flex-1">
+              <div className="p-6 space-y-12">
+                <section>
+                  <CarolCompanion
+                    carolTitle={carol.title}
+                    carolArtist={carol.artist}
+                  />
+                </section>
 
-              <TranslationSuggestions
-                carolId={carol.id}
-                currentLanguage={selectedLanguage}
-                onLanguageSelect={handleLanguageChange}
-                isLoading={loadingTranslation}
-              />
-            </div>
+                <section className="pt-6 border-t border-primary/5">
+                  <DeepAnalysisPanel
+                    carolTitle={carol.title}
+                    carolArtist={carol.artist}
+                  />
+                </section>
+
+                <section className="pt-6 border-t border-primary/5">
+                  <VisionAnalysisPanel
+                    carolId={carol.id}
+                    carolTitle={carol.title}
+                  />
+                </section>
+
+                <section className="pt-6 border-t border-primary/5">
+                  <TranslationSuggestions
+                    carolId={carol.id}
+                    currentLanguage={selectedLanguage}
+                    onLanguageSelect={handleLanguageChange}
+                    isLoading={loadingTranslation}
+                  />
+                </section>
+              </div>
+            </ScrollArea>
           </TabsContent>
         </Tabs>
       </DialogContent>

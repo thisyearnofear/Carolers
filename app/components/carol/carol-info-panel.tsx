@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { type Carol } from '@shared/schema';
 import { Music, Info } from 'lucide-react';
 import { Button } from '../ui/button';
+import { useAISettings } from '@/store/use-ai-settings';
 
 interface CarolInfoPanelProps {
   carol: Carol;
@@ -21,6 +22,8 @@ export function CarolInfoPanel({
   const [showInfo, setShowInfo] = useState(false);
   const [loading, setLoading] = useState(false);
   const [localInfo, setLocalInfo] = useState<string | null>(info || null);
+  
+  const settings = useAISettings();
 
   const handleLoadInfo = async () => {
     if (localInfo) {
@@ -30,17 +33,26 @@ export function CarolInfoPanel({
 
     setLoading(true);
     try {
-      const response = await fetch('/api/carol-info', {
+      const response = await fetch('/api/carol-reasoning', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: carol.title,
-          artist: carol.artist
+          action: 'getCarolInfo',
+          args: {
+            title: carol.title,
+            artist: carol.artist
+          },
+          settings: {
+            provider: settings.provider,
+            geminiKey: settings.geminiKey,
+            veniceKey: settings.veniceKey,
+            useGemini3: settings.useGemini3
+          }
         })
       });
       
       if (response.ok) {
-        const { info: newInfo } = await response.json();
+        const { result: newInfo } = await response.json();
         setLocalInfo(newInfo);
         setShowInfo(true);
         onInfoLoad?.(newInfo);

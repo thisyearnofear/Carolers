@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
 
 import { useSafeUser } from '@/hooks/use-safe-user';
+import { AISettingsPopover } from './ai-settings-popover';
 
 export function Navbar() {
     const { isSignedIn, user, isClerkDisabled } = useSafeUser();
@@ -37,6 +38,9 @@ export function Navbar() {
                         <BookOpen className="w-4 h-4" />
                         Songbook
                     </Link>
+                    
+                    <AISettingsPopover />
+
                     {!isClerkDisabled && <div className="h-6 w-px bg-primary/10 mx-2" />}
                     <div className="flex items-center">
                         {!isClerkDisabled && (
@@ -98,6 +102,11 @@ export function Navbar() {
                                 <BookOpen className="w-5 h-5 text-primary" />
                                 Songbook
                             </Link>
+                            
+                            <div className="flex px-md py-sm">
+                                <AISettingsPopover />
+                            </div>
+
                             <div className="h-px bg-primary/5 w-full my-2" />
                             <div className="px-3">
                                 {!isClerkDisabled && (

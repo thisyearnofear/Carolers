@@ -6,6 +6,7 @@ import { type Event } from '@shared/schema';
 import { Lightbulb, Music, Zap, ChevronDown } from 'lucide-react';
 import { Button } from '../ui/button';
 import { SetlistCard } from '../carol/setlist-card';
+import { useAISettings } from '@/store/use-ai-settings';
 
 interface SetlistSong {
   title: string;
@@ -24,6 +25,8 @@ export function PlanEventSection({ event }: PlanEventSectionProps) {
   const [loading, setLoading] = useState(false);
   const [setlist, setSetlist] = useState<SetlistSong[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  const settings = useAISettings();
 
   const generatePlan = async () => {
     setLoading(true);
@@ -42,6 +45,12 @@ export function PlanEventSection({ event }: PlanEventSectionProps) {
               groupSize: event.members?.length || 8,
               duration: 45,
               singerSkillLevel: 'intermediate'
+            },
+            settings: {
+              provider: settings.provider,
+              geminiKey: settings.geminiKey,
+              veniceKey: settings.veniceKey,
+              useGemini3: settings.useGemini3
             }
           })
         });
@@ -55,15 +64,21 @@ export function PlanEventSection({ event }: PlanEventSectionProps) {
         console.warn('Advanced reasoning unavailable, using standard setlist:', reasoningErr);
       }
 
-      // Call AI assistant to suggest setlist
-      const response = await fetch('/api/ai-suggestions', {
+      // Call consolidated reasoning API to suggest setlist
+      const response = await fetch('/api/carol-reasoning', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tool: 'suggestSetlist',
+          action: 'suggestSetlist',
           args: {
             theme: event.theme,
             duration: '45 minutes'
+          },
+          settings: {
+            provider: settings.provider,
+            geminiKey: settings.geminiKey,
+            veniceKey: settings.veniceKey,
+            useGemini3: settings.useGemini3
           }
         })
       });
