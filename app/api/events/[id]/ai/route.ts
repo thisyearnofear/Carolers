@@ -11,7 +11,7 @@ const rateLimits = new Map<string, { count: number; lastReset: number }>();
 function checkRateLimit(userId: string): { allowed: boolean; retryAfter?: number } {
   const now = Date.now();
   const window = 60 * 1000; // 1 minute
-  const maxRequests = 10; // 10 requests per minute (increased for function calling)
+  const maxRequests = 10; // 10 requests per minute
   
   if (!rateLimits.has(userId)) {
     rateLimits.set(userId, { count: 1, lastReset: now });
@@ -56,7 +56,24 @@ export async function POST(
     const { id } = await params;
     const { userId } = await auth();
     
-    // ... authentication and rate limit logic (kept same)
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check rate limit
+    const limit = checkRateLimit(userId);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded', retryAfter: limit.retryAfter },
+        { status: 429 }
+      );
+    }
+
+    // Get event context
+    const event = await getEvent(id);
+    if (!event) {
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+    }
 
     // Validate request
     const jsonBody = await request.json();
@@ -74,7 +91,7 @@ export async function POST(
     const { response, toolCalls } = await callGeminiWithTools(
       prompt,
       id,
-      event.theme,
+      event.theme || 'Christmas Caroling',
       options
     );
 

@@ -27,23 +27,106 @@ export async function getNextCarolRecommendations(
   options?: any
 ): Promise<CarolRecommendation[]> {
   try {
-    // ... (logic before calling AI)
+    // Get all available carols
+    const allCarols = await getCarols({ lang: 'en' });
+    
+    if (allCarols.length === 0) {
+      return [];
+    }
+
+    // Get recent event chat to understand sentiment
+    const messages = await getEventMessages(eventId);
+    const recentMessages = messages.slice(-10);
+    const chatContext = recentMessages
+      .map(m => `${(m as any).userName || 'Someone'}: ${m.text}`)
+      .join(' | ');
+
+    // Analyze sentiment from chat
+    let sentiment = 'neutral';
+    if (chatContext) {
+      const chatLower = chatContext.toLowerCase();
+      if (chatLower.includes('exciting') || chatLower.includes('great') || chatLower.includes('love')) {
+        sentiment = 'upbeat';
+      } else if (chatLower.includes('peaceful') || chatLower.includes('quiet') || chatLower.includes('calm')) {
+        sentiment = 'reflective';
+      } else if (chatLower.includes('tired') || chatLower.includes('winding')) {
+        sentiment = 'winding-down';
+      }
+    }
+
+    // Build prompt for Gemini to recommend carols
+    const recentSongList = recentlySelectedCarolIds.length > 0
+      ? `Recently sung: ${recentlySelectedCarolIds.slice(0, 3).join(', ')}`
+      : 'No carols sung yet';
+
+    const recommendationPrompt = `You are a Christmas caroling event coordinator with deep knowledge of carol traditions, cultural significance, and musical harmonies.
+
+Given the context below, recommend 3 carols from the provided list that would be perfect to sing next. Consider:
+- Emotional arc and energy flow of the event
+- Difficulty progression for singers
+- Cultural and historical appropriateness
+- Harmonic structure and singability in groups
+
+Event Theme: ${eventTheme}
+Sentiment: ${sentiment}
+${recentSongList}
+Recent Chat: ${chatContext || 'No chat yet'}
+Available Carols: ${JSON.stringify(allCarols.slice(0, 20).map(c => ({ id: c.id, title: c.title, artist: c.artist, energy: c.energy, tags: c.tags })))}
+
+For each recommendation:
+1. Choose a carol that fits the theme and current sentiment
+2. Explain WHY it's a good next choice (consider harmony, cultural fit, emotional progression)
+3. Indicate momentum: is this 'building' energy, 'maintaining' it, or 'winding-down'
+
+Format your response as JSON array with objects: { "title": "...", "artist": "...", "reason": "...", "momentum": "building|maintaining|winding-down" }
+
+Only return valid JSON array, no other text.`;
 
     // Call Gemini 3 with reasoning for better recommendations
     let responseText = '';
     try {
       const { response } = await generateWithReasoning(
-        prompt,
+        recommendationPrompt,
         'You are a Christmas caroling event coordinator with expertise in carol traditions, harmonic theory, and group singing dynamics.',
         options
       );
       responseText = response;
     } catch (error) {
       console.warn('Extended thinking failed, falling back to regular generation:', error);
-      responseText = await generateText(prompt, undefined, options);
+      responseText = await generateText(recommendationPrompt, undefined, options);
     }
     
-    // ... (rest of parsing logic)
+    // Parse JSON response
+    let recommendations: Array<{ title: string; artist: string; reason: string; momentum: 'building' | 'maintaining' | 'winding-down' }>;
+    try {
+      recommendations = JSON.parse(responseText);
+    } catch {
+      // If JSON parsing fails, return empty
+      return [];
+    }
+
+    // Map recommendations to actual carols and return
+    const result: CarolRecommendation[] = [];
+    
+    for (const rec of recommendations) {
+      const matchedCarol = allCarols.find(
+        c => c.title.toLowerCase() === rec.title.toLowerCase() &&
+             c.artist.toLowerCase() === rec.artist.toLowerCase()
+      );
+
+      if (matchedCarol) {
+        result.push({
+          id: matchedCarol.id,
+          title: matchedCarol.title,
+          artist: matchedCarol.artist,
+          energy: matchedCarol.energy || 'medium',
+          reason: rec.reason,
+          momentum: rec.momentum
+        });
+      }
+    }
+
+    return result.slice(0, limit);
   } catch (error) {
     console.error('Error getting carol recommendations:', error);
     return [];
@@ -63,7 +146,7 @@ export async function getCarolInfo(
 ): Promise<string> {
   try {
     // Gemini 3: Be concise and direct. Avoid verbose prompt engineering.
-    const prompt = `Provide context about "${title}" by ${artist} for a "${eventTheme}" event.
+    const infoPrompt = `Provide context about "${title}" by ${artist} for a "${eventTheme}" event.
 
 Include:
 1. Historical origin (1 sentence)
@@ -77,7 +160,7 @@ Limit: 120 words, practical tone.`;
     // Use Gemini 3 with thinking for deeper cultural/musical insight
     try {
       const { response } = await generateWithReasoning(
-        prompt,
+        infoPrompt,
         'Expert in Christmas carol history, harmony, and group vocal performance.',
         options
       );
