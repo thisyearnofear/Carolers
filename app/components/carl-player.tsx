@@ -37,7 +37,38 @@ export function CarolPlayer({ event }: CarolPlayerProps) {
   
   const settings = useAISettings();
 
-  // ... (useEffect and handleVote logic kept same)
+  useEffect(() => {
+    const fetchCarols = async () => {
+      try {
+        const response = await fetch(`/api/events/${event.id}/carols`);
+        if (response.ok) {
+          const data = await response.json();
+          setCarols(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch carols:', error);
+      }
+    };
+    fetchCarols();
+  }, [event.id]);
+
+  const handleVote = async (carolId: string) => {
+    try {
+      const response = await fetch(`/api/carols/${carolId}/vote`, {
+        method: 'POST',
+      });
+      if (response.ok) {
+        setVotedCarols(prev => new Set(prev).add(carolId));
+        setCarols(prev =>
+          prev.map(c =>
+            c.id === carolId ? { ...c, votes: (c.votes || 0) + 1 } : c
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Failed to vote:', error);
+    }
+  };
 
   const handleGetRecommendations = async () => {
     setLoadingRecommendations(true);

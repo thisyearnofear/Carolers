@@ -83,7 +83,7 @@ export async function POST(
     // Extract options from settings provided by frontend
     const options: RequestOptions = {
       provider: (settings?.provider as AIProvider) || 'gemini',
-      userKey: settings?.provider === 'venice' ? settings?.veniceKey : settings?.geminiKey,
+      userKey: (settings?.provider === 'venice' ? settings?.veniceKey : settings?.geminiKey) ?? undefined,
       useGemini3: settings?.useGemini3 || false
     };
 
