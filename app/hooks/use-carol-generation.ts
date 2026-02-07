@@ -25,7 +25,7 @@ export interface GenerationState {
 
 export function useCarolGeneration() {
   const [state, setState] = useState<GenerationState>({ status: 'idle' });
-  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout>();
+  const [pollingInterval, setPollingInterval] = useState<any>();
 
   const submitCarol = useCallback(
     async (params: {

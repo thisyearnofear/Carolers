@@ -41,7 +41,7 @@ export function AmbianceProvider({
   const [volume, setVolumeState] = useState(0.3);
   const initialTrackId = tracks.length > 0 ? tracks[0].id : '';
   const [currentTrackId, setCurrentTrackId] = useState(initialTrackId);
-  const trackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const trackTimeoutRef = useRef<any | null>(null);
 
   // Initialize Howl instance when track changes
   useEffect(() => {

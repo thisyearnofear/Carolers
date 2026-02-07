@@ -41,7 +41,7 @@ export async function POST(
       message: `Your ${vote} has been recorded`,
       vote: voteValue,
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },

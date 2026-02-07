@@ -1,7 +1,7 @@
 import "server-only";
 
 const SUNO_API_BASE = "https://api.sunoapi.org/api/v1";
-const SUNO_API_KEY = process.env.SUNO_API_KEY;
+const SUNO_API_KEY = (process.env as any).SUNO_API_KEY;
 
 export interface SunoGenerateRequest {
   title: string;
@@ -179,8 +179,8 @@ export async function generateCarol(params: SunoGenerateRequest) {
     customMode: isCustomMode,
     instrumental: isInstrumental,
     model: params.model || "V5", // Default to V5 as recommended
-    callBackUrl: process.env.NEXT_PUBLIC_APP_URL
-      ? `${process.env.NEXT_PUBLIC_APP_URL}/api/suno/callback`
+    callBackUrl: (process.env as any).NEXT_PUBLIC_APP_URL
+      ? `${(process.env as any).NEXT_PUBLIC_APP_URL}/api/suno/callback`
       : undefined, // Only include if we have a public URL
   };
 

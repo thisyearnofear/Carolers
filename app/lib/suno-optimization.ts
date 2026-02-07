@@ -247,7 +247,7 @@ export function calculateRetryDelay(
   // Check for specific error type delays
   if (errorType) {
     const errorTypeLower = errorType.toLowerCase();
-    for (const [key, delay] of Object.entries(RETRY_CONFIG.errorDelays)) {
+    for (const [key, delay] of (Object as any).entries(RETRY_CONFIG.errorDelays)) {
       if (errorTypeLower.includes(key.toLowerCase())) {
         baseDelay = delay as number;
         break;

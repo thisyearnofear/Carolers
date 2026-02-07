@@ -9,7 +9,7 @@ import { getCarols, type CarolFilters } from "./carols";
 
 // Initialize Gemini AI client
 function getAIClient(userKey?: string) {
-  const apiKey = userKey || process.env.GEMINI_API_KEY;
+  const apiKey = userKey || (process.env as any).GEMINI_API_KEY;
   if (!apiKey) return null;
   return new GoogleGenerativeAI(apiKey);
 }
@@ -19,7 +19,7 @@ function getAIClient(userKey?: string) {
  */
 export type AIProvider = 'gemini' | 'venice';
 
-interface RequestOptions {
+export interface RequestOptions {
   provider?: AIProvider;
   userKey?: string;
   useGemini3?: boolean;
@@ -103,7 +103,7 @@ export async function generateWithReasoning(
  * Venice AI Implementation (OpenAI Compatible)
  */
 async function handleVeniceReasoning(prompt: string, systemPrompt?: string, userKey?: string) {
-  const apiKey = userKey || process.env.VENICE_API_KEY;
+  const apiKey = userKey || (process.env as any).VENICE_API_KEY;
   if (!apiKey) throw new Error("Venice AI Key missing.");
 
   const response = await fetch("https://api.venice.ai/api/v1/chat/completions", {

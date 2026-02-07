@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       reputation,
       votingPower: 1 + Math.floor((reputation.repPoints || 0) / 100),
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },

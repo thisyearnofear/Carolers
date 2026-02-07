@@ -3,7 +3,7 @@ import { getEvent } from '@/lib/events';
 import { addMessage } from '@/lib/messages';
 import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
-import { callGeminiWithTools } from '@/lib/ai';
+import { callGeminiWithTools, type RequestOptions, type AIProvider } from '@/lib/ai';
 
 // Simple in-memory rate limiting
 const rateLimits = new Map<string, { count: number; lastReset: number }>();
@@ -81,8 +81,8 @@ export async function POST(
     const { prompt, settings } = body;
 
     // Extract options from settings provided by frontend
-    const options = {
-      provider: settings?.provider || 'gemini',
+    const options: RequestOptions = {
+      provider: (settings?.provider as AIProvider) || 'gemini',
       userKey: settings?.provider === 'venice' ? settings?.veniceKey : settings?.geminiKey,
       useGemini3: settings?.useGemini3 || false
     };
@@ -114,7 +114,7 @@ export async function POST(
       }))
     });
 
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },

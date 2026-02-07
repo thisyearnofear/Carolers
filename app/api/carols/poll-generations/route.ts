@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   try {
     // Verify this is a cron request
     const authHeader = request.headers.get("authorization");
-    const expectedSecret = process.env.CRON_SECRET;
+    const expectedSecret = (process.env as any).CRON_SECRET;
 
     if (!expectedSecret || authHeader !== `Bearer ${expectedSecret}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -251,7 +251,7 @@ export async function GET(request: Request) {
   try {
     // This endpoint can be used to check the current state of processing carols
     const authHeader = request.headers.get("authorization");
-    const expectedSecret = process.env.CRON_SECRET;
+    const expectedSecret = (process.env as any).CRON_SECRET;
 
     if (!expectedSecret || authHeader !== `Bearer ${expectedSecret}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

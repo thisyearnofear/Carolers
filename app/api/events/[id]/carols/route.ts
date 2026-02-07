@@ -65,7 +65,7 @@ export async function POST(
       alreadyAdded: result.alreadyAdded || false
     });
 
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },

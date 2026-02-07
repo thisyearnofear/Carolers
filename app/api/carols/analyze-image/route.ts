@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const apiKey = settings?.geminiKey || process.env.GEMINI_API_KEY;
+    const apiKey = settings?.geminiKey || (process.env as any).GEMINI_API_KEY;
     if (!apiKey) throw new Error("AI Key missing. Please provide a key in settings.");
     
     const genAI = new GoogleGenerativeAI(apiKey);

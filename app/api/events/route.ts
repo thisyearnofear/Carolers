@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
     const newEvent = await createEventLib(eventData);
     return NextResponse.json(newEvent, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },

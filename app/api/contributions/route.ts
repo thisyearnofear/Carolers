@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 
     const newContribution = await addContribution(validatedData);
     return NextResponse.json(newContribution, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },

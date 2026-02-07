@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const newMessage = await addMessage(messageData);
     return NextResponse.json(newMessage, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },

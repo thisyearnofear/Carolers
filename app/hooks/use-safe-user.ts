@@ -16,7 +16,7 @@ export function useSafeUser() {
         // Clerk adds various things to window, but the most reliable way 
         // to check for the Provider without crashing is checking for the existence 
         // of the Publishable Key in the environment or the __clerk_js_version
-        const hasKey = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+        const hasKey = !!(process.env as any).NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
         setIsClerkAvailable(hasKey);
     }, []);
 
@@ -27,7 +27,7 @@ export function useSafeUser() {
     // If we don't render ClerkProvider, useUser() WILL throw.
 
     // So we use a "dummy" return if the key is missing.
-    if (typeof window !== 'undefined' && !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+    if (typeof window !== 'undefined' && !(process.env as any).NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
         return {
             isSignedIn: false,
             user: null,

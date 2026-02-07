@@ -21,10 +21,10 @@ async function initializeDb() {
     let password = '';
     let database = 'carolers';
 
-    if (process.env.DATABASE_URL) {
+    if ((process.env as any).DATABASE_URL) {
       try {
         // DATABASE_URL format: mysql://user:pass@host:port/database?...
-        const urlStr = process.env.DATABASE_URL.split('?')[0]; // Remove query params
+        const urlStr = (process.env as any).DATABASE_URL.split('?')[0]; // Remove query params
         const url = new URL(urlStr);
         host = url.hostname;
         port = parseInt(url.port || '3306');

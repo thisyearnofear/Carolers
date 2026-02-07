@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       proposal,
       message: 'Proposal created. Community will vote over the next 7 days.',
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },

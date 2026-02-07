@@ -18,9 +18,9 @@ export async function GET(
         // Get carols and filter by event
         const allCarols = await getCarols();
         const eventCarols = event.carols
-            ?.map(id => allCarols.find(c => c.id === id))
+            ?.map((carolId: string) => allCarols.find(c => c.id === carolId))
             .filter((c): c is any => c !== undefined)
-            .sort((a, b) => (b.votes || 0) - (a.votes || 0))
+            .sort((a: any, b: any) => (b.votes || 0) - (a.votes || 0))
             .slice(0, 3) || [];
 
         const magicRecap = await generateEventRecap(event, eventCarols);

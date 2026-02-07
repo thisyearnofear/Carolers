@@ -114,7 +114,7 @@ export function useLyricsState({
 
   // Internal playback timer (speed-adjusted)
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: any;
     if (internalIsPlaying) {
       interval = setInterval(() => {
         setInternalCurrentTime(prev => {

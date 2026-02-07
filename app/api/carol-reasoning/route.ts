@@ -1,7 +1,7 @@
 import { reasonAboutSetlist, analyzeCarolCulture, suggestComplementaryCarols, analyzeCarolDeeply } from '@/lib/carol-reasoning';
 import { getCarols, type CarolFilters } from '@/lib/carols';
 import { getCarolInfo, getNextCarolRecommendations } from '@/lib/carol-recommendations';
-import { generateText } from '@/lib/ai';
+import { generateText, type RequestOptions, type AIProvider } from '@/lib/ai';
 import { CarolPrompts } from '@/lib/ai-prompts';
 
 // Direct logic for quick setlist suggestion (mirrored from ai-suggestions)
@@ -70,8 +70,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const options = {
-      provider: settings?.provider || 'gemini',
+    const options: RequestOptions = {
+      provider: (settings?.provider as AIProvider) || 'gemini',
       userKey: settings?.provider === 'venice' ? settings?.veniceKey : settings?.geminiKey,
       useGemini3: settings?.useGemini3 || false
     };
