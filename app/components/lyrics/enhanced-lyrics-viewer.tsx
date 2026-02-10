@@ -104,7 +104,7 @@ export function EnhancedLyricsViewer({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-card-xl border-none shadow-2xl">
+      <DialogContent className="sm:max-w-[900px] h-[90vh] overflow-hidden flex flex-col p-0 rounded-card-xl border-none shadow-2xl">
         {/* Header */}
         <DialogHeader className="p-lg bg-gradient-to-r from-primary/10 to-accent/5 border-b border-primary/10">
           <DialogTitle className="flex items-center gap-md">
@@ -186,9 +186,11 @@ export function EnhancedLyricsViewer({
             </div>
 
             {/* Lyrics Display */}
-            <ScrollArea className="flex-1 min-h-0 bg-slate-50/30">
-              <LyricsDisplay state={state} />
-            </ScrollArea>
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <ScrollArea className="h-full bg-slate-50/30">
+                <LyricsDisplay state={state} />
+              </ScrollArea>
+            </div>
 
             {/* Footer */}
             <div className="p-3 bg-white border-t border-primary/5 text-center text-xs text-slate-400 flex-shrink-0">
@@ -200,41 +202,43 @@ export function EnhancedLyricsViewer({
           {/* Insights Tab */}
           <TabsContent
             value="insights"
-            className="flex-1 m-0 flex flex-col min-h-0"
+            className="flex-1 m-0 flex flex-col min-h-0 overflow-hidden"
           >
-            <ScrollArea className="flex-1 min-h-0">
-              <div className="p-6 space-y-12 pb-20">
-                <section>
-                  <CarolCompanion
-                    carolTitle={carol.title}
-                    carolArtist={carol.artist}
-                  />
-                </section>
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <ScrollArea className="h-full">
+                <div className="p-6 space-y-12 pb-20">
+                  <section>
+                    <CarolCompanion
+                      carolTitle={carol.title}
+                      carolArtist={carol.artist}
+                    />
+                  </section>
 
-                <section className="pt-6 border-t border-primary/5">
-                  <DeepAnalysisPanel
-                    carolTitle={carol.title}
-                    carolArtist={carol.artist}
-                  />
-                </section>
+                  <section className="pt-6 border-t border-primary/5">
+                    <DeepAnalysisPanel
+                      carolTitle={carol.title}
+                      carolArtist={carol.artist}
+                    />
+                  </section>
 
-                <section className="pt-6 border-t border-primary/5">
-                  <VisionAnalysisPanel
-                    carolId={carol.id}
-                    carolTitle={carol.title}
-                  />
-                </section>
+                  <section className="pt-6 border-t border-primary/5">
+                    <VisionAnalysisPanel
+                      carolId={carol.id}
+                      carolTitle={carol.title}
+                    />
+                  </section>
 
-                <section className="pt-6 border-t border-primary/5">
-                  <TranslationSuggestions
-                    carolId={carol.id}
-                    currentLanguage={selectedLanguage}
-                    onLanguageSelect={handleLanguageChange}
-                    isLoading={loadingTranslation}
-                  />
-                </section>
-              </div>
-            </ScrollArea>
+                  <section className="pt-6 border-t border-primary/5">
+                    <TranslationSuggestions
+                      carolId={carol.id}
+                      currentLanguage={selectedLanguage}
+                      onLanguageSelect={handleLanguageChange}
+                      isLoading={loadingTranslation}
+                    />
+                  </section>
+                </div>
+              </ScrollArea>
+            </div>
           </TabsContent>
         </Tabs>
       </DialogContent>
