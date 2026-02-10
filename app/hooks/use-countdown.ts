@@ -16,16 +16,16 @@ export function useCountdown(targetDate: Date) {
       }
 
       const total = Math.floor(ms / 1000);
-      const h = Math.floor(total / 3600);
+      const d = Math.floor(total / 86400);
+      const h = Math.floor((total % 86400) / 3600);
       const m = Math.floor((total % 3600) / 60);
       const s = total % 60;
       
-      // Format with leading zeros for consistency
       const hours = h.toString().padStart(2, '0');
       const minutes = m.toString().padStart(2, '0');
       const seconds = s.toString().padStart(2, '0');
       
-      setTimeLeft(`${hours}:${minutes}:${seconds}`);
+      setTimeLeft(d > 0 ? `${d}d ${hours}:${minutes}:${seconds}` : `${hours}:${minutes}:${seconds}`);
       setHasEnded(false);
     };
 

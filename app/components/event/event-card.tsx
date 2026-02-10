@@ -6,7 +6,8 @@ import { type Event } from '@shared/schema';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { CalendarDays, MapPin, Users, Music, ChevronRight, Trophy, Lock } from 'lucide-react';
+import { CalendarDays, MapPin, Users, Music, ChevronRight, Trophy, Lock, Clock } from 'lucide-react';
+import { useCountdown } from '@/hooks/use-countdown';
 
 interface EventCardProps {
   event: Event;
@@ -15,8 +16,8 @@ interface EventCardProps {
 export function EventCard({ event }: EventCardProps) {
   const eventDate = new Date(event.date);
 
-  const isPast = eventDate < new Date();
-  const daysUntil = Math.ceil((eventDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  const { timeLeft, hasEnded } = useCountdown(eventDate);
+  const isPast = hasEnded;
 
   return (
     <motion.div
@@ -38,17 +39,13 @@ export function EventCard({ event }: EventCardProps) {
         />
 
         <CardHeader className="p-xl pb-md relative">
-          {/* Live indicator */}
-          {!isPast && daysUntil <= 7 && (
-            <motion.div
-              className="absolute top-xl right-xl z-10"
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <Badge className="bg-primary text-white text-xs font-bold uppercase animate-pulse-glow">
-                🔴 Coming Soon
+          {!isPast && (
+            <div className="absolute top-xl right-xl z-10">
+              <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 text-xs font-bold tabular-nums">
+                <Clock className="w-3 h-3 mr-1" />
+                {timeLeft}
               </Badge>
-            </motion.div>
+            </div>
           )}
 
           <div className="flex flex-col gap-md text-center items-center">

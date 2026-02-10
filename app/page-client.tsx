@@ -168,7 +168,7 @@ export function PageClient({ events }: PageClientProps) {
         >
           <div className="flex items-center justify-center mb-8 pb-4">
             <div className="h-px bg-primary/10 flex-1" />
-            <h2 className="mx-4 text-xl font-display text-secondary font-bold uppercase tracking-wider">Active Sessions</h2>
+            <h2 className="mx-4 text-xl font-display text-secondary font-bold uppercase tracking-wider">Sessions</h2>
             <div className="h-px bg-primary/10 flex-1" />
           </div>
 
