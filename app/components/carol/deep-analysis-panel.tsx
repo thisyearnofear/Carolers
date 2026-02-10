@@ -148,17 +148,8 @@ export function DeepAnalysisPanel({ carolTitle, carolArtist }: DeepAnalysisPanel
           </Button>
         ))}
       </div>
-      {results[type.id] && (
-        <CheckCircle2 className="w-4 h-4 text-emerald-500 absolute top-3 right-3" />
-      )}
-      <div className="text-[10px] text-slate-500 font-medium">Deep Reason</div>
-    </div>
-          </Button >
-        ))
-}
-      </div >
 
-  <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait">
     {activeAnalysis && results[activeAnalysis] && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
