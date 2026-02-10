@@ -27,7 +27,7 @@ export function LyricsDisplay({ state }: LyricsDisplayProps) {
     const currentLineElement = lineRefs.current.get(state.highlightedLineIndex);
     if (currentLineElement) {
       const modeConfig = state.displayMode === 'full' ? { autoScroll: false } : { autoScroll: true };
-      
+
       if (modeConfig.autoScroll) {
         currentLineElement.scrollIntoView({
           behavior: 'smooth',
@@ -55,7 +55,7 @@ export function LyricsDisplay({ state }: LyricsDisplayProps) {
   return (
     <div
       ref={scrollContainerRef}
-      className={`${backgroundClass} p-8 space-y-2 overflow-y-auto`}
+      className={`${backgroundClass} p-8 space-y-2`}
     >
       {state.lyricsLines.map((line) => {
         const shouldShow = shouldShowLine(
