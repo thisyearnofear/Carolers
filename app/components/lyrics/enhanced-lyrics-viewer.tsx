@@ -131,7 +131,7 @@ export function EnhancedLyricsViewer({
         <Tabs
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as "lyrics" | "insights")}
-          className="flex flex-col flex-1 overflow-hidden"
+          className="flex flex-col flex-1 overflow-hidden min-h-0"
         >
           <TabsList className="w-full justify-center rounded-none border-b border-primary/10 bg-white/50 p-0 h-auto gap-0">
             <TabsTrigger
@@ -153,7 +153,7 @@ export function EnhancedLyricsViewer({
           {/* Lyrics Tab */}
           <TabsContent
             value="lyrics"
-            className="flex flex-col flex-1 overflow-hidden m-0"
+            className="flex flex-col flex-1 overflow-hidden m-0 min-h-0"
           >
             {/* Lyrics Controls */}
             <div className="p-4 bg-white/50 border-b border-primary/5 space-y-3 overflow-y-auto">
@@ -200,9 +200,9 @@ export function EnhancedLyricsViewer({
           {/* Insights Tab */}
           <TabsContent
             value="insights"
-            className="flex flex-col flex-1 overflow-hidden m-0 max-h-[calc(90vh-180px)]"
+            className="flex-1 m-0 overflow-hidden flex flex-col min-h-0"
           >
-            <ScrollArea className="flex-1">
+            <ScrollArea className="flex-1 min-h-0">
               <div className="p-6 space-y-12">
                 <section>
                   <CarolCompanion
