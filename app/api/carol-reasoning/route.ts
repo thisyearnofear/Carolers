@@ -158,8 +158,45 @@ export async function POST(request: Request) {
     return Response.json({ result });
   } catch (error) {
     console.error('Error in carol-reasoning route:', error);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Failed to process carol reasoning';
+    
+    // Check for specific error types
+    if (errorMessage.includes('429') || errorMessage.includes('RATE_LIMIT_EXCEEDED') || errorMessage.includes('Too Many Requests')) {
+      return Response.json(
+        { 
+          error: 'AI rate limit exceeded. Please wait a moment and try again.',
+          code: 'RATE_LIMIT',
+          details: errorMessage
+        },
+        { status: 429 }
+      );
+    }
+    
+    if (errorMessage.includes('API key') || errorMessage.includes('authentication') || errorMessage.includes('unauthorized')) {
+      return Response.json(
+        { 
+          error: 'AI authentication failed. Please check your API key in settings.',
+          code: 'AUTH_ERROR',
+          details: errorMessage
+        },
+        { status: 401 }
+      );
+    }
+    
+    if (errorMessage.includes('quota') || errorMessage.includes('exceeded') || errorMessage.includes('credits')) {
+      return Response.json(
+        { 
+          error: 'AI quota exceeded. Please check your API usage or try again later.',
+          code: 'QUOTA_EXCEEDED',
+          details: errorMessage
+        },
+        { status: 429 }
+      );
+    }
+    
     return Response.json(
-      { error: error instanceof Error ? error.message : 'Failed to process carol reasoning' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

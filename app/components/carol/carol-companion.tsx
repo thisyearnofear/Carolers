@@ -87,6 +87,8 @@ export function CarolCompanion({
   
   const settings = useAISettings();
 
+  const [error, setError] = useState<string | null>(null);
+
   const fetchInsight = async (type: InsightType) => {
     // If already loaded, just set active
     if (insights[type]) {
@@ -98,6 +100,7 @@ export function CarolCompanion({
     setActiveInsight(type);
     setHasInteracted(true);
     setShowThinking(false);
+    setError(null);
 
     try {
       const card = INSIGHT_CARDS.find((c) => c.id === type);
@@ -121,16 +124,20 @@ export function CarolCompanion({
         }),
       });
 
-      if (response.ok) {
-        const { result } = await response.json();
-        // Handle both string and object results for backward compatibility
-        const insightData = typeof result === 'string' 
-          ? { response: result, thinking: "" }
-          : result;
-        setInsights((prev) => ({ ...prev, [type]: insightData }));
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `Server error: ${response.status}`);
       }
+
+      const { result } = await response.json();
+      // Handle both string and object results for backward compatibility
+      const insightData = typeof result === 'string' 
+        ? { response: result, thinking: "" }
+        : result;
+      setInsights((prev) => ({ ...prev, [type]: insightData }));
     } catch (error) {
       console.error("Failed to fetch insight:", error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch insight');
     } finally {
       setLoading(null);
     }
@@ -268,6 +275,26 @@ export function CarolCompanion({
           </motion.button>
         ))}
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm"
+        >
+          <div className="flex items-start gap-2">
+            <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-red-600 text-xs font-bold">!</span>
+            </div>
+            <div>
+              <p className="font-medium">Unable to load insight</p>
+              <p className="text-red-600/80 text-xs mt-1">{error}</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Content Display */}
       <AnimatePresence mode="wait">
