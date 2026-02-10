@@ -102,22 +102,17 @@ Be comprehensive and thoughtful.`
 
     const prompt = analysisPrompts[analysisType];
 
-    // Build content with proper media resolution
+    // Build content with proper media resolution and explicit typing for TypeScript
+    const imagePart = imageUrl 
+      ? { inlineData: { mimeType: 'image/jpeg', data: imageUrl } } 
+      : { inlineData: { mimeType: imageMimeType || 'image/jpeg', data: imageBase64 || '' } };
+
     const contents = [
       {
         role: 'user' as const,
         parts: [
-          {
-            text: prompt
-          },
-          imageUrl ? 
-            { inlineData: { mimeType: 'image/jpeg', data: imageUrl } } :
-            {
-              inlineData: {
-                mimeType: imageMimeType || 'image/jpeg',
-                data: imageBase64
-              }
-            }
+          { text: prompt },
+          imagePart
         ]
       }
     ];
@@ -127,14 +122,14 @@ Be comprehensive and thoughtful.`
     // Call Gemini with high media resolution for detailed analysis
     try {
       const result = await (model as any).generateContent({
-        contents,
+        contents: contents as any,
         generationConfig: {
           temperature: 1.0,
           maxOutputTokens: 2000,
           topK: 40,
           topP: 0.95,
           // Only include thinkingConfig if specifically using Gemini 3 models that support it
-          ...(settings?.useGemini3 ? { thinkingConfig: { thinkingLevel: 'high' } } : {}),
+          ...(settings?.useGemini3 ? { thinkingConfig: { thinkingLevel: 'HIGH' } } : {}),
         },
         // High media resolution for fine details (sheet music notes, small text, etc.)
         requestOptions: {
@@ -166,8 +161,8 @@ Be comprehensive and thoughtful.`
       if (settings?.useGemini3) {
         console.log('Falling back to gemini-1.5-pro for vision analysis...');
         const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
-        const fallbackResult = await fallbackModel.generateContent({
-          contents,
+        const fallbackResult = await (fallbackModel as any).generateContent({
+          contents: contents as any,
           generationConfig: { temperature: 1.0, maxOutputTokens: 2000 }
         });
         const fallbackResponse = await fallbackResult.response;

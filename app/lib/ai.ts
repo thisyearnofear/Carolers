@@ -72,14 +72,22 @@ export async function generateWithReasoning(
         maxOutputTokens: 8000,
         temperature: 1.0,
         // Only include thinkingConfig if specifically using Gemini 3 models that support it
-        ...(options.useGemini3 ? { thinkingConfig: { thinkingLevel: "high" } } : {}),
+        ...(options.useGemini3 ? { 
+          thinkingConfig: { 
+            includeThoughts: true,
+            thinkingLevel: "HIGH",
+            thinkingBudget: -1
+          } 
+        } : {}),
       } as any,
     } as any);
 
     const response = await result.response;
+    
+    // Improved thinking extraction: check multiple possible part properties
     const thinkingText = response.candidates?.[0]?.content?.parts
-        ?.filter((part: any) => part.thought)
-        .map((part: any) => part.text)
+        ?.filter((part: any) => part.thought || part.role === 'thought')
+        .map((part: any) => part.text || part.thought)
         .join("\n\n") || "";
 
     return {
@@ -94,18 +102,29 @@ export async function generateWithReasoning(
     // Safety fallback: use a standard flash model which is most likely to succeed
     try {
       const fallbackModelName = "gemini-1.5-flash";
-      const fallbackModel = client.getGenerativeModel({ model: fallbackModelName });
+      const client = getAIClient(options.userKey);
+      if (!client) throw new Error("AI Client unavailable for fallback");
+      
+      const fallbackModel = client.getGenerativeModel({ 
+        model: fallbackModelName,
+        systemInstruction: systemPrompt || "You are a Christmas carol expert."
+      });
+      
       const result = await fallbackModel.generateContent(prompt);
       const response = await result.response;
+      
       return {
-        thinking: "(Extended reasoning unavailable)",
+        thinking: "(Extended reasoning unavailable - using fallback)",
         response: response.text(),
         modelUsed: fallbackModelName,
         providerUsed: 'gemini'
       };
     } catch (fallbackError) {
       console.error("Critical AI failure: Fallback also failed:", fallbackError);
-      throw error; // Re-throw original error if fallback also fails
+      // Create a more descriptive error for the 500 response
+      const errorMessage = error instanceof Error ? error.message : "Unknown AI error";
+      const fallbackMessage = fallbackError instanceof Error ? fallbackError.message : "Unknown fallback error";
+      throw new Error(`AI Failure: ${errorMessage} (Fallback: ${fallbackMessage})`);
     }
   }
 }

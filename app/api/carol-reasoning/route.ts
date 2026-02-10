@@ -74,7 +74,7 @@ export async function POST(request: Request) {
 
     const options: RequestOptions = {
       provider: (settings?.provider as AIProvider) || 'gemini',
-      userKey: settings?.provider === 'venice' ? settings?.veniceKey : settings?.geminiKey,
+      userKey: settings?.provider === 'venice' ? settings?.veniceKey : (settings?.geminiKey || undefined),
       useGemini3: settings?.useGemini3 || false
     };
 
@@ -103,6 +103,8 @@ export async function POST(request: Request) {
 
       case 'getQuickInsight':
         const { title: qTitle, artist: qArtist, insightType: qType, prompt: customPrompt } = args;
+        
+        // Ensure keys match frontend: story, singAlong, performance, traditions
         const qPrompts: Record<string, string> = {
           story: CarolPrompts.quickHistory(qTitle, qArtist),
           singAlong: CarolPrompts.quickTechniques(qTitle, qArtist),
@@ -113,6 +115,8 @@ export async function POST(request: Request) {
         const qPromptText = customPrompt 
           ? CarolPrompts.customInsight(qTitle, qArtist, customPrompt)
           : (qPrompts[qType] || qPrompts.story);
+
+        console.log(`Getting Quick Insight for type: ${qType} using ${options.useGemini3 ? 'Reasoning' : 'Standard'}`);
 
         // Leverage Reasoning for all insights if requested, otherwise fallback to generating text
         result = await generateWithReasoning(
