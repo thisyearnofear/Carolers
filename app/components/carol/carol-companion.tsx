@@ -278,7 +278,7 @@ export function CarolCompanion({
             animate={{ opacity: 1, height: "auto", y: 0 }}
             exit={{ opacity: 0, height: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-            className={`rounded-2xl bg-gradient-to-br ${activeCard.bgGradient} ${activeCard.borderColor} border-2 overflow-hidden`}
+            className={`rounded-2xl bg-gradient-to-br ${activeCard.bgGradient} ${activeCard.borderColor} border-2 min-h-0`}
           >
             <div className="p-6 space-y-4">
               {/* Section Header */}

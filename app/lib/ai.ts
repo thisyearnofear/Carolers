@@ -37,7 +37,8 @@ async function getModelName(variant: "pro" | "flash" = "flash", useGemini3: bool
   if (useGemini3) {
     return variant === "pro" ? MODEL_GEMINI3_PRO : MODEL_GEMINI3_FLASH;
   }
-  return variant === "pro" ? MODEL_FALLBACK_PRO : MODEL_FALLBACK_FLASH;
+  // Use models tested and known to work
+  return variant === "pro" ? "gemini-1.5-pro" : "gemini-1.5-flash";
 }
 
 /**
@@ -70,7 +71,8 @@ export async function generateWithReasoning(
       generationConfig: {
         maxOutputTokens: 8000,
         temperature: 1.0,
-        thinkingConfig: options.useGemini3 ? { thinkingLevel: "high" } : undefined,
+        // Only include thinkingConfig if specifically using Gemini 3 models that support it
+        ...(options.useGemini3 ? { thinkingConfig: { thinkingLevel: "high" } } : {}),
       } as any,
     } as any);
 
@@ -87,15 +89,24 @@ export async function generateWithReasoning(
       providerUsed: 'gemini'
     };
   } catch (error) {
-    console.warn("Reasoning failed, falling back to standard generation:", error);
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return {
-      thinking: "(Extended reasoning unavailable)",
-      response: response.text(),
-      modelUsed: MODEL_FALLBACK_FLASH,
-      providerUsed: 'gemini'
-    };
+    console.warn(`Reasoning failed for ${modelName}, falling back to standard generation:`, error);
+    
+    // Safety fallback: use a standard flash model which is most likely to succeed
+    try {
+      const fallbackModelName = "gemini-1.5-flash";
+      const fallbackModel = client.getGenerativeModel({ model: fallbackModelName });
+      const result = await fallbackModel.generateContent(prompt);
+      const response = await result.response;
+      return {
+        thinking: "(Extended reasoning unavailable)",
+        response: response.text(),
+        modelUsed: fallbackModelName,
+        providerUsed: 'gemini'
+      };
+    } catch (fallbackError) {
+      console.error("Critical AI failure: Fallback also failed:", fallbackError);
+      throw error; // Re-throw original error if fallback also fails
+    }
   }
 }
 

@@ -10,7 +10,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../ui/dialog";
 import { Music, Info, X, Sparkles, BookOpen } from "lucide-react";
 import { type Carol, type CarolTranslation } from "@shared/schema";
 import { useLyricsState } from "@/hooks/useLyricsState";
@@ -104,20 +104,20 @@ export function EnhancedLyricsViewer({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-card-xl border-none shadow-2xl">
+      <DialogContent className="sm:max-w-[900px] h-[90vh] overflow-hidden flex flex-col p-0 rounded-card-xl border-none shadow-2xl">
         {/* Header */}
-        <DialogHeader className="p-lg bg-gradient-to-r from-primary/10 to-accent/5 border-b border-primary/10">
+        <DialogHeader className="p-lg bg-gradient-to-r from-primary/10 to-accent/5 border-b border-primary/10 flex-shrink-0">
           <DialogTitle className="flex items-center gap-md">
             <div className="w-12 h-12 rounded-card-sm bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
               <Music className="w-6 h-6" />
             </div>
             <div className="flex-1 min-w-0 text-left">
-              <div className="font-display text-2xl text-primary truncate leading-tight">
+              <DialogTitle className="font-display text-2xl text-primary truncate leading-tight">
                 {carol.title}
-              </div>
-              <div className="text-xs font-bold text-secondary uppercase tracking-widest">
+              </DialogTitle>
+              <DialogDescription className="text-xs font-bold text-secondary uppercase tracking-widest">
                 {carol.artist}
-              </div>
+              </DialogDescription>
               {state.currentSection && (
                 <div className="text-xs text-slate-500 mt-1">
                   {state.currentSection}
@@ -131,7 +131,7 @@ export function EnhancedLyricsViewer({
         <Tabs
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as "lyrics" | "insights")}
-          className="flex flex-col flex-1 overflow-hidden min-h-0 h-full"
+          className="flex flex-col flex-1 overflow-hidden min-h-0"
         >
           <TabsList className="w-full justify-center rounded-none border-b border-primary/10 bg-white/50 p-0 h-auto gap-0 flex-shrink-0">
             <TabsTrigger
@@ -153,10 +153,10 @@ export function EnhancedLyricsViewer({
           {/* Lyrics Tab */}
           <TabsContent
             value="lyrics"
-            className="flex flex-col flex-1 overflow-hidden m-0 min-h-0 h-full"
+            className="flex flex-col flex-1 overflow-hidden m-0 min-h-0 data-[state=active]:flex"
           >
             {/* Lyrics Controls */}
-            <div className="p-4 bg-white/50 border-b border-primary/5 space-y-3 overflow-y-auto flex-shrink-0">
+            <div className="p-4 bg-white/50 border-b border-primary/5 space-y-3 flex-shrink-0">
               <DisplayModeSelector
                 currentMode={state.displayMode}
                 onModeChange={state.setDisplayMode}
@@ -186,9 +186,9 @@ export function EnhancedLyricsViewer({
             </div>
 
             {/* Lyrics Display */}
-            <div className="flex-1 overflow-y-auto min-h-0">
+            <ScrollArea className="flex-1 min-h-0 bg-slate-50/30">
               <LyricsDisplay state={state} />
-            </div>
+            </ScrollArea>
 
             {/* Footer */}
             <div className="p-3 bg-white border-t border-primary/5 text-center text-xs text-slate-400 flex-shrink-0">
@@ -200,10 +200,10 @@ export function EnhancedLyricsViewer({
           {/* Insights Tab */}
           <TabsContent
             value="insights"
-            className="flex-1 m-0 overflow-hidden flex flex-col min-h-0 h-full"
+            className="flex-1 m-0 overflow-hidden flex flex-col min-h-0 data-[state=active]:flex"
           >
-            <div className="flex-1 overflow-y-auto min-h-0">
-              <div className="p-6 space-y-12 pb-20">
+            <ScrollArea className="flex-1 h-full bg-slate-50/30">
+              <div className="p-6 space-y-12 pb-32">
                 <section>
                   <CarolCompanion
                     carolTitle={carol.title}
@@ -234,7 +234,7 @@ export function EnhancedLyricsViewer({
                   />
                 </section>
               </div>
-            </div>
+            </ScrollArea>
           </TabsContent>
         </Tabs>
       </DialogContent>

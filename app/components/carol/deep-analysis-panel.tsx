@@ -146,10 +146,10 @@ export function DeepAnalysisPanel({ carolTitle, carolArtist }: DeepAnalysisPanel
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="mt-6 space-y-4"
+            className="mt-6 space-y-4 min-h-0"
           >
             {/* Analysis Result */}
-            <Card className="p-6 border-slate-200 shadow-xl bg-white/80 backdrop-blur-sm overflow-hidden relative border-t-4 border-t-primary">
+            <Card className="p-6 border-slate-200 shadow-xl bg-white/80 backdrop-blur-sm relative border-t-4 border-t-primary">
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                   <div className="text-[10px] font-black uppercase tracking-widest text-primary/60 bg-primary/5 px-2 py-0.5 rounded">

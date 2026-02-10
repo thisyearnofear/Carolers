@@ -61,9 +61,11 @@ async function suggestSetlistQuick(args: {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    console.log('Carol Reasoning Request:', JSON.stringify(body).substring(0, 200) + '...');
     const { action, args, settings } = body;
 
     if (!action || !args) {
+      console.warn('Missing action or args in request body');
       return Response.json(
         { error: 'Missing action or args' },
         { status: 400 }

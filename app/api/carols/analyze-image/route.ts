@@ -122,40 +122,67 @@ Be comprehensive and thoughtful.`
       }
     ];
 
+    console.log(`Starting image analysis for ${carolTitle || 'Unknown Carol'} using ${modelName}`);
+
     // Call Gemini with high media resolution for detailed analysis
-    const result = await (model as any).generateContent({
-      contents,
-      generationConfig: {
-        temperature: 1.0,
-        maxOutputTokens: 2000,
-        topK: 40,
-        topP: 0.95,
-        // Only Gemini 3 supports high reasoning budget
-        thinkingConfig: settings?.useGemini3 ? { thinkingLevel: 'high' } : undefined
-      },
-      // High media resolution for fine details (sheet music notes, small text, etc.)
-      requestOptions: {
-        mediaResolution: 'HIGH'
+    try {
+      const result = await (model as any).generateContent({
+        contents,
+        generationConfig: {
+          temperature: 1.0,
+          maxOutputTokens: 2000,
+          topK: 40,
+          topP: 0.95,
+          // Only include thinkingConfig if specifically using Gemini 3 models that support it
+          ...(settings?.useGemini3 ? { thinkingConfig: { thinkingLevel: 'high' } } : {}),
+        },
+        // High media resolution for fine details (sheet music notes, small text, etc.)
+        requestOptions: {
+          mediaResolution: 'HIGH'
+        }
+      });
+
+      const response = await result.response;
+      const analysisText = response.text();
+
+      return Response.json({
+        success: true,
+        analysisType,
+        carolTitle: carolTitle || 'Unknown Carol',
+        analysis: analysisText,
+        model: modelName,
+        capabilities: {
+          visionAnalysis: true,
+          extendedContext: true,
+          mediaResolution: 'high',
+          multimodalReasoning: true
+        },
+        timestamp: new Date().toISOString()
+      });
+    } catch (apiError) {
+      console.error(`Gemini Vision Analysis failed for ${modelName}:`, apiError);
+      
+      // Fallback to standard 1.5 Pro if Gemini 3 fails
+      if (settings?.useGemini3) {
+        console.log('Falling back to gemini-1.5-pro for vision analysis...');
+        const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+        const fallbackResult = await fallbackModel.generateContent({
+          contents,
+          generationConfig: { temperature: 1.0, maxOutputTokens: 2000 }
+        });
+        const fallbackResponse = await fallbackResult.response;
+        return Response.json({
+          success: true,
+          analysisType,
+          carolTitle: carolTitle || 'Unknown Carol',
+          analysis: fallbackResponse.text(),
+          model: 'gemini-1.5-pro',
+          capabilities: { visionAnalysis: true },
+          timestamp: new Date().toISOString()
+        });
       }
-    });
-
-    const response = await result.response;
-    const analysisText = response.text();
-
-    return Response.json({
-      success: true,
-      analysisType,
-      carolTitle: carolTitle || 'Unknown Carol',
-      analysis: analysisText,
-      model: modelName,
-      capabilities: {
-        visionAnalysis: true,
-        extendedContext: true,
-        mediaResolution: 'high',
-        multimodalReasoning: true
-      },
-      timestamp: new Date().toISOString()
-    });
+      throw apiError;
+    }
 
   } catch (error) {
     console.error('Image analysis error:', error);
