@@ -200,10 +200,10 @@ export function EnhancedLyricsViewer({
           {/* Insights Tab */}
           <TabsContent
             value="insights"
-            className="flex flex-col flex-1 overflow-hidden m-0"
+            className="flex flex-col flex-1 overflow-hidden m-0 max-h-[calc(90vh-180px)]"
           >
-            <ScrollArea className="flex-1 h-full">
-              <div className="p-6 space-y-12 min-h-full">
+            <ScrollArea className="flex-1">
+              <div className="p-6 space-y-12">
                 <section>
                   <CarolCompanion
                     carolTitle={carol.title}
