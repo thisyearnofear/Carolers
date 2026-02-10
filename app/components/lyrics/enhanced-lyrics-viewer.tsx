@@ -104,9 +104,9 @@ export function EnhancedLyricsViewer({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] h-[90vh] overflow-hidden flex flex-col p-0 gap-0 rounded-card-xl border-none shadow-2xl">
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-card-xl border-none shadow-2xl">
         {/* Header */}
-        <DialogHeader className="p-lg bg-gradient-to-r from-primary/10 to-accent/5 border-b border-primary/10 flex-shrink-0 space-y-0">
+        <DialogHeader className="p-lg bg-gradient-to-r from-primary/10 to-accent/5 border-b border-primary/10 flex-shrink-0">
           <DialogTitle className="flex items-center gap-md">
             <div className="w-12 h-12 rounded-card-sm bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
               <Music className="w-6 h-6" />
@@ -131,19 +131,19 @@ export function EnhancedLyricsViewer({
         <Tabs
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as "lyrics" | "insights")}
-          className="flex flex-col flex-1 overflow-hidden min-h-0 gap-0"
+          className="flex flex-col flex-1 overflow-hidden min-h-0 h-full"
         >
           <TabsList className="w-full justify-center rounded-none border-b border-primary/10 bg-white/50 p-0 h-auto gap-0 flex-shrink-0">
             <TabsTrigger
               value="lyrics"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/5 px-4 py-3 text-sm font-bold"
+              className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/5 px-4 py-3 text-sm font-bold"
             >
               <BookOpen className="w-4 h-4 mr-2" />
               Lyrics
             </TabsTrigger>
             <TabsTrigger
               value="insights"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/5 px-4 py-3 text-sm font-bold"
+              className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/5 px-4 py-3 text-sm font-bold"
             >
               <Sparkles className="w-4 h-4 mr-2" />
               AI Insights
@@ -153,10 +153,10 @@ export function EnhancedLyricsViewer({
           {/* Lyrics Tab */}
           <TabsContent
             value="lyrics"
-            className="flex flex-col flex-1 overflow-hidden m-0 min-h-0"
+            className="flex flex-col flex-1 overflow-hidden m-0 min-h-0 h-full"
           >
             {/* Lyrics Controls */}
-            <div className="p-4 bg-white/50 border-b border-primary/5 space-y-3 flex-shrink-0">
+            <div className="p-4 bg-white/50 border-b border-primary/5 space-y-3 overflow-y-auto flex-shrink-0">
               <DisplayModeSelector
                 currentMode={state.displayMode}
                 onModeChange={state.setDisplayMode}
@@ -186,10 +186,8 @@ export function EnhancedLyricsViewer({
             </div>
 
             {/* Lyrics Display */}
-            <div className="flex-1 min-h-0 overflow-hidden">
-              <ScrollArea className="h-full bg-slate-50/30">
-                <LyricsDisplay state={state} />
-              </ScrollArea>
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <LyricsDisplay state={state} />
             </div>
 
             {/* Footer */}
@@ -202,11 +200,10 @@ export function EnhancedLyricsViewer({
           {/* Insights Tab */}
           <TabsContent
             value="insights"
-            className="flex-1 m-0 flex flex-col min-h-0 overflow-hidden"
+            className="flex-1 m-0 overflow-hidden flex flex-col min-h-0 h-full"
           >
-            <div className="flex-1 min-h-0 overflow-hidden">
-              <ScrollArea className="h-full">
-                <div className="p-6 space-y-12 pb-20">
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <div className="p-6 space-y-12 pb-20">
                   <section>
                     <CarolCompanion
                       carolTitle={carol.title}
@@ -237,7 +234,6 @@ export function EnhancedLyricsViewer({
                     />
                   </section>
                 </div>
-              </ScrollArea>
             </div>
           </TabsContent>
         </Tabs>

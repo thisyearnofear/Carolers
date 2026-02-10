@@ -199,12 +199,12 @@ export function CarolCompanion({
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-2 space-y-4">
+    <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
       {/* Warm Welcome Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-1"
+        className="text-center space-y-2"
       >
         <div className="flex items-center justify-center gap-2 text-amber-600">
           <Star className="w-4 h-4 fill-current" />
@@ -305,7 +305,7 @@ export function CarolCompanion({
             animate={{ opacity: 1, height: "auto", y: 0 }}
             exit={{ opacity: 0, height: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-            className={`rounded-2xl bg-gradient-to-br ${activeCard.bgGradient} ${activeCard.borderColor} border-2 min-h-0`}
+            className={`rounded-2xl bg-gradient-to-br ${activeCard.bgGradient} ${activeCard.borderColor} border-2 overflow-hidden`}
           >
             <div className="p-6 space-y-4">
               {/* Section Header */}
