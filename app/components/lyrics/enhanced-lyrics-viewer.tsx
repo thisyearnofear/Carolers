@@ -202,7 +202,7 @@ export function EnhancedLyricsViewer({
             value="insights"
             className="flex-1 m-0 overflow-hidden flex flex-col min-h-0"
           >
-            <ScrollArea className="flex-1 min-h-0">
+            <ScrollArea className="flex-1 h-full">
               <div className="p-6 space-y-12">
                 <section>
                   <CarolCompanion
