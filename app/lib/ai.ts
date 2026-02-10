@@ -8,7 +8,7 @@ import { getEventMessages } from "./messages";
 import { getCarols, type CarolFilters } from "./carols";
 
 // Initialize Gemini AI client
-function getAIClient(userKey?: string) {
+function getGeminiClient(userKey?: string) {
   const apiKey = userKey || (process.env as any).GEMINI_API_KEY;
   if (!apiKey) return null;
   return new GoogleGenerativeAI(apiKey);
@@ -26,19 +26,53 @@ export interface RequestOptions {
 }
 
 /**
- * Gemini 3 Model Configuration
+ * Model Configuration
  */
 const MODEL_GEMINI3_PRO = "gemini-3-pro-preview";
 const MODEL_GEMINI3_FLASH = "gemini-3-flash-preview";
-const MODEL_FALLBACK_PRO = "gemini-1.5-pro";
-const MODEL_FALLBACK_FLASH = "gemini-1.5-flash";
+const MODEL_GEMINI_2_5_PRO = "gemini-2.5-pro";
+const MODEL_GEMINI_2_5_FLASH = "gemini-2.5-flash";
+const MODEL_GEMINI_1_5_PRO = "gemini-1.5-pro";
+const MODEL_GEMINI_1_5_FLASH = "gemini-1.5-flash";
 
 async function getModelName(variant: "pro" | "flash" = "flash", useGemini3: boolean = false): Promise<string> {
   if (useGemini3) {
     return variant === "pro" ? MODEL_GEMINI3_PRO : MODEL_GEMINI3_FLASH;
   }
-  // Use models tested and known to work
-  return variant === "pro" ? "gemini-1.5-pro" : "gemini-1.5-flash";
+  // Use Gemini 2.5 as default for better performance
+  return variant === "pro" ? MODEL_GEMINI_2_5_PRO : MODEL_GEMINI_2_5_FLASH;
+}
+
+/**
+ * Retry wrapper for async operations
+ */
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  delayMs: number = 1000
+): Promise<T> {
+  let lastError: Error | undefined;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      
+      // Don't retry on certain errors
+      if (lastError.message.includes('API key') || 
+          lastError.message.includes('authentication') ||
+          lastError.message.includes('unauthorized')) {
+        throw lastError;
+      }
+      
+      if (attempt < maxRetries - 1) {
+        await new Promise(resolve => setTimeout(resolve, delayMs * Math.pow(2, attempt)));
+      }
+    }
+  }
+  
+  throw lastError || new Error('Operation failed after retries');
 }
 
 /**
@@ -49,62 +83,67 @@ export async function generateWithReasoning(
   systemPrompt?: string,
   options: RequestOptions = {}
 ): Promise<{ thinking: string; response: string; modelUsed?: string; providerUsed?: string }> {
-  // Handle Venice AI (Placeholder for OpenAI-compatible API)
+  // Handle Venice AI
   if (options.provider === 'venice') {
-    return handleVeniceReasoning(prompt, systemPrompt, options.userKey);
+    return withRetry(() => handleVeniceReasoning(prompt, systemPrompt, options.userKey));
   }
 
-  const client = getAIClient(options.userKey);
+  const client = getGeminiClient(options.userKey);
   if (!client) {
     throw new Error("AI Key missing. Please provide a key in settings to unlock deep reasoning.");
   }
 
   const modelName = await getModelName("pro", options.useGemini3);
-  const model = client.getGenerativeModel({
-    model: modelName,
-    systemInstruction: systemPrompt || "You are a Christmas carol expert.",
-  });
+  
+  return withRetry(async () => {
+    const model = client.getGenerativeModel({
+      model: modelName,
+      systemInstruction: systemPrompt || "You are a Christmas carol expert.",
+    });
 
-  try {
+    const generationConfig: any = {
+      maxOutputTokens: 8000,
+      temperature: 1.0,
+    };
+
+    // Add thinkingConfig for Gemini 3 and 2.5 models that support it
+    if (options.useGemini3 || modelName.includes('2.5')) {
+      generationConfig.thinkingConfig = {
+        thinkingBudget: 24576, // Use token budget instead of deprecated includeThoughts
+      };
+    }
+
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        maxOutputTokens: 8000,
-        temperature: 1.0,
-        // Only include thinkingConfig if specifically using Gemini 3 models that support it
-        ...(options.useGemini3 ? { 
-          thinkingConfig: { 
-            includeThoughts: true,
-            thinkingLevel: "HIGH",
-            thinkingBudget: -1
-          } 
-        } : {}),
-      } as any,
-    } as any);
+      generationConfig,
+    });
 
     const response = await result.response;
     
-    // Improved thinking extraction: check multiple possible part properties
-    const thinkingText = response.candidates?.[0]?.content?.parts
-        ?.filter((part: any) => part.thought || part.role === 'thought')
-        .map((part: any) => part.text || part.thought)
-        .join("\n\n") || "";
+    // Extract thinking from response candidates
+    let thinkingText = "";
+    const parts = response.candidates?.[0]?.content?.parts;
+    if (parts && Array.isArray(parts)) {
+      for (const part of parts) {
+        // Check for thinking content in various formats
+        if ((part as any).thought === true || (part as any).role === 'thought') {
+          thinkingText += ((part as any).text || "") + "\n\n";
+        }
+      }
+    }
 
     return {
-      thinking: thinkingText || (options.useGemini3 ? "(Deep reasoning applied)" : "(Standard reasoning applied)"),
+      thinking: thinkingText.trim() || (options.useGemini3 ? "(Deep reasoning applied)" : "(Reasoning applied)"),
       response: response.text(),
       modelUsed: modelName,
       providerUsed: 'gemini'
     };
-  } catch (error) {
-    console.warn(`Reasoning failed for ${modelName}, falling back to standard generation:`, error);
+  }, 3).catch(async (error) => {
+    console.warn(`Reasoning failed for ${modelName}, falling back:`, error);
     
-    // Safety fallback: use a standard flash model which is most likely to succeed
+    // Safety fallback: use a standard flash model
     try {
-      const fallbackModelName = "gemini-1.5-flash";
-      const client = getAIClient(options.userKey);
-      if (!client) throw new Error("AI Client unavailable for fallback");
-      
+      const fallbackModelName = MODEL_GEMINI_1_5_FLASH;
       const fallbackModel = client.getGenerativeModel({ 
         model: fallbackModelName,
         systemInstruction: systemPrompt || "You are a Christmas carol expert."
@@ -121,20 +160,25 @@ export async function generateWithReasoning(
       };
     } catch (fallbackError) {
       console.error("Critical AI failure: Fallback also failed:", fallbackError);
-      // Create a more descriptive error for the 500 response
       const errorMessage = error instanceof Error ? error.message : "Unknown AI error";
       const fallbackMessage = fallbackError instanceof Error ? fallbackError.message : "Unknown fallback error";
       throw new Error(`AI Failure: ${errorMessage} (Fallback: ${fallbackMessage})`);
     }
-  }
+  });
 }
 
 /**
  * Venice AI Implementation (OpenAI Compatible)
  */
-async function handleVeniceReasoning(prompt: string, systemPrompt?: string, userKey?: string) {
+async function handleVeniceReasoning(
+  prompt: string, 
+  systemPrompt?: string, 
+  userKey?: string
+): Promise<{ thinking: string; response: string; modelUsed: string; providerUsed: string }> {
   const apiKey = userKey || (process.env as any).VENICE_API_KEY;
-  if (!apiKey) throw new Error("Venice AI Key missing.");
+  if (!apiKey) {
+    throw new Error("Venice AI Key missing. Please provide a key in settings.");
+  }
 
   const response = await fetch("https://api.venice.ai/api/v1/chat/completions", {
     method: "POST",
@@ -143,19 +187,42 @@ async function handleVeniceReasoning(prompt: string, systemPrompt?: string, user
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "llama-3.3-70b-instruct", // Example Venice model
+      model: "llama-3.3-70b-instruct",
       messages: [
-        { role: "system", content: systemPrompt },
+        { role: "system", content: systemPrompt || "You are a Christmas carol expert." },
         { role: "user", content: prompt }
-      ]
+      ],
+      max_tokens: 8000,
+      temperature: 1.0,
+      // Enable reasoning for Venice AI
+      reasoning: {
+        effort: "high"
+      },
+      venice_parameters: {
+        include_venice_system_prompt: false
+      }
     }),
   });
 
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => 'Unknown error');
+    throw new Error(`Venice AI API error (${response.status}): ${errorText}`);
+  }
+
   const data = await response.json();
+  
+  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+    throw new Error("Invalid response format from Venice AI");
+  }
+
+  // Extract reasoning content if available
+  const reasoningContent = data.choices[0].message.reasoning_content || 
+                          data.choices[0].message.reasoning || "";
+
   return {
-    thinking: "(Venice AI reasoning applied)",
+    thinking: reasoningContent || "(Venice AI reasoning applied)",
     response: data.choices[0].message.content,
-    modelUsed: "llama-3.3-70b-instruct",
+    modelUsed: data.model || "llama-3.3-70b-instruct",
     providerUsed: 'venice'
   };
 }
@@ -259,6 +326,107 @@ const TOOL_DEFINITIONS: FunctionDeclarationsTool = {
 };
 
 /**
+ * Tool definitions for Venice AI (OpenAI format)
+ */
+const VENICE_TOOL_DEFINITIONS = [
+  {
+    type: "function" as const,
+    function: {
+      name: "searchCarols",
+      description: 'Search for Christmas carols by title, artist, mood, or energy level. Use mood terms like "upbeat", "relaxing", "traditional", or "religious". Energy levels: "high" or "low".',
+      parameters: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "Search query for carol title, artist, or keyword",
+          },
+          mood: {
+            type: "string",
+            description: 'Mood filter: "upbeat", "relaxing", "traditional", or "religious"',
+          },
+          energy: {
+            type: "string",
+            description: 'Energy level filter: "high" or "low"',
+          },
+          limit: {
+            type: "number",
+            description: "Maximum number of results to return (default: 5)",
+          },
+        },
+        required: ["query"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "summarizeChat",
+      description: "Summarize recent chat messages from an event to understand context and discussion",
+      parameters: {
+        type: "object",
+        properties: {
+          eventId: {
+            type: "string",
+            description: "ID of the event to summarize",
+          },
+          messageCount: {
+            type: "number",
+            description: "Number of recent messages to include (default: 10)",
+          },
+        },
+        required: ["eventId"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "suggestSetlist",
+      description: "Suggest a setlist of Christmas carols based on event theme and duration",
+      parameters: {
+        type: "object",
+        properties: {
+          theme: {
+            type: "string",
+            description: "Theme or style of the event",
+          },
+          duration: {
+            type: "string",
+            description: 'Approximate duration of the event (e.g., "30 minutes", "1 hour")',
+          },
+          count: {
+            type: "number",
+            description: "Number of songs to suggest (default: 5)",
+          },
+        },
+        required: ["theme"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "addContribution",
+      description: "Suggest contribution ideas for the event based on what is being discussed",
+      parameters: {
+        type: "object",
+        properties: {
+          category: {
+            type: "string",
+            description: 'Category of contribution: "Food", "Equipment", "Music", or "Other"',
+          },
+          context: {
+            type: "string",
+            description: "Context for the suggestion",
+          },
+        },
+      },
+    },
+  },
+];
+
+/**
  * Tool implementation handlers
  */
 async function handleSearchCarols(args: {
@@ -326,9 +494,9 @@ async function handleSummarizeChat(args: {
     }
 
     // Extract metadata from messages
-    const participants = [
-      ...new Set(recent.map((m) => (m as any).userName || "Someone")),
-    ];
+    const participants = Array.from(
+      new Set(recent.map((m) => (m as any).userName || "Someone"))
+    );
     const messageTexts = recent.map((m) => m.text).join(" ");
 
     // Extract potential topics/keywords
@@ -338,7 +506,7 @@ async function handleSummarizeChat(args: {
         .match(
           /\b(carol|song|sing|music|perform|duration|venue|date|time|theme)\b/g,
         ) || [];
-    const topics = [...new Set(keywords)];
+    const topics = Array.from(new Set(keywords));
 
     const summary = recent
       .map((m) => `${(m as any).userName || "Someone"}: ${m.text}`)
@@ -528,7 +696,144 @@ async function handleAddContribution(args: {
 }
 
 /**
- * Main function calling orchestrator
+ * Execute a tool call
+ */
+async function executeToolCall(name: string, args: any): Promise<any> {
+  switch (name) {
+    case "searchCarols":
+      return await handleSearchCarols(args);
+    case "summarizeChat":
+      return await handleSummarizeChat(args);
+    case "suggestSetlist":
+      return await handleSuggestSetlist(args);
+    case "addContribution":
+      return await handleAddContribution(args);
+    default:
+      return { error: `Unknown tool: ${name}` };
+  }
+}
+
+/**
+ * Venice AI with tool calling support
+ */
+async function callVeniceWithTools(
+  prompt: string,
+  eventId: string,
+  eventTheme?: string,
+  userKey?: string
+): Promise<{
+  response: string;
+  toolCalls: Array<{ tool: string; args: any; result: any }>;
+}> {
+  const apiKey = userKey || (process.env as any).VENICE_API_KEY;
+  if (!apiKey) {
+    throw new Error("Venice AI Key missing. Please provide a key in settings.");
+  }
+
+  // Get event context for system prompt
+  const messages = await getEventMessages(eventId);
+  const recentContext = messages
+    .slice(-5)
+    .map((m) => `${(m as any).userName || "Someone"}: ${m.text}`)
+    .join(" | ");
+
+  const systemPrompt = `You are a helpful AI assistant for a Christmas caroling event planning app.
+Your role is to help users find carols, understand event context, suggest setlists, and propose contributions.
+You have access to tools to search carols (with mood/energy awareness), summarize chat, suggest setlists, and suggest contributions.
+Use these tools proactively when they would help answer the user's question.
+Current event theme: ${eventTheme || "Christmas"}
+Recent event context: ${recentContext || "No recent messages"}`;
+
+  const toolCalls: Array<{ tool: string; args: any; result: any }> = [];
+  const conversationMessages: any[] = [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: prompt }
+  ];
+
+  // Tool calling loop (max 5 iterations to prevent infinite loops)
+  for (let iteration = 0; iteration < 5; iteration++) {
+    const response = await fetch("https://api.venice.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-instruct",
+        messages: conversationMessages,
+        tools: VENICE_TOOL_DEFINITIONS,
+        tool_choice: "auto",
+        max_tokens: 4000,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      throw new Error(`Venice AI API error (${response.status}): ${errorText}`);
+    }
+
+    const data = await response.json();
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error("Invalid response format from Venice AI");
+    }
+
+    const message = data.choices[0].message;
+
+    // Check if there are tool calls
+    if (message.tool_calls && message.tool_calls.length > 0) {
+      // Add assistant message with tool calls
+      conversationMessages.push({
+        role: "assistant",
+        content: message.content || null,
+        tool_calls: message.tool_calls
+      });
+
+      // Execute each tool call
+      for (const toolCall of message.tool_calls) {
+        if (toolCall.type === "function") {
+          const { name, arguments: argsString } = toolCall.function;
+          let args;
+          try {
+            args = JSON.parse(argsString);
+          } catch {
+            args = {};
+          }
+
+          const result = await executeToolCall(name, args);
+          toolCalls.push({
+            tool: name,
+            args,
+            result,
+          });
+
+          // Add tool response to conversation
+          conversationMessages.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(result)
+          });
+        }
+      }
+    } else {
+      // No tool calls, return the response
+      return {
+        response: message.content || "I apologize, but I couldn't generate a response.",
+        toolCalls,
+      };
+    }
+  }
+
+  // Max iterations reached
+  return {
+    response: "I've performed several tool operations for you. Is there anything specific you'd like me to help with?",
+    toolCalls,
+  };
+}
+
+/**
+ * Main function calling orchestrator - supports both Gemini and Venice
  */
 export async function callGeminiWithTools(
   prompt: string,
@@ -539,7 +844,12 @@ export async function callGeminiWithTools(
   response: string;
   toolCalls: Array<{ tool: string; args: any; result: any }>;
 }> {
-  const client = getAIClient(options.userKey);
+  // Route to Venice AI if selected
+  if (options.provider === 'venice') {
+    return withRetry(() => callVeniceWithTools(prompt, eventId, eventTheme, options.userKey), 3);
+  }
+
+  const client = getGeminiClient(options.userKey);
 
   if (!client) {
     throw new Error("Gemini AI client not initialized. Check AI settings.");
@@ -560,110 +870,91 @@ Current event theme: ${eventTheme || "Christmas"}
 Recent event context: ${recentContext || "No recent messages"}`;
 
   const modelName = await getModelName("flash", options.useGemini3);
-  const model = client.getGenerativeModel({
-    model: modelName,
-    systemInstruction: systemPrompt,
-    tools: [TOOL_DEFINITIONS],
-  });
+  
+  return withRetry(async () => {
+    const model = client.getGenerativeModel({
+      model: modelName,
+      systemInstruction: systemPrompt,
+      tools: [TOOL_DEFINITIONS],
+    });
 
-  const toolCalls: Array<{ tool: string; args: any; result: any }> = [];
-  let continueLoop = true;
-  const chat = model.startChat();
+    const toolCalls: Array<{ tool: string; args: any; result: any }> = [];
+    const chat = model.startChat();
 
-  // Send initial prompt
-  const result = await chat.sendMessage(prompt);
-  let response = result.response;
+    // Send initial prompt
+    const result = await chat.sendMessage(prompt);
+    let response = result.response;
 
-  // Function calling loop
-  while (continueLoop) {
-    const calls = response.functionCalls();
+    // Function calling loop (max 5 iterations to prevent infinite loops)
+    for (let iteration = 0; iteration < 5; iteration++) {
+      const calls = response.functionCalls();
 
-    if (!calls || calls.length === 0) {
-      continueLoop = false;
-      break;
-    }
-
-    const toolResults = [];
-
-    // Execute each tool call
-    for (const call of calls) {
-      let toolResult;
-
-      try {
-        switch (call.name) {
-          case "searchCarols":
-            toolResult = await handleSearchCarols(call.args as any);
-            break;
-          case "summarizeChat":
-            toolResult = await handleSummarizeChat(call.args as any);
-            break;
-          case "suggestSetlist":
-            toolResult = await handleSuggestSetlist(call.args as any);
-            break;
-          case "addContribution":
-            toolResult = await handleAddContribution(call.args as any);
-            break;
-          default:
-            toolResult = { error: `Unknown tool: ${call.name}` };
-        }
-      } catch (error) {
-        toolResult = {
-          error: `Tool execution failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-        };
+      if (!calls || calls.length === 0) {
+        break;
       }
 
-      toolCalls.push({
-        tool: call.name,
-        args: call.args,
-        result: toolResult,
-      });
+      const toolResults = [];
 
-      toolResults.push({
-        functionResponse: {
-          name: call.name,
-          response: toolResult,
-        },
-      });
+      // Execute each tool call
+      for (const call of calls) {
+        const toolResult = await executeToolCall(call.name, call.args);
+
+        toolCalls.push({
+          tool: call.name,
+          args: call.args,
+          result: toolResult,
+        });
+
+        toolResults.push({
+          functionResponse: {
+            name: call.name,
+            response: toolResult,
+          },
+        });
+      }
+
+      // Send tool results back to model
+      const continuationResult = await chat.sendMessage(toolResults);
+      response = continuationResult.response;
     }
 
-    // Send tool results back to model
-    const continuationResult = await chat.sendMessage(toolResults);
-    response = continuationResult.response;
-
-    // Check if model wants to call more tools
-    const nextCalls = response.functionCalls();
-    if (!nextCalls || nextCalls.length === 0) {
-      continueLoop = false;
-    }
-  }
-
-  const text = await response.text();
-  return {
-    response: text,
-    toolCalls,
-  };
+    const text = await response.text();
+    return {
+      response: text,
+      toolCalls,
+    };
+  }, 3);
 }
 
 /**
- * Simple text generation
+ * Simple text generation - supports both providers
  */
 export async function generateText(
   prompt: string,
   systemPrompt?: string,
   options: RequestOptions = {}
 ): Promise<string> {
-  const client = getAIClient(options.userKey);
+  // Handle Venice AI
+  if (options.provider === 'venice') {
+    const result = await withRetry(() => handleVeniceReasoning(prompt, systemPrompt, options.userKey), 3);
+    return result.response;
+  }
+
+  const client = getGeminiClient(options.userKey);
   if (!client) return "AI Key missing. Please provide a key in settings.";
 
   const modelName = await getModelName("flash", options.useGemini3);
-  const model = client.getGenerativeModel({
-    model: modelName,
-    systemInstruction: systemPrompt || "You are a helpful assistant.",
-  });
+  
+  return withRetry(async () => {
+    const model = client.getGenerativeModel({
+      model: modelName,
+      systemInstruction: systemPrompt || "You are a helpful assistant.",
+    });
 
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  return response.text();
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
+  }, 3);
 }
 
 /**

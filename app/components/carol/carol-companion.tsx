@@ -192,12 +192,12 @@ export function CarolCompanion({
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-2xl mx-auto px-4 py-2 space-y-4">
       {/* Warm Welcome Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-2"
+        className="text-center space-y-1"
       >
         <div className="flex items-center justify-center gap-2 text-amber-600">
           <Star className="w-4 h-4 fill-current" />
