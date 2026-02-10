@@ -59,10 +59,10 @@ export function EnhancedLyricsViewer({
     selectedLanguage === "en" || !translationInfo
       ? carol
       : {
-          ...carol,
-          title: translationInfo.title,
-          lyrics: translationInfo.lyrics || carol.lyrics,
-        };
+        ...carol,
+        title: translationInfo.title,
+        lyrics: translationInfo.lyrics || carol.lyrics,
+      };
 
   const state = useLyricsState({
     carol: displayCarol,
@@ -200,10 +200,10 @@ export function EnhancedLyricsViewer({
           {/* Insights Tab */}
           <TabsContent
             value="insights"
-            className="flex-1 m-0 overflow-hidden flex flex-col min-h-0"
+            className="flex-1 m-0 flex flex-col min-h-0"
           >
-            <ScrollArea className="flex-1 h-full">
-              <div className="p-6 space-y-12">
+            <ScrollArea className="flex-1 min-h-0">
+              <div className="p-6 space-y-12 pb-20">
                 <section>
                   <CarolCompanion
                     carolTitle={carol.title}
