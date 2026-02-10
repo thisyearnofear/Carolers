@@ -202,8 +202,8 @@ export function EnhancedLyricsViewer({
             value="insights"
             className="flex flex-col flex-1 overflow-hidden m-0"
           >
-            <ScrollArea className="flex-1">
-              <div className="p-6 space-y-12">
+            <ScrollArea className="flex-1 h-full">
+              <div className="p-6 space-y-12 min-h-full">
                 <section>
                   <CarolCompanion
                     carolTitle={carol.title}
