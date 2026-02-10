@@ -1,7 +1,7 @@
 import { reasonAboutSetlist, analyzeCarolCulture, suggestComplementaryCarols, analyzeCarolDeeply } from '@/lib/carol-reasoning';
 import { getCarols, type CarolFilters } from '@/lib/carols';
 import { getCarolInfo, getNextCarolRecommendations } from '@/lib/carol-recommendations';
-import { generateText, type RequestOptions, type AIProvider } from '@/lib/ai';
+import { generateText, generateWithReasoning, type RequestOptions, type AIProvider } from '@/lib/ai';
 import { CarolPrompts } from '@/lib/ai-prompts';
 
 // Direct logic for quick setlist suggestion (mirrored from ai-suggestions)
@@ -100,20 +100,21 @@ export async function POST(request: Request) {
         break;
 
       case 'getQuickInsight':
-        const { title, artist, insightType, prompt: customPrompt } = args;
-        const prompts: Record<string, string> = {
-          history: CarolPrompts.quickHistory(title, artist),
-          techniques: CarolPrompts.quickTechniques(title, artist),
-          difficulty: CarolPrompts.quickDifficulty(title, artist),
-          cultural: CarolPrompts.quickCultural(title, artist),
+        const { title: qTitle, artist: qArtist, insightType: qType, prompt: customPrompt } = args;
+        const qPrompts: Record<string, string> = {
+          story: CarolPrompts.quickHistory(qTitle, qArtist),
+          singAlong: CarolPrompts.quickTechniques(qTitle, qArtist),
+          performance: CarolPrompts.quickDifficulty(qTitle, qArtist),
+          traditions: CarolPrompts.quickCultural(qTitle, qArtist),
         };
         
-        const promptText = customPrompt 
-          ? CarolPrompts.customInsight(title, artist, customPrompt)
-          : (prompts[insightType] || prompts.history);
+        const qPromptText = customPrompt 
+          ? CarolPrompts.customInsight(qTitle, qArtist, customPrompt)
+          : (qPrompts[qType] || qPrompts.story);
 
-        result = await generateText(
-          promptText,
+        // Leverage Reasoning for all insights if requested, otherwise fallback to generating text
+        result = await generateWithReasoning(
+          qPromptText,
           "You are a warm, knowledgeable Christmas carol expert. Use clean Markdown formatting.",
           options
         );

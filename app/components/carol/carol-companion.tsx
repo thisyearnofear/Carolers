@@ -13,6 +13,7 @@ import {
   Star,
   ChevronRight,
   Loader2,
+  Zap,
 } from "lucide-react";
 import { useAISettings } from "@/store/use-ai-settings";
 
@@ -77,11 +78,12 @@ export function CarolCompanion({
   carolArtist,
 }: CarolCompanionProps) {
   const [activeInsight, setActiveInsight] = useState<InsightType | null>(null);
-  const [insights, setInsights] = useState<Record<InsightType, string>>(
+  const [insights, setInsights] = useState<Record<InsightType, { response: string, thinking: string }>>(
     {} as any,
   );
   const [loading, setLoading] = useState<InsightType | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [showThinking, setShowThinking] = useState(false);
   
   const settings = useAISettings();
 
@@ -95,6 +97,7 @@ export function CarolCompanion({
     setLoading(type);
     setActiveInsight(type);
     setHasInteracted(true);
+    setShowThinking(false);
 
     try {
       const card = INSIGHT_CARDS.find((c) => c.id === type);
@@ -119,8 +122,12 @@ export function CarolCompanion({
       });
 
       if (response.ok) {
-        const { result: insight } = await response.json();
-        setInsights((prev) => ({ ...prev, [type]: insight }));
+        const { result } = await response.json();
+        // Handle both string and object results for backward compatibility
+        const insightData = typeof result === 'string' 
+          ? { response: result, thinking: "" }
+          : result;
+        setInsights((prev) => ({ ...prev, [type]: insightData }));
       }
     } catch (error) {
       console.error("Failed to fetch insight:", error);
@@ -294,9 +301,43 @@ export function CarolCompanion({
               {/* Insight Content */}
               <div className="prose prose-sm max-w-none">
                 <div className="text-slate-700 leading-relaxed">
-                  {renderContent(insights[activeInsight])}
+                  {renderContent(insights[activeInsight].response)}
                 </div>
               </div>
+
+              {/* Thinking Trace */}
+              {insights[activeInsight].thinking && (
+                <div className="mt-4 border-t border-white/30 pt-4">
+                  <button
+                    onClick={() => setShowThinking(!showThinking)}
+                    className="flex items-center gap-2 text-[10px] font-bold text-slate-500 hover:text-primary transition-colors uppercase tracking-widest"
+                  >
+                    <Zap className={`w-3 h-3 ${showThinking ? "fill-primary text-primary" : ""}`} />
+                    {showThinking ? "Hide Insight Intelligence" : "Show Thinking Process"}
+                  </button>
+
+                  <AnimatePresence>
+                    {showThinking && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden mt-3"
+                      >
+                        <div className="p-4 rounded-xl bg-slate-900 text-emerald-400 font-mono text-[10px] leading-relaxed border border-slate-800 shadow-inner">
+                          <div className="flex items-center gap-2 mb-2 text-slate-500 border-b border-slate-800 pb-2">
+                            <Loader2 className="w-2 h-2 animate-pulse" />
+                            <span className="uppercase tracking-widest text-[8px]">Extended Thinking Protocol</span>
+                          </div>
+                          <div className="whitespace-pre-wrap opacity-80">
+                            {insights[activeInsight].thinking}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
 
               {/* Magical Footer */}
               <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/50">
